@@ -40,16 +40,27 @@ namespace xianyun.Model
         }
 
         // 私有字段，用于存储验证码
-        private string _validationCode;
+        private string _accessToken;
 
         // 公有属性，访问或设置验证码
-        public string ValidationCode
+        public string AccessToken
         {
-            get => _validationCode; // 获取 _validationCode 的值
+            get => _accessToken; // 获取 _accessToken 的值
             set
             {
-                _validationCode = value; // 设置 _validationCode 的值
+                _accessToken = value; // 设置 _accessToken 的值
                 this.DoNotify(); // 触发属性更改通知
+            }
+        }
+
+        private bool _isLoginButtonEnabled = true;
+        public bool IsLoginButtonEnabled
+        {
+            get => _isLoginButtonEnabled;
+            set
+            {
+                _isLoginButtonEnabled = value;
+                DoNotify();  // 通知UI更新
             }
         }
     }

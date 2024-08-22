@@ -1,0 +1,20 @@
+﻿<Window x:Class="xianyun.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:xianyun"
+        mc:Ignorable="d"
+        Title="XianyunDraw" Height="1440" Width="2304"
+        FontSize="14"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" 
+        AllowsTransparency="True" 
+        Background="{x:Null}">
+    <Border Margin="5" Background="White" CornerRadius="15,15,15,15">
+        <Border.Effect>
+            <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="5" Opacity="0.3" Direction="0"/>
+            <!--阴影-->
+        </Border.Effect>
+    </Border>
+</Window>
