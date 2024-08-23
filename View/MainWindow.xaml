@@ -77,32 +77,34 @@
                             <RowDefinition Height="1*"/>
                         </Grid.RowDefinitions>
                         <Border Grid.Row="1" Margin="5" CornerRadius="15" Background="Transparent">
-                            <Button Template="{StaticResource LeftMenuBthTemplate}"
-                                    Content="&#xe724;" Foreground="#70677e"/>
+                            <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" IsChecked="True"
+                                    Content="&#xe724;" Foreground="#70677e" GroupName="LeftMenu"/>
                         </Border>
                         <Border Grid.Row="2" Margin="5" CornerRadius="15" Background="Transparent">
-                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
-                                    Content="&#xecb9;" Foreground="#70677e"/>
+                            <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
+                                    Content="&#xecb9;" Foreground="#70677e" GroupName="LeftMenu"/>
                         </Border>
                         <Border Grid.Row="3" Margin="5" CornerRadius="15" Background="Transparent">
-                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
-                                    Content="&#xe888;" Foreground="#70677e"/>
+                            <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
+                                    Content="&#xe888;" Foreground="#70677e" GroupName="LeftMenu"/>
                         </Border>
                         <Border Grid.Row="4" Margin="5" CornerRadius="15" Background="Transparent">
-                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
-                                    Content="&#xe6bf;" Foreground="#70677e"/>
+                            <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
+                                    Content="&#xe6bf;" Foreground="#70677e" GroupName="LeftMenu"/>
                         </Border>
                         <Border Grid.Row="5" Margin="5" CornerRadius="15" Background="Transparent">
-                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
-                                    Content="&#xe699;" Foreground="#70677e"/>
+                            <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
+                                    Content="&#xe699;" Foreground="#70677e" GroupName="LeftMenu"/>
                         </Border>
                         <Border Grid.Row="6" Margin="5" CornerRadius="15" Background="Transparent">
-                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
-                                    Content="&#xe669;" Foreground="#70677e"/>
+                            <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
+                                    Content="&#xe669;" Foreground="#70677e" GroupName="LeftMenu"/>
                         </Border>
                         <Border Grid.Row="10" Margin="5" CornerRadius="15" Background="#7c9c84">
                             <Button Template="{StaticResource LeftMenuBthTemplate}" 
-                                    Content="&#xe651;" Foreground="#70677e"/>
+                                    Content="&#xe651;" Foreground="#70677e"
+                                    Command="{Binding CloseWindowCommand}" 
+                                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
                         </Border>
 
                     </Grid>

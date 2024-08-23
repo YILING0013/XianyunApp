@@ -78,7 +78,9 @@
     <Compile Include="Common\NotifyBase.cs" />
     <Compile Include="Common\PasswordBoxHelper.cs" />
     <Compile Include="Model\LoginModel.cs" />
+    <Compile Include="Model\MainWindowModel.cs" />
     <Compile Include="ViewModel\LoginViewModel.cs" />
+    <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="View\Loginview.xaml.cs">
       <DependentUpon>Loginview.xaml</DependentUpon>
     </Compile>

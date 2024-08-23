@@ -12,7 +12,6 @@ using xianyun.Model;
 using Newtonsoft.Json;  // 用于序列化和反序列化 JSON
 using CommunityToolkit.Mvvm.Input;
 using WpfWindow = System.Windows.Window;
-using HandyControlWindow = HandyControl.Controls.Window;
 using xianyun.View;
 
 namespace xianyun.ViewModel
