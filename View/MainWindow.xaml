@@ -4,17 +4,110 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:xianyun"
+        xmlns:hc="https://handyorg.github.io/handycontrol"
         mc:Ignorable="d"
-        Title="XianyunDraw" Height="1440" Width="2304"
+        Title="XianyunDraw" Height="832" Width="1280"
         FontSize="14"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None" 
         AllowsTransparency="True" 
-        Background="{x:Null}">
-    <Border Margin="5" Background="White" CornerRadius="15,15,15,15">
+        Background="Transparent"
+        ResizeMode="NoResize">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Assets/Styles/MainWindowStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border Background="#cfd5e5" Margin="5" 
+            CornerRadius="20"
+            BorderThickness="2" BorderBrush="#ebedf3"
+            Padding="10" MouseDown="Border_MouseDown">
         <Border.Effect>
-            <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="5" Opacity="0.3" Direction="0"/>
+            <DropShadowEffect Color="#cddced" ShadowDepth="0" BlurRadius="5" Opacity="0.3" Direction="0"/>
             <!--阴影-->
         </Border.Effect>
+        <Border CornerRadius="15">
+            <Border.Effect>
+                <DropShadowEffect Color="Gray" ShadowDepth="1" BlurRadius="5" Opacity="0.3" Direction="0"/>
+                <!--阴影-->
+            </Border.Effect>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#f0f4f9" Offset="0"/>
+                    <GradientStop Color="#ebe8e7" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="32*"/>
+                </Grid.ColumnDefinitions>
+                <!--左侧菜单-->
+                <Border x:Name="LeftBorder" Grid.Column="0"
+                        CornerRadius="20" Margin="20" BorderBrush="#7b9d91
+"
+                        BorderThickness="4">
+                    <Border.Effect>
+                        <DropShadowEffect Color="Gray" ShadowDepth="2" 
+                                          BlurRadius="4" Opacity="0.5" 
+                                          Direction="0"/>
+                        <!--阴影-->
+                    </Border.Effect>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#ccdcd4" Offset="0" />
+                            <GradientStop Color="#a2bfab" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="1" Margin="5" CornerRadius="15" Background="Transparent">
+                            <Button Template="{StaticResource LeftMenuBthTemplate}"
+                                    Content="&#xe724;" Foreground="#70677e"/>
+                        </Border>
+                        <Border Grid.Row="2" Margin="5" CornerRadius="15" Background="Transparent">
+                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
+                                    Content="&#xecb9;" Foreground="#70677e"/>
+                        </Border>
+                        <Border Grid.Row="3" Margin="5" CornerRadius="15" Background="Transparent">
+                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
+                                    Content="&#xe888;" Foreground="#70677e"/>
+                        </Border>
+                        <Border Grid.Row="4" Margin="5" CornerRadius="15" Background="Transparent">
+                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
+                                    Content="&#xe6bf;" Foreground="#70677e"/>
+                        </Border>
+                        <Border Grid.Row="5" Margin="5" CornerRadius="15" Background="Transparent">
+                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
+                                    Content="&#xe699;" Foreground="#70677e"/>
+                        </Border>
+                        <Border Grid.Row="6" Margin="5" CornerRadius="15" Background="Transparent">
+                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
+                                    Content="&#xe669;" Foreground="#70677e"/>
+                        </Border>
+                        <Border Grid.Row="10" Margin="5" CornerRadius="15" Background="#7c9c84">
+                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
+                                    Content="&#xe651;" Foreground="#70677e"/>
+                        </Border>
+
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
     </Border>
 </Window>

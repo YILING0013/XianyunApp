@@ -566,3 +566,117 @@
 ```
 
 ---
+
+# StackPanel 控件
+
+`<StackPanel>` 是 WPF 中的一种布局容器，用于将子元素按顺序堆叠排列。它可以按垂直或水平方向排列子元素，非常适合用于简单的列表、菜单或工具栏等布局。
+
+## 基本用法
+
+### 垂直堆叠
+
+默认情况下，`<StackPanel>` 会将子元素垂直堆叠排列。
+
+```xml
+<StackPanel>
+    <Button Content="Button 1" />
+    <Button Content="Button 2" />
+    <Button Content="Button 3" />
+</StackPanel>
+```
+
+### 水平堆叠
+
+通过设置 `Orientation` 属性为 `Horizontal`，可以使子元素按水平方向排列。
+
+```xml
+<StackPanel Orientation="Horizontal">
+    <Button Content="Button 1" />
+    <Button Content="Button 2" />
+    <Button Content="Button 3" />
+</StackPanel>
+```
+
+## 常用属性
+
+### `Orientation`
+
+- **类型**: `Orientation` (枚举类型)
+- **默认值**: `Vertical`
+- **说明**: 控制子元素的排列方向。可以设置为 `Vertical`（垂直）或 `Horizontal`（水平）。
+
+### 示例
+
+```xml
+<StackPanel Orientation="Horizontal">
+    <Button Content="Button 1" />
+    <Button Content="Button 2" />
+    <Button Content="Button 3" />
+</StackPanel>
+```
+
+### `Background`
+
+- **类型**: `Brush`
+- **说明**: 设置 `StackPanel` 的背景色。可以是单一颜色、渐变颜色或图像。
+
+### 示例
+
+```xml
+<StackPanel Background="LightGray">
+    <TextBlock Text="This is a gray background" />
+</StackPanel>
+```
+
+### `Margin`
+
+- **类型**: `Thickness`
+- **说明**: 设置 `StackPanel` 周围的外边距。可以单独设置四个方向的边距（上、下、左、右）。
+
+### 示例
+
+```xml
+<StackPanel Margin="10">
+    <TextBlock Text="This StackPanel has a margin of 10 units" />
+</StackPanel>
+```
+
+### `HorizontalAlignment` 和 `VerticalAlignment`
+
+- **类型**: `HorizontalAlignment`, `VerticalAlignment`
+- **说明**: 控制 `StackPanel` 在其父容器中的对齐方式。常见的值包括 `Left`, `Right`, `Center`, `Stretch`（对于水平对齐），以及 `Top`, `Bottom`, `Center`, `Stretch`（对于垂直对齐）。
+
+### 示例
+
+```xml
+<StackPanel HorizontalAlignment="Center" VerticalAlignment="Top">
+    <Button Content="Centered Button" />
+</StackPanel>
+```
+
+### `Children`
+
+- **类型**: `UIElementCollection`
+- **说明**: 包含 `StackPanel` 内的所有子元素。你可以通过添加子元素到 `StackPanel` 来构建布局。
+
+### 示例
+
+```xml
+<StackPanel>
+    <TextBlock Text="Child 1" />
+    <TextBlock Text="Child 2" />
+    <TextBlock Text="Child 3" />
+</StackPanel>
+```
+
+## 使用场景
+
+- **简单的列表或菜单**: 适合用于创建简单的垂直或水平列表，如导航菜单、按钮组等。
+- **工具栏**: 可以用于创建水平或垂直排列的工具按钮。
+- **嵌套布局**: 可以将 `StackPanel` 作为其他布局容器的一部分，进行更复杂的界面布局。
+
+## 局限性
+
+虽然 `StackPanel` 使用简单，但它不适合处理复杂布局。如果需要更精细的布局控制（例如，按行和列排列控件、控件自动调整大小等），建议使用 `Grid` 或其他更高级的布局容器。
+
+---
