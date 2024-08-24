@@ -338,7 +338,7 @@
                     <RowDefinition Height="84*" />
                 </Grid.RowDefinitions>
                 <TextBlock Foreground="#64887f" VerticalAlignment="Top" TextWrapping="Wrap" Text="XIANYUN APP" HorizontalAlignment="Center" FontSize="32" Margin="0,189,0,0" Height="41" Grid.RowSpan="2" Width="219"/>
-                <TextBlock Foreground="#ad5c5c" TextWrapping="Wrap" Text="{Binding Message}" Margin="10,4,10,10" Grid.Row="1"/>
+                <TextBlock Foreground="#ad5c5c" TextWrapping="Wrap" Text="{Binding Message}" Margin="10,10,10,10" Grid.Row="1"/>
                 <Grid Grid.Row="2">
                     <Grid>
                         <Grid.ColumnDefinitions>

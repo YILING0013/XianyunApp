@@ -2,16 +2,44 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using xianyun.Common;
 
 namespace xianyun.ViewModel
 {
-    internal class MainViewModel
+    public class MainViewModel : NotifyBase
     {
+        public ICommand NavigateCommand { get; }
+        private void Navigate(string pageName)
+        {
+            if (Application.Current.MainWindow.FindName("MainWindowFrame") is Frame frame)
+            {
+                switch (pageName)
+                {
+                    case "Welcome":
+                        frame.Navigate(new MainPages.WelcomePage());
+                        break;
+                    case "Page1":
+                        frame.Navigate(new MainPages.Txt2imgPage());
+                        break;
+                    case "Page2":
+                        frame.Navigate(new MainPages.Img2ImgPage());
+                        break;
+                    case "Page3":
+                        frame.Navigate(new MainPages.superResolutionPage());
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
         public ICommand CloseWindowCommand { get; }
 
         public MainViewModel()
         {
+            NavigateCommand = new RelayCommand<string>(Navigate);
+            Navigate("Welcome");
             CloseWindowCommand = new RelayCommand<Window>(async window =>
             {
                 if (window != null)
@@ -24,6 +52,12 @@ namespace xianyun.ViewModel
                     });
                 }
             });
+        }
+        public FrameworkElement _mainContent;
+        public FrameworkElement MainConTent
+        {
+            get { return _mainContent; }
+            set { _mainContent = value; this.DoNotify(); }
         }
     }
 }

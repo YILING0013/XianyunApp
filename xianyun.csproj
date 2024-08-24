@@ -63,6 +63,22 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="MainPages\Img2ImgPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainPages\superResolutionPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainPages\Txt2imgPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainPages\WelcomePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\Loginview.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -77,6 +93,18 @@
     </Compile>
     <Compile Include="Common\NotifyBase.cs" />
     <Compile Include="Common\PasswordBoxHelper.cs" />
+    <Compile Include="MainPages\Img2ImgPage.xaml.cs">
+      <DependentUpon>Img2ImgPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainPages\superResolutionPage.xaml.cs">
+      <DependentUpon>superResolutionPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainPages\Txt2imgPage.xaml.cs">
+      <DependentUpon>Txt2imgPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainPages\WelcomePage.xaml.cs">
+      <DependentUpon>WelcomePage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Model\LoginModel.cs" />
     <Compile Include="Model\MainWindowModel.cs" />
     <Compile Include="ViewModel\LoginViewModel.cs" />
@@ -138,6 +166,9 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="NLog">
+      <Version>5.3.3</Version>
     </PackageReference>
     <PackageReference Include="WPF-UI">
       <Version>3.0.5</Version>

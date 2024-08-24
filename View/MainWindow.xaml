@@ -46,8 +46,7 @@
                 </Grid.ColumnDefinitions>
                 <!--左侧菜单-->
                 <Border x:Name="LeftBorder" Grid.Column="0"
-                        CornerRadius="20" Margin="20" BorderBrush="#7b9d91
-"
+                        CornerRadius="20" Margin="20" BorderBrush="#7b9d91"
                         BorderThickness="4">
                     <Border.Effect>
                         <DropShadowEffect Color="Gray" ShadowDepth="2" 
@@ -77,28 +76,31 @@
                             <RowDefinition Height="1*"/>
                         </Grid.RowDefinitions>
                         <Border Grid.Row="1" Margin="5" CornerRadius="15" Background="Transparent">
-                            <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" IsChecked="True"
-                                    Content="&#xe724;" Foreground="#70677e" GroupName="LeftMenu"/>
+                            <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}"
+                                         Content="&#xe724;" Foreground="#70677e" GroupName="LeftMenu"
+                                         Command="{Binding NavigateCommand}" CommandParameter="Page1"/>
                         </Border>
                         <Border Grid.Row="2" Margin="5" CornerRadius="15" Background="Transparent">
                             <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
-                                    Content="&#xecb9;" Foreground="#70677e" GroupName="LeftMenu"/>
+                                         Content="&#xecb9;" Foreground="#70677e" GroupName="LeftMenu"
+                                         Command="{Binding NavigateCommand}" CommandParameter="Page2"/>
                         </Border>
                         <Border Grid.Row="3" Margin="5" CornerRadius="15" Background="Transparent">
                             <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
-                                    Content="&#xe888;" Foreground="#70677e" GroupName="LeftMenu"/>
+                                         Content="&#xe888;" Foreground="#70677e" GroupName="LeftMenu"
+                                         Command="{Binding NavigateCommand}" CommandParameter="Page3"/>
                         </Border>
                         <Border Grid.Row="4" Margin="5" CornerRadius="15" Background="Transparent">
                             <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
-                                    Content="&#xe6bf;" Foreground="#70677e" GroupName="LeftMenu"/>
+                                         Content="&#xe6bf;" Foreground="#70677e" GroupName="LeftMenu"/>
                         </Border>
                         <Border Grid.Row="5" Margin="5" CornerRadius="15" Background="Transparent">
                             <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
-                                    Content="&#xe699;" Foreground="#70677e" GroupName="LeftMenu"/>
+                                         Content="&#xe699;" Foreground="#70677e" GroupName="LeftMenu"/>
                         </Border>
                         <Border Grid.Row="6" Margin="5" CornerRadius="15" Background="Transparent">
                             <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
-                                    Content="&#xe669;" Foreground="#70677e" GroupName="LeftMenu"/>
+                                         Content="&#xe669;" Foreground="#70677e" GroupName="LeftMenu"/>
                         </Border>
                         <Border Grid.Row="10" Margin="5" CornerRadius="15" Background="#7c9c84">
                             <Button Template="{StaticResource LeftMenuBthTemplate}" 
@@ -109,6 +111,23 @@
 
                     </Grid>
                 </Border>
+                <!--右侧内容-->
+                <Frame Grid.Column="1" Name="MainWindowFrame" NavigationUIVisibility="Hidden"/>
+                <!--<Border Grid.Column="1" CornerRadius="20" Margin="0,20,10,20" BorderBrush="#7b9d91"
+                        BorderThickness="4">
+                    <Border.Effect>
+                        <DropShadowEffect Color="Gray" ShadowDepth="2" 
+                                          BlurRadius="4" Opacity="0.5" 
+                                          Direction="0"/>
+                        --><!--阴影--><!--
+                    </Border.Effect>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#ccdcd4" Offset="0" />
+                            <GradientStop Color="#a2bfab" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>-->
             </Grid>
         </Border>
     </Border>

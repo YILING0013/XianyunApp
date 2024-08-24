@@ -1,0 +1,28 @@
+﻿<Page x:Class="xianyun.MainPages.superResolutionPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:xianyun.MainPages"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="superResolutionPage">
+
+    <Border Grid.Column="1" CornerRadius="20" Margin="0,20,10,20" BorderBrush="#7b9d91"
+    BorderThickness="4">
+        <Border.Effect>
+            <DropShadowEffect Color="Gray" ShadowDepth="2" 
+                      BlurRadius="4" Opacity="0.5" 
+                      Direction="0"/>
+
+            <!--阴影-->
+        </Border.Effect>
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#ccdcd4" Offset="0" />
+                <GradientStop Color="#a2bfab" Offset="1" />
+            </LinearGradientBrush>
+        </Border.Background>
+        <TextBlock Text="This is Page 3" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24"/>
+    </Border>
+</Page>

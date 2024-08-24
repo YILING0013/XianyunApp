@@ -1,0 +1,258 @@
+﻿<Page x:Class="xianyun.MainPages.Txt2imgPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:xianyun.MainPages"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      mc:Ignorable="d" 
+      d:DesignHeight="758" d:DesignWidth="1129"
+      FontSize="12" 
+      Title="Txt2imgPage">
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemesDictionary Theme="Light" />
+                <ui:ControlsDictionary />
+            </ResourceDictionary.MergedDictionaries>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="DarkSlateGray"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Border CornerRadius="20" Margin="0,20,10,20" BorderBrush="#7b9d91"
+        BorderThickness="4">
+        <Border.Effect>
+            <DropShadowEffect Color="Gray" ShadowDepth="2" 
+                          BlurRadius="4" Opacity="0.5" 
+                          Direction="0"/>
+
+            <!--阴影-->
+        </Border.Effect>
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#ccdcd4" Offset="0" />
+                <GradientStop Color="#a2bfab" Offset="1" />
+            </LinearGradientBrush>
+        </Border.Background>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="771*"/>
+                <ColumnDefinition Width="340*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+
+            </Grid>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="3*"/>
+                    <RowDefinition Height="12*"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Background="#ccdcd4" Margin="10" CornerRadius="5,5,5,5">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="15*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="15*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="15*"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="6,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="22*"/>
+                                <ColumnDefinition Width="60*"/>
+                                <ColumnDefinition Width="10*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="连续绘制(次):"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                <TextBlock Text="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                        <Grid Grid.Row="2" Margin="6,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60*"/>
+                                <ColumnDefinition Width="120*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="使用NovelAI模型:" />
+                            <ComboBox  Grid.Column="1" SelectedIndex="0">
+                                <ComboBoxItem Content="nai-diffusion-3"/>
+                                <ComboBoxItem Content="nai-diffusion-furry-3"/>
+                            </ComboBox>
+                        </Grid>
+                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                        <Button Content="Generate Image" Grid.Row="4" Margin="6,2,6,2"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Background="#ccdcd4" Margin="10" CornerRadius="5,5,5,5">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="10*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="10*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="10*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="10*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="10*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="10*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="10*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="10*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="10*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="40*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Guidance Scale Slider -->
+                        <Grid Grid.Row="0" Margin="6,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50*"/>
+                                <ColumnDefinition Width="100*"/>
+                                <ColumnDefinition Width="15*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Guidance Scale:" Grid.Column="0"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="10" Value="5"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                <TextBlock Text="5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <!-- Horizontal Divider -->
+                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                        <!-- 采样 (Sampling) ComboBox -->
+                        <Grid Grid.Row="2" Margin="6,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="25*"/>
+                                <ColumnDefinition Width="80*"/>
+                                <ColumnDefinition Width="25*"/>
+                                <ColumnDefinition Width="90*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="采样:" Grid.Column="0"/>
+                            <ComboBox Grid.Column="1" SelectedIndex="0">
+                                <ComboBoxItem Content="Euler"/>
+                                <ComboBoxItem Content="Other Sampling Methods"/>
+                            </ComboBox>
+                            <TextBlock Text="Seed:" Grid.Column="2"/>
+                            <TextBox  Grid.Column="3"/>
+                        </Grid>
+                        <!-- Horizontal Divider -->
+                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+                        <!-- Steps Slider -->
+                        <Grid Grid.Row="4" Margin="6,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="16*"/>
+                                <ColumnDefinition Width="90*"/>
+                                <ColumnDefinition Width="14*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Steps:"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="28"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                <TextBlock Text="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- Horizontal Divider -->
+                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" 
+                Grid.Row="5" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+
+                        <!-- Width and Height Sliders -->
+                        <Grid Grid.Row="6" Margin="6,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20*"/>
+                                <ColumnDefinition Width="100*"/>
+                                <ColumnDefinition Width="25*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Width:"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="1024"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                <TextBlock Text="1024" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- Horizontal Divider -->
+                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" 
+                Grid.Row="7" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+
+                        <Grid Grid.Row="8" Margin="6,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20*"/>
+                                <ColumnDefinition Width="100*"/>
+                                <ColumnDefinition Width="25*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Height:"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="1024"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                <TextBlock Text="1024" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <!-- Horizontal Divider -->
+                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="9" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+                        <!-- 便捷分辨率 (Convenient Resolution) ComboBox -->
+                        <Grid Grid.Row="10" Margin="6,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60*"/>
+                                <ColumnDefinition Width="130*"/>
+                                <ColumnDefinition Width="80*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="便捷分辨率:"/>
+                            <ComboBox Grid.Column="1" SelectedIndex="0">
+                                <ComboBoxItem Content="1024*1024"/>
+                                <ComboBoxItem Content="512*512"/>
+                            </ComboBox>
+                            <ui:ToggleSwitch OffContent="禁用中" OnContent="已开启" Grid.Column="2" FontSize="12" HorizontalAlignment="Right" Foreground="DarkSlateGray"/>
+                        </Grid>
+                        <!-- Horizontal Divider -->
+                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="11" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+                        <!-- Prompt Guidance Rescale Slider -->
+                        <Grid Grid.Row="12" Margin="6,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100*"/>
+                                <ColumnDefinition Width="80*"/>
+                                <ColumnDefinition Width="16*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Prompt Guidance Rescale:"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="0"  TickFrequency="0.1" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                <TextBlock Text="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <!-- Horizontal Divider -->
+                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="13" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                        <!-- Noise Schedule ComboBox -->
+                        <Grid Grid.Row="14" Margin="6,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110*"/>
+                                <ColumnDefinition Width="100*"/>
+                                <ColumnDefinition Width="140*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Noise Schedule:"/>
+                            <ComboBox Grid.Column="1" SelectedIndex="0">
+                                <ComboBoxItem Content="native"/>
+                                <ComboBoxItem Content="other"/>
+                            </ComboBox>
+                            <Grid Grid.Column="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox Grid.Column="0" Margin="2"  Content="SMEA" FontSize="10"/>
+                                <CheckBox Grid.Column="1" Margin="2"  Content="DYN" FontSize="10"/>
+                            </Grid>
+                        </Grid>
+                        <!-- Horizontal Divider -->
+                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="15" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Page>
