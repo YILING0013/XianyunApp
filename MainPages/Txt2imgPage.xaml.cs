@@ -26,7 +26,7 @@ namespace xianyun.MainPages
         public Txt2imgPage()
         {
             InitializeComponent();
-            AddTagControls();
+            //AddTagControls();
         }
         private void AddTagControls()
         {
@@ -43,6 +43,85 @@ namespace xianyun.MainPages
                 // Add the TagControl to the WrapPanel
                 TagsContainer.Children.Add(tagControl);
             }
+        }
+        private void TagsContainer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2) {
+                InputTextBox.Text = string.Empty;
+                InputTextBox.Visibility = Visibility.Visible;
+                InputTextBox.Focus(); 
+            }
+        }
+        private void InputTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ProcessInputText();
+        }
+
+        private void InputTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                ProcessInputText();
+            }
+        }
+
+        private void ProcessInputText()
+        {
+            if (InputTextBox.Visibility == Visibility.Visible)
+            {
+                string inputText = InputTextBox.Text.Trim();
+
+                if (!string.IsNullOrEmpty(inputText))
+                {
+                    // 将中文逗号转换为英文逗号
+                    inputText = inputText.Replace("，", ",");
+
+                    // 分割文本
+                    string[] tags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (var tag in tags)
+                    {
+                        // 自动补全括号
+                        string adjustedTag = AutoCompleteBrackets(tag.Trim());
+
+                        // 创建TagControl并添加到WrapPanel
+                        TagControl tagControl = new TagControl(adjustedTag);
+                        TagsContainer.Children.Add(tagControl);
+                    }
+                }
+
+                // 隐藏TextBox
+                InputTextBox.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private string AutoCompleteBrackets(string text)
+        {
+            if (text.Count(c => c == '[') != text.Count(c => c == ']'))
+            {
+                if (text.Count(c => c == '[') > text.Count(c => c == ']'))
+                {
+                    text += "]";
+                }
+                else
+                {
+                    text = "[" + text;
+                }
+            }
+
+            if (text.Count(c => c == '{') != text.Count(c => c == '}'))
+            {
+                if (text.Count(c => c == '{') > text.Count(c => c == '}'))
+                {
+                    text += "}";
+                }
+                else
+                {
+                    text = "{" + text;
+                }
+            }
+
+            return text;
         }
 
         private void TagsContainer_DragOver(object sender, DragEventArgs e)
@@ -233,22 +312,19 @@ namespace xianyun.MainPages
 
         private void TagsContainer_Drop(object sender, DragEventArgs e)
         {
-
             WrapPanel panel = sender as WrapPanel;
             if (panel == null)
             {
                 return;
             }
+
             AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(panel);
-            if (adornerLayer != null)
+            if (adornerLayer != null && currentAdorner != null)
             {
-                // 移除之前的Adorner对象
-                if (currentAdorner != null)
-                {
-                    adornerLayer.Remove(currentAdorner);
-                    currentAdorner = null;
-                }
+                adornerLayer.Remove(currentAdorner);
+                currentAdorner = null;
             }
+
             TagControl dragControl = null;
             try
             {
@@ -270,119 +346,43 @@ namespace xianyun.MainPages
             {
                 // 获取鼠标相对于WrapPanel的位置
                 Point position = e.GetPosition(panel);
-                //System.Diagnostics.Debug.WriteLine(position);
 
-                e.Effects = DragDropEffects.Move;
-
-                // 定义两个变量，分别表示左边和右边最接近鼠标位置的子控件
-                UIElement leftElement = null;
-                UIElement rightElement = null;
+                // 定义插入位置
                 int insertIndex = -1;
-
-                if (panel.Children.Count == 0)
-                {
-                    e.Effects = DragDropEffects.None;
-                    return;
-                }
-
-                // 遍历子控件，找到左边和右边最接近鼠标位置的子控件
-                // System.Diagnostics.Debug.WriteLine(panel.Children.Count);
                 for (int i = 0; i < panel.Children.Count; i++)
                 {
                     var element = panel.Children[i];
-                    UIElement nextElement = null;
-                    if (i + 1 < panel.Children.Count)
-                    {
-                        nextElement = panel.Children[i + 1];
-                    }
-                    // System.Diagnostics.Debug.WriteLine(panel.Children.IndexOf(element));
-                    //System.Diagnostics.Debug.WriteLine(element);
-                    // 获取子控件相对于WrapPanel的坐标和大小
                     Point elementPosition = element.TranslatePoint(new Point(0, 0), panel);
-                    //System.Diagnostics.Debug.WriteLine(elementPosition);
                     double elementWidth = element.DesiredSize.Width;
                     double elementHeight = element.DesiredSize.Height;
 
-                    // 判断是否在同一行或同一列
-                    var padding = 0;
-                    if (i == 0 && position.Y < elementPosition.Y - padding)
+                    // 判断是否在同一行
+                    if (position.Y >= elementPosition.Y && position.Y <= elementPosition.Y + elementHeight)
                     {
-                        rightElement = element;
-                        leftElement = null;
-                        insertIndex = 0;
-                        break;
-                    }
-                    bool sameRow = position.Y >= elementPosition.Y - padding && position.Y <= elementPosition.Y + elementHeight + padding;
-
-                    if (sameRow)
-                    {
-                        if (position.X >= elementPosition.X + elementWidth / 2)
+                        if (position.X < elementPosition.X + elementWidth / 2)
                         {
-                            if (nextElement == null)
-                            {
-                                leftElement = element;
-                                rightElement = null;
-                                insertIndex = panel.Children.Count;
-                                break;
-                            }
-                            else
-                            {
-                                Point elementPositionNext = nextElement.TranslatePoint(new Point(0, 0), panel);
-                                double elementWidthNext = nextElement.DesiredSize.Width;
-                                double elementHeightNext = nextElement.DesiredSize.Height;
-                                bool sameRowNext = position.Y >= elementPositionNext.Y - padding && position.Y <= elementPositionNext.Y + elementHeightNext + padding;
-                                if (sameRowNext)
-                                {
-                                    if (position.X <= elementPositionNext.X + elementWidthNext / 2)
-                                    {
-                                        leftElement = element;
-                                        rightElement = nextElement;
-                                        insertIndex = i + 1;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    leftElement = element;
-                                    rightElement = null;
-                                    insertIndex = i + 1;
-                                    break;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            rightElement = element;
-                            leftElement = null;
                             insertIndex = i;
                             break;
                         }
                     }
                 }
 
+                // 如果没有找到合适的位置，插入到最后
                 if (insertIndex == -1)
                 {
-                    leftElement = panel.Children[panel.Children.Count - 1];
-                    rightElement = null;
                     insertIndex = panel.Children.Count;
                 }
 
-                System.Diagnostics.Debug.WriteLine(insertIndex);
                 int currentIndex = panel.Children.IndexOf(dragControl);
-                if (currentIndex == -1)
+                if (currentIndex != -1 && insertIndex != currentIndex)
                 {
-                    return;
-                }
-                if (insertIndex > currentIndex)
-                {
-                    insertIndex--;
-                }
-                if (insertIndex == currentIndex)
-                {
-                    return;
+                    panel.Children.RemoveAt(currentIndex);
+                    if (insertIndex > currentIndex) insertIndex--;
+                    panel.Children.Insert(insertIndex, dragControl);
                 }
             }
         }
+
         private void TagsContainer_OnRealTargetDragLeave(object sender, DragEventArgs e)
         {
 

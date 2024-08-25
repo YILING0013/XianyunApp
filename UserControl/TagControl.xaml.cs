@@ -124,22 +124,56 @@ namespace xianyun.UserControl
 
         private void AdjustTextStrength(bool increase)
         {
+            // 提取当前的中文和英文显示内容
+            var displayedChineseText = TextTag.Content.ToString();
+            var displayedEnglishText = _currentText;
+
             if (increase)
             {
-                if (_currentText.Contains("[")) _currentText = _currentText.Replace("[", "{").Replace("]", "}");
-                else _currentText = "{" + _currentText.Trim('{', '}') + "}";
+                if (displayedEnglishText.StartsWith("[") && displayedEnglishText.EndsWith("]"))
+                {
+                    // 如果文本以 [] 包裹，则移除一层 []
+                    displayedEnglishText = RemoveOutermostBrackets(displayedEnglishText, '[', ']');
+                    displayedChineseText = RemoveOutermostBrackets(displayedChineseText, '[', ']');
+                }
+                else
+                {
+                    // 否则增加一层 []
+                    displayedEnglishText = "{" + displayedEnglishText + "}";
+                    displayedChineseText = "{" + displayedChineseText + "}";
+                }
             }
             else
             {
-                if (_currentText.Contains("{")) _currentText = _currentText.Replace("{", "[").Replace("}", "]");
-                else _currentText = "[" + _currentText.Trim('[', ']') + "]";
+                if (displayedEnglishText.StartsWith("{") && displayedEnglishText.EndsWith("}"))
+                {
+                    // 如果文本以 {} 包裹，则移除一层 {}
+                    displayedEnglishText = RemoveOutermostBrackets(displayedEnglishText, '{', '}');
+                    displayedChineseText = RemoveOutermostBrackets(displayedChineseText, '{', '}');
+                }
+                else
+                {
+                    // 否则增加一层 []
+                    displayedEnglishText = "[" + displayedEnglishText + "]";
+                    displayedChineseText = "[" + displayedChineseText + "]";
+                }
             }
 
-            // Update tooltip and content
-            TextTag.Content = _currentText.Contains("]") ? _currentText : _currentText.Trim('{', '}');
-            TextTag.ToolTip = _originalText;
+            // 更新中文和英文文本
+            _currentText = displayedEnglishText;
+            TextTag.Content = displayedChineseText;
+            TextTag.ToolTip = _currentText; // 将更新后的英文文本设置为工具提示
         }
 
+        // 辅助方法：移除最外层的括号或大括号
+        private string RemoveOutermostBrackets(string text, char openingBracket, char closingBracket)
+        {
+            if (text.StartsWith(openingBracket.ToString()) && text.EndsWith(closingBracket.ToString()))
+            {
+                return text.Substring(1, text.Length - 2);
+            }
+            return text;
+        }
         // Method to retrieve adjusted text
         public string GetAdjustedText()
         {
