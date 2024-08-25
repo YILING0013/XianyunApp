@@ -25,13 +25,24 @@ namespace xianyun.View
         {
             InitializeComponent();
             this.DataContext = new MainViewModel();
+            this.Loaded += (s, e) =>
+            {
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    if (this.DataContext is MainViewModel viewModel)
+                    {
+                        viewModel.NavigateCommand.Execute("Welcome");
+                    }
+                });
+            };
         }
+
         private void Border_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                this.DragMove();
-            }
+            //if (e.LeftButton == MouseButtonState.Pressed)
+            //{
+            //    this.DragMove();
+            //}
         }
     }
 }

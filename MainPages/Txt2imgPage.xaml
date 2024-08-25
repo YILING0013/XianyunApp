@@ -40,13 +40,49 @@
         </Border.Background>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="771*"/>
+                <ColumnDefinition Width="770*"/>
+                <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="340*"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
-
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="4*"/>
+                    <RowDefinition Height="12*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <TabControl Margin="6,4">
+                        <TabItem  IsSelected="True">
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Text="&#xe6d9;" Background="Transparent" HorizontalAlignment="Center" Margin="6,4"/>
+                                    <TextBlock Text="正面提示词" />
+                                </StackPanel>
+                            </TabItem.Header>
+                            <Grid>
+                                <Border Margin="1,1" CornerRadius="5" Background="#F9F9F9">
+                                    <Grid>
+                                        <WrapPanel Name="TagsContainer" DragOver="TagsContainer_DragOver" Drop="TagsContainer_Drop" DragLeave="TagsContainer_DragLeave" DragEnter="TagsContainer_DragEnter" AllowDrop="True" Background="Transparent" >
+                                        </WrapPanel>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </TabItem>
+                        <TabItem>
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Text="&#xe60f;" Background="Transparent" HorizontalAlignment="Center" Margin="6,4"/>
+                                    <TextBlock Text="负面提示词" />
+                                </StackPanel>
+                            </TabItem.Header>
+                            <Grid>
+                                <ui:TextBox PlaceholderText="Type something..." AcceptsReturn="True" TextWrapping="Wrap"/>
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
             </Grid>
-            <Grid Grid.Column="1">
+            <GridSplitter Grid.Column="1" Width="1" Background="#597445" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,4"/>
+            <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="3*"/>
                     <RowDefinition Height="12*"/>
@@ -67,7 +103,7 @@
                                 <ColumnDefinition Width="10*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="连续绘制(次):"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                 <TextBlock Text="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
@@ -108,9 +144,7 @@
                             <RowDefinition Height="1*"/>
                             <RowDefinition Height="10*"/>
                             <RowDefinition Height="1*"/>
-                            <RowDefinition Height="10*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="40*"/>
+                            <RowDefinition Height="45*"/>
                         </Grid.RowDefinitions>
 
                         <!-- Guidance Scale Slider -->
@@ -121,7 +155,7 @@
                                 <ColumnDefinition Width="15*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Guidance Scale:" Grid.Column="0"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="10" Value="5"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="10" Value="5"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                 <TextBlock Text="5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
@@ -142,7 +176,7 @@
                                 <ComboBoxItem Content="Other Sampling Methods"/>
                             </ComboBox>
                             <TextBlock Text="Seed:" Grid.Column="2"/>
-                            <TextBox  Grid.Column="3"/>
+                            <ui:TextBox  PlaceholderText="Enter Seed"  Grid.Column="3"/>
                         </Grid>
                         <!-- Horizontal Divider -->
                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
@@ -154,7 +188,7 @@
                                 <ColumnDefinition Width="14*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Steps:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="28"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="28"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                 <TextBlock Text="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
@@ -172,7 +206,7 @@
                                 <ColumnDefinition Width="25*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Width:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="1024"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="1024"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                 <TextBlock Text="1024" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
@@ -189,7 +223,7 @@
                                 <ColumnDefinition Width="25*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Height:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="1024"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="1024"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                 <TextBlock Text="1024" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
@@ -216,13 +250,13 @@
                         <Grid Grid.Row="12" Margin="6,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="100*"/>
-                                <ColumnDefinition Width="80*"/>
-                                <ColumnDefinition Width="16*"/>
+                                <ColumnDefinition Width="75*"/>
+                                <ColumnDefinition Width="25*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Prompt Guidance Rescale:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="0"  TickFrequency="0.1" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="0"  TickFrequency="0.1" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="0.00" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </Grid>
                         <!-- Horizontal Divider -->
@@ -250,6 +284,18 @@
                         </Grid>
                         <!-- Horizontal Divider -->
                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="15" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                        <!-- Vibe Transfer Button -->
+                        <Grid Grid.Row="16" Margin="6,4">
+                            <Border BorderBrush="#FFC0C0C0" BorderThickness="1" CornerRadius="8" Background="#F7F9F2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <!-- Icon -->
+                                    <Button FontFamily="../Assets/Fonts/#iconfont" FontSize="64" Foreground="#708871" Content="&#xe6b7;" Background="Transparent" BorderThickness="0" HorizontalAlignment="Center"/>
+
+                                    <!-- Text -->
+                                    <TextBlock FontSize="16" Foreground="#FF808080" Text="上传图像到Vibe Transfer" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                     </Grid>
                 </Border>
             </Grid>

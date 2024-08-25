@@ -13,7 +13,9 @@ namespace xianyun.ViewModel
         public ICommand NavigateCommand { get; }
         private void Navigate(string pageName)
         {
-            if (Application.Current.MainWindow.FindName("MainWindowFrame") is Frame frame)
+            var frame = Application.Current.MainWindow.FindName("MainWindowFrame") as Frame;
+
+            if (frame != null)
             {
                 switch (pageName)
                 {

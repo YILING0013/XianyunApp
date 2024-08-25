@@ -66,6 +66,7 @@ namespace xianyun.ViewModel
             if (currentWindow != null)
             {
                 MainWindow mainWindow = new MainWindow();
+                System.Windows.Application.Current.MainWindow = mainWindow; // 设置新的主窗口
                 mainWindow.Show();
                 currentWindow.Close();
             }

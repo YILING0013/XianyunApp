@@ -79,6 +79,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UserControl\TagControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\Loginview.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -91,6 +95,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Assets\Tags\TagTipsData.cs" />
+    <Compile Include="Common\Adorner.cs" />
     <Compile Include="Common\NotifyBase.cs" />
     <Compile Include="Common\PasswordBoxHelper.cs" />
     <Compile Include="MainPages\Img2ImgPage.xaml.cs">
@@ -107,6 +113,9 @@
     </Compile>
     <Compile Include="Model\LoginModel.cs" />
     <Compile Include="Model\MainWindowModel.cs" />
+    <Compile Include="UserControl\TagControl.xaml.cs">
+      <DependentUpon>TagControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModel\LoginViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="View\Loginview.xaml.cs">
