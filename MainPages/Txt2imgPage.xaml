@@ -5,6 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:xianyun.MainPages"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:hc="https://handyorg.github.io/handycontrol"
       mc:Ignorable="d" 
       d:DesignHeight="758" d:DesignWidth="1129"
       FontSize="12" 
@@ -65,7 +66,7 @@
                                             <WrapPanel MouseDown="TagsContainer_MouseDoubleClick" Name="TagsContainer" DragOver="TagsContainer_DragOver" Drop="TagsContainer_Drop" DragLeave="TagsContainer_DragLeave" DragEnter="TagsContainer_DragEnter" AllowDrop="True" Background="Transparent" >
                                             </WrapPanel>
                                         </ScrollViewer>
-                                        <TextBox FontSize="12" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
+                                        <ui:TextBox FontSize="12" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
                                     </Grid>
                                 </Border>
                             </Grid>
@@ -82,6 +83,54 @@
                             </Grid>
                         </TabItem>
                     </TabControl>
+                </Grid>
+                <Grid Grid.Row="1">
+                    <Grid.Resources>
+                        <ResourceDictionary>
+                            <ResourceDictionary.MergedDictionaries>
+                                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+                                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
+                            </ResourceDictionary.MergedDictionaries>
+                        </ResourceDictionary>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="20*"/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="10*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Background="#ccdcd4" Margin="6,0" CornerRadius="5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Margin="0,2" Content="发送到图生图"/>
+                                <RadioButton Grid.Column="1" Margin="0,2" GroupName="DirectorTools"  Content="转线稿"/>
+                                <RadioButton Grid.Column="2" Margin="0,2" GroupName="DirectorTools"  Content="转草稿"/>
+                                <RadioButton Grid.Column="3" Margin="0,2" GroupName="DirectorTools"  Content="清理画面"/>
+                                <RadioButton Grid.Column="4" Margin="0,2" GroupName="DirectorTools"  Content="情绪修改"/>
+                                <RadioButton Grid.Column="5" Margin="0,2" GroupName="DirectorTools"  Content="着色"/>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Row="1" Margin="6,8" CornerRadius="10" Background="#ccdcd4">
+                            <hc:ImageViewer Background="Transparent" BorderBrush="Transparent" Width="auto" Height="auto" Margin="4" ImageSource="E:\Visual_Studio_project\xianyun\Assets\Img\kbbmuajzr9j.png"/>
+                        </Border>
+                    </Grid>
+                    <Border Grid.Column="1" Background="#ccdcd4" Margin="0,0,6,8" CornerRadius="5">
+                        <Grid>
+                            <ScrollViewer>
+                                
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Grid>
             <GridSplitter Grid.Column="1" Width="1" Background="#597445" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,4"/>

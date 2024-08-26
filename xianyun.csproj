@@ -183,5 +183,8 @@
       <Version>3.0.5</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Img\kbbmuajzr9j.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
