@@ -61,9 +61,11 @@
                             <Grid>
                                 <Border Margin="1,1" CornerRadius="5" Background="#F9F9F9">
                                     <Grid>
-                                        <WrapPanel MouseDown="TagsContainer_MouseDoubleClick" Name="TagsContainer" DragOver="TagsContainer_DragOver" Drop="TagsContainer_Drop" DragLeave="TagsContainer_DragLeave" DragEnter="TagsContainer_DragEnter" AllowDrop="True" Background="Transparent" >
-                                        </WrapPanel>
-                                        <TextBox Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown"/>
+                                        <ScrollViewer Name="ScrollViewer"  VerticalScrollBarVisibility="Auto">
+                                            <WrapPanel MouseDown="TagsContainer_MouseDoubleClick" Name="TagsContainer" DragOver="TagsContainer_DragOver" Drop="TagsContainer_Drop" DragLeave="TagsContainer_DragLeave" DragEnter="TagsContainer_DragEnter" AllowDrop="True" Background="Transparent" >
+                                            </WrapPanel>
+                                        </ScrollViewer>
+                                        <TextBox FontSize="12" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
                                     </Grid>
                                 </Border>
                             </Grid>

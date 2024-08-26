@@ -24,6 +24,7 @@ namespace xianyun.UserControl
         private string _currentText;
         private Point? dragStartPoint = null;
         Point? potentialDragStartPoint = null;
+        public event EventHandler TextChanged;
 
         public TagControl(string englishText, string chineseText = null, Brush color = null)
         {
@@ -163,6 +164,7 @@ namespace xianyun.UserControl
             _currentText = displayedEnglishText;
             TextTag.Content = displayedChineseText;
             TextTag.ToolTip = _currentText; // 将更新后的英文文本设置为工具提示
+            TextChanged?.Invoke(this, EventArgs.Empty);
         }
 
         // 辅助方法：移除最外层的括号或大括号

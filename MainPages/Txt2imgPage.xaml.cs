@@ -47,14 +47,26 @@ namespace xianyun.MainPages
         private void TagsContainer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2) {
-                InputTextBox.Text = string.Empty;
+                if (TagsContainer.Children.Count > 0)
+                {
+                    var tagsText = string.Join(",", TagsContainer.Children.OfType<TagControl>().Select(tc => tc.GetAdjustedText()));
+                    InputTextBox.Text = tagsText;
+                }
+                else
+                {
+                    InputTextBox.Text = string.Empty;
+                }
+                ScrollViewer.Visibility = Visibility.Collapsed;
                 InputTextBox.Visibility = Visibility.Visible;
-                InputTextBox.Focus(); 
+                InputTextBox.UpdateLayout();  // 强制刷新布局
+                InputTextBox.Focus();
             }
         }
         private void InputTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             ProcessInputText();
+            InputTextBox.Visibility = Visibility.Collapsed;
+            ScrollViewer.Visibility = Visibility.Visible;
         }
 
         private void InputTextBox_KeyDown(object sender, KeyEventArgs e)
@@ -62,9 +74,51 @@ namespace xianyun.MainPages
             if (e.Key == Key.Enter)
             {
                 ProcessInputText();
+                InputTextBox.Visibility = Visibility.Collapsed;
+                ScrollViewer.Visibility = Visibility.Visible;
+            }
+        }
+        private void UpdateTagsContainer()
+        {
+            if (InputTextBox.Visibility == Visibility.Visible)
+            {
+                string inputText = InputTextBox.Text.Trim();
+
+                if (!string.IsNullOrEmpty(inputText))
+                {
+                    // 将中文逗号转换为英文逗号
+                    inputText = inputText.Replace("，", ",");
+
+                    // 分割文本
+                    string[] newTags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                                 .Select(tag => AutoCompleteBrackets(tag.Trim()))
+                                                 .ToArray();
+
+                    // 清除现有的 TagControl
+                    TagsContainer.Children.Clear();
+
+                    // 添加新的 TagControl
+                    foreach (var tag in newTags)
+                    {
+                        TagControl tagControl = new TagControl(tag);
+                        tagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
+                        TagsContainer.Children.Add(tagControl);
+                    }
+                }
+
+                // 隐藏 TextBox
+                InputTextBox.Visibility = Visibility.Collapsed;
             }
         }
 
+        private void TagControl_TextChanged(object sender, EventArgs e)
+        {
+            if (TagsContainer.Children.Count > 0)
+            {
+                var tagsText = string.Join(",", TagsContainer.Children.OfType<TagControl>().Select(tc => tc.GetAdjustedText()));
+                InputTextBox.Text = tagsText;
+            }
+        }
         private void ProcessInputText()
         {
             if (InputTextBox.Visibility == Visibility.Visible)
@@ -78,6 +132,9 @@ namespace xianyun.MainPages
 
                     // 分割文本
                     string[] tags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    // 清除现有的 TagControl
+                    TagsContainer.Children.Clear();
 
                     foreach (var tag in tags)
                     {
@@ -94,31 +151,30 @@ namespace xianyun.MainPages
                 InputTextBox.Visibility = Visibility.Collapsed;
             }
         }
-
         private string AutoCompleteBrackets(string text)
         {
-            if (text.Count(c => c == '[') != text.Count(c => c == ']'))
+            // 补全方括号 []
+            int leftSquareBracketsCount = text.Count(c => c == '[');
+            int rightSquareBracketsCount = text.Count(c => c == ']');
+            if (leftSquareBracketsCount > rightSquareBracketsCount)
             {
-                if (text.Count(c => c == '[') > text.Count(c => c == ']'))
-                {
-                    text += "]";
-                }
-                else
-                {
-                    text = "[" + text;
-                }
+                text = text.PadRight(text.Length + (leftSquareBracketsCount - rightSquareBracketsCount), ']');
+            }
+            else if (rightSquareBracketsCount > leftSquareBracketsCount)
+            {
+                text = text.PadLeft(text.Length + (rightSquareBracketsCount - leftSquareBracketsCount), '[');
             }
 
-            if (text.Count(c => c == '{') != text.Count(c => c == '}'))
+            // 补全花括号 {}
+            int leftCurlyBracketsCount = text.Count(c => c == '{');
+            int rightCurlyBracketsCount = text.Count(c => c == '}');
+            if (leftCurlyBracketsCount > rightCurlyBracketsCount)
             {
-                if (text.Count(c => c == '{') > text.Count(c => c == '}'))
-                {
-                    text += "}";
-                }
-                else
-                {
-                    text = "{" + text;
-                }
+                text = text.PadRight(text.Length + (leftCurlyBracketsCount - rightCurlyBracketsCount), '}');
+            }
+            else if (rightCurlyBracketsCount > leftCurlyBracketsCount)
+            {
+                text = text.PadLeft(text.Length + (rightCurlyBracketsCount - leftCurlyBracketsCount), '{');
             }
 
             return text;
