@@ -4,15 +4,37 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:xianyun.UserControl"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
              mc:Ignorable="d"
              PreviewMouseLeftButtonDown="UserControl_PreviewMouseLeftButtonDown" PreviewMouseLeftButtonUp="UserControl_PreviewMouseLeftButtonUp" PreviewMouseMove="UserControl_PreviewMouseMove" d:DesignWidth="116.154" d:DesignHeight="41.272">
-
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Border BorderBrush="RoyalBlue" BorderThickness="1" Margin="2,2,2,2" x:Name="BorderBg" CornerRadius="5">
-        <DockPanel Margin="2,0,2,0" VerticalAlignment="Center">
-            <Button x:Name="ButtonDecStrength" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe600;" Click="ButtonDecStrength_Click" BorderThickness="0" Background="#00000000" Margin="0" Foreground="RoyalBlue" />
-            <Button x:Name="ButtonIncStrength" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe601;" Click="ButtonIncStrength_Click" BorderThickness="0" Background="#00000000" Margin="0" Foreground="RoyalBlue"/>
-            <Label x:Name="TextTag" Content="发型" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="RoyalBlue" />
-            <Button x:Name="ButtonRemoveTag" Click="ButtonRemoveTag_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe63d;" BorderThickness="0" Background="#00000000" Margin="0" Foreground="RoyalBlue"/>
-        </DockPanel>
+        <Border.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Change Border Color">
+                    <hc:ColorPicker SelectedBrush="{Binding BorderBrush, ElementName=BorderBg, Mode=TwoWay}"
+                                    SelectedColorChanged="ColorPicker_SelectedColorChanged"/>
+                </MenuItem>
+            </ContextMenu>
+        </Border.ContextMenu>
+        <Grid Margin="2,0,2,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="ButtonDecStrength" Grid.Column="0" FontFamily="../Assets/Fonts/#iconfont" HorizontalAlignment="Center" VerticalAlignment="Center" Content="&#xe600;" Click="ButtonDecStrength_Click" BorderThickness="0" Background="#00000000" Margin="0" Padding="0"  Foreground="RoyalBlue"/>
+            <Button x:Name="ButtonIncStrength" Grid.Column="1" FontFamily="../Assets/Fonts/#iconfont" HorizontalAlignment="Center" VerticalAlignment="Center" Content="&#xe601;" Click="ButtonIncStrength_Click" BorderThickness="0" Background="#00000000" Margin="0" Padding="0" Foreground="RoyalBlue"/>
+            <Label x:Name="TextTag" Grid.Column="2" Content="文本" HorizontalAlignment="Center" VerticalAlignment="Center" BorderThickness="0" Background="#00000000" Foreground="RoyalBlue"/>
+            <Button x:Name="ButtonRemoveTag" Grid.Column="3" Click="ButtonRemoveTag_Click" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe63d;" BorderThickness="0" Background="#00000000" Margin="0" Padding="0" Foreground="RoyalBlue"/>
+        </Grid>
     </Border>
 </UserControl>

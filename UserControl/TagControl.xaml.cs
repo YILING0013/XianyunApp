@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using HandyControl.Controls;
 
 namespace xianyun.UserControl
 {
@@ -20,24 +21,28 @@ namespace xianyun.UserControl
     /// </summary>
     public partial class TagControl
     {
+        public string TagId { get; private set; }
         private string _originalText;
         private string _currentText;
         private Point? dragStartPoint = null;
         Point? potentialDragStartPoint = null;
         public event EventHandler TextChanged;
+        private Brush _originalBorderBrush; // 存储原始边框颜色
 
-        public TagControl(string englishText, string chineseText = null, Brush color = null)
+        public TagControl(string tagId, string englishText, string chineseText = null, Brush color = null)
         {
             InitializeComponent();
-
+            TagId = tagId; // 设置唯一标识符
             // Initialize text and tooltip
             _originalText = englishText;
             _currentText = englishText;
+            _originalBorderBrush = BorderBg.BorderBrush; // 初始化存储边框颜色
 
             if (!string.IsNullOrEmpty(chineseText))
             {
                 TextTag.Content = chineseText;
                 TextTag.ToolTip = englishText;
+                TextTag.VerticalAlignment= VerticalAlignment.Center;
             }
             else
             {
@@ -53,6 +58,19 @@ namespace xianyun.UserControl
             this.PreviewMouseLeftButtonDown += TagControl_PreviewMouseLeftButtonDown;
             this.PreviewMouseMove += TagControl_PreviewMouseMove;
             this.PreviewMouseLeftButtonUp += TagControl_PreviewMouseLeftButtonUp;
+        }
+        private void ColorPicker_SelectedColorChanged(object sender, RoutedEventArgs e)
+        {
+            // 在此事件中将选中的颜色应用到边框颜色
+            var colorPicker = sender as ColorPicker;
+            if (colorPicker != null)
+            {
+                BorderBg.BorderBrush = colorPicker.SelectedBrush;
+            }
+        }
+        public Brush GetCurrentBorderBrush()
+        {
+            return BorderBg.BorderBrush;
         }
         private void UserControl_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {

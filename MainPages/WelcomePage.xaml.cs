@@ -70,7 +70,7 @@ namespace xianyun.MainPages
                     return;
 
                 // 定义图像和文本的URL
-                string imageUrl = "https://t.alcy.cc/fj";
+                string imageUrl = "https://t.alcy.cc/ycy";
                 string textUrl = "https://v1.jinrishici.com/rensheng.txt";
 
                 // 使用HttpClient加载图像

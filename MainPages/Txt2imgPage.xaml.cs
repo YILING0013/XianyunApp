@@ -28,22 +28,6 @@ namespace xianyun.MainPages
             InitializeComponent();
             //AddTagControls();
         }
-        private void AddTagControls()
-        {
-            // Example texts for the TagControls
-            string[] englishTexts = { "First Tag", "Second Tag", "Third Tag" };
-            string[] chineseTexts = { "第一标签", "第二标签", "第三标签" }; // Optional: use null or skip if not needed
-            Brush[] colors = { Brushes.Red, Brushes.Green, Brushes.Blue }; // Optional: use null or skip if not needed
-
-            for (int i = 0; i < englishTexts.Length; i++)
-            {
-                // Create a new instance of TagControl
-                TagControl tagControl = new TagControl(englishTexts[i], chineseTexts[i], colors[i]);
-
-                // Add the TagControl to the WrapPanel
-                TagsContainer.Children.Add(tagControl);
-            }
-        }
         private void TagsContainer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2) {
@@ -94,15 +78,32 @@ namespace xianyun.MainPages
                                                  .Select(tag => AutoCompleteBrackets(tag.Trim()))
                                                  .ToArray();
 
-                    // 清除现有的 TagControl
-                    TagsContainer.Children.Clear();
+                    // 获取现有的 TagControl 列表
+                    var existingTagControls = TagsContainer.Children.OfType<TagControl>().ToList();
 
-                    // 添加新的 TagControl
                     foreach (var tag in newTags)
                     {
-                        TagControl tagControl = new TagControl(tag);
-                        tagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
-                        TagsContainer.Children.Add(tagControl);
+                        // 使用标签文本本身作为唯一标识符
+                        var existingTagControl = existingTagControls.FirstOrDefault(tc => tc.GetAdjustedText() == tag);
+
+                        if (existingTagControl == null)
+                        {
+                            // 如果不存在，则创建新的 TagControl 并添加到容器中
+                            TagControl newTagControl = new TagControl(tag, tag);
+                            newTagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
+                            TagsContainer.Children.Add(newTagControl);
+                        }
+                        else
+                        {
+                            // 如果存在，保持组件，并从现有列表中移除，避免删除
+                            existingTagControls.Remove(existingTagControl);
+                        }
+                    }
+
+                    // 删除不再需要的 TagControl
+                    foreach (var tagControl in existingTagControls)
+                    {
+                        TagsContainer.Children.Remove(tagControl);
                     }
                 }
 
@@ -131,19 +132,35 @@ namespace xianyun.MainPages
                     inputText = inputText.Replace("，", ",");
 
                     // 分割文本
-                    string[] tags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] newTags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                                 .Select(tag => AutoCompleteBrackets(tag.Trim()))
+                                                 .ToArray();
 
-                    // 清除现有的 TagControl
-                    TagsContainer.Children.Clear();
+                    // 获取现有的 TagControl 列表
+                    var existingTagControls = TagsContainer.Children.OfType<TagControl>().ToList();
 
-                    foreach (var tag in tags)
+                    foreach (var tag in newTags)
                     {
-                        // 自动补全括号
-                        string adjustedTag = AutoCompleteBrackets(tag.Trim());
+                        // 使用标签文本作为标识符
+                        var existingTagControl = existingTagControls.FirstOrDefault(tc => tc.GetAdjustedText() == tag);
 
-                        // 创建TagControl并添加到WrapPanel
-                        TagControl tagControl = new TagControl(adjustedTag);
-                        TagsContainer.Children.Add(tagControl);
+                        if (existingTagControl == null)
+                        {
+                            // 如果不存在该标签，创建新的 TagControl 并添加到容器中
+                            TagControl newTagControl = new TagControl(tag, tag);
+                            TagsContainer.Children.Add(newTagControl);
+                        }
+                        else
+                        {
+                            // 如果存在，保持组件，并从现有列表中移除，避免删除
+                            existingTagControls.Remove(existingTagControl);
+                        }
+                    }
+
+                    // 删除不再需要的 TagControl
+                    foreach (var tagControl in existingTagControls)
+                    {
+                        TagsContainer.Children.Remove(tagControl);
                     }
                 }
 
@@ -151,6 +168,7 @@ namespace xianyun.MainPages
                 InputTextBox.Visibility = Visibility.Collapsed;
             }
         }
+
         private string AutoCompleteBrackets(string text)
         {
             // 补全方括号 []
