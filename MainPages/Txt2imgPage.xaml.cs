@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +14,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using xianyun.Model;
 using xianyun.UserControl;
+using xianyun.ViewModel;
+using System.IO;
 
 namespace xianyun.MainPages
 {
@@ -23,10 +28,13 @@ namespace xianyun.MainPages
     {
         private bool dragInProgress = false;
         private DragAdorner currentAdorner;
+        UserControl.VibeTransfer VibeTransfer = new UserControl.VibeTransfer();
         public Txt2imgPage()
         {
             InitializeComponent();
-            //AddTagControls();
+            this.DataContext = new Txt2imgPageViewModel();
+           
+
         }
         private void TagsContainer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -45,6 +53,80 @@ namespace xianyun.MainPages
                 InputTextBox.UpdateLayout();  // 强制刷新布局
                 InputTextBox.Focus();
             }
+        }
+        private void Border_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+        }
+        private void Border_DragOver(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.None;
+            }
+        }
+        private void Border_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                foreach (var filePath in files)
+                {
+                    if (IsImageFile(filePath))
+                    {
+                        // 创建 VibeTransfer 控件实例
+                        var vibeTransfer = new xianyun.UserControl.VibeTransfer();
+
+                        // 使用文件路径设置图像
+                        vibeTransfer.SetImageFromFile(filePath);
+
+                        // 将 VibeTransfer 控件添加到 WrapPanel 中
+                        ImageWrapPanel.Children.Add(vibeTransfer);
+                    }
+                }
+
+                // 隐藏上传标志
+                UploadStackPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+        private void Border_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image files (*.jpg, *.jpeg, *.png)|*.jpg;*.jpeg;*.png";
+            openFileDialog.Multiselect = true;
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                foreach (string filePath in openFileDialog.FileNames)
+                {
+                    if (IsImageFile(filePath))
+                    {
+                        // 创建 VibeTransfer 控件实例
+                        var vibeTransfer = new xianyun.UserControl.VibeTransfer();
+
+                        // 使用文件路径设置图像
+                        vibeTransfer.SetImageFromFile(filePath);
+
+                        // 将 VibeTransfer 控件添加到 WrapPanel 中
+                        ImageWrapPanel.Children.Add(vibeTransfer);
+                    }
+                }
+
+                // 隐藏上传标志
+                UploadStackPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+        private bool IsImageFile(string filePath)
+        {
+            string extension = System.IO.Path.GetExtension(filePath).ToLower();
+            return extension == ".jpg" || extension == ".jpeg" || extension == ".png";
         }
         private void InputTextBox_LostFocus(object sender, RoutedEventArgs e)
         {

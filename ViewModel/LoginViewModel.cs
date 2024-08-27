@@ -16,12 +16,6 @@ using xianyun.View;
 
 namespace xianyun.ViewModel
 {
-    // 这是用于主窗口的 ViewModel，目前是一个空类，可以在未来扩展
-    public class MainWindowViewModel
-    {
-
-    }
-
     // 这是用于登录窗口的 ViewModel，包含登录数据和关闭窗口的命令
     public class LoginViewModel : NotifyBase
     {

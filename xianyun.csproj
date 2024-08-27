@@ -87,6 +87,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UserControl\VibeTransfer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\Loginview.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -101,6 +105,7 @@
     </Compile>
     <Compile Include="Assets\Tags\TagTipsData.cs" />
     <Compile Include="Common\Adorner.cs" />
+    <Compile Include="Common\NullableLongConverter.cs" />
     <Compile Include="Common\NotifyBase.cs" />
     <Compile Include="Common\PasswordBoxHelper.cs" />
     <Compile Include="MainPages\Img2ImgPage.xaml.cs">
@@ -117,14 +122,19 @@
     </Compile>
     <Compile Include="Model\LoginModel.cs" />
     <Compile Include="Model\MainWindowModel.cs" />
+    <Compile Include="Model\Txt2imgPageModel.cs" />
     <Compile Include="UserControl\ImgPreview.xaml.cs">
       <DependentUpon>ImgPreview.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserControl\TagControl.xaml.cs">
       <DependentUpon>TagControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserControl\VibeTransfer.xaml.cs">
+      <DependentUpon>VibeTransfer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModel\LoginViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
+    <Compile Include="ViewModel\Txt2imgPageViewModel.cs" />
     <Compile Include="View\Loginview.xaml.cs">
       <DependentUpon>Loginview.xaml</DependentUpon>
     </Compile>
