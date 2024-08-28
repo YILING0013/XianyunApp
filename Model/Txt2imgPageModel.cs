@@ -21,11 +21,17 @@ namespace xianyun.Model
         private bool _isConvenientResolution = false;
         private bool _isSMEA = false;
         private bool _isDYN = false;
+        private bool _isDYNEnabled = false;
         private float _guidanceScale = 5.0f;
         private float _guidanceRescale = 0.0f;
         private string _samplingMethod;
         private string _resolution;
         private string _noiseSchedule;
+        private bool _selectedLineArt;
+        private bool _selectedSketch;
+        private bool _selectedDeclutter;
+        private bool _selectedEmotion;
+        private bool _selectedColorize;
 
         public List<string> Models { get; set; } = new List<string> { "nai-diffusion-3", "nai-diffusion-furry-3" };
         public List<string> SamplingMethods { get; set; } = new List<string> { "Euler", "Euler Ancestral", "DPM++ 2S Ancestral", "DPM++ SDE", "DPM++ 2M", "DDIM" };
@@ -38,6 +44,70 @@ namespace xianyun.Model
             SamplingMethod = SamplingMethods[0];
             Resolution = Resolutions[0];
             NoiseSchedule = NoiseSchedules[0];
+        }
+        public bool SelectedLineArt
+        {
+            get => _selectedLineArt;
+            set
+            {
+                if (_selectedLineArt != value || value == false)
+                {
+                    _selectedLineArt = value;
+                    DoNotify();
+                }
+                else { _selectedLineArt = !value; DoNotify(); }
+            }
+        }
+        public bool SelectedSketch
+        {
+            get => _selectedSketch;
+            set
+            {
+                if (_selectedSketch != value || value == false)
+                {
+                    _selectedSketch = value;
+                    DoNotify();
+                }else { _selectedSketch = !value; DoNotify(); }
+            }
+        }
+        public bool SelectedDeclutter
+        {
+            get => _selectedDeclutter;
+            set
+            {
+                if (_selectedDeclutter != value || value == false)
+                {
+                    _selectedDeclutter = value;
+                    DoNotify();
+                }
+                else { _selectedDeclutter = !value; DoNotify(); }
+            }
+        }
+        public bool SelectedEmotion
+        {
+            get => _selectedEmotion;
+            set
+            {
+                if (_selectedEmotion != value || value == false)
+                {
+                    _selectedEmotion = value;
+                    DoNotify();
+                }
+                else { _selectedEmotion = !value; DoNotify(); }
+            }
+        }
+        public bool SelectedColorize
+        {
+            get => _selectedColorize;
+            set
+            {
+                if (_selectedColorize != value || value == false)
+                {
+                    _selectedColorize = value;
+                    DoNotify();
+                }
+                else { _selectedColorize = !value; DoNotify(); }
+            }
         }
         public int DrawingFrequency
         {
@@ -100,6 +170,20 @@ namespace xianyun.Model
             set
             {
                 _isSMEA = value;
+                IsDYNEnabled = _isSMEA;
+                if (!_isSMEA)
+                {
+                    IsDYN = false;
+                }
+                this.DoNotify();
+            }
+        }
+        public bool IsDYNEnabled
+        {
+            get => _isDYNEnabled;
+            set
+            {
+                _isDYNEnabled = value;
                 this.DoNotify();
             }
         }

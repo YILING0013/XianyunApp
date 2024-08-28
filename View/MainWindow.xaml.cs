@@ -39,10 +39,10 @@ namespace xianyun.View
 
         private void Border_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            //if (e.LeftButton == MouseButtonState.Pressed)
-            //{
-            //    this.DragMove();
-            //}
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
         }
     }
 }

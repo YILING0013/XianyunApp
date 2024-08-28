@@ -22,9 +22,19 @@
                 <Setter Property="FontSize" Value="12"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
+            <Storyboard x:Key="RightTagMenu">
+                <DoubleAnimation Storyboard.TargetName="Ttransform" Storyboard.TargetProperty="X" From="380" To="0" Duration="0:0:0.0" />
+            </Storyboard>
+            <Storyboard x:Key="RightTagMenuClose">
+                <DoubleAnimation Storyboard.TargetName="Ttransform" Storyboard.TargetProperty="X" Duration="0:0:0.0" />
+            </Storyboard>
         </ResourceDictionary>
     </Page.Resources>
-
+    <!--<Page.Triggers>
+        <EventTrigger RoutedEvent="Button.Click" SourceName="TagMenuBth">
+            <BeginStoryboard Storyboard="{StaticResource RightTagMenu}"/>
+        </EventTrigger>
+    </Page.Triggers>-->
     <Border CornerRadius="20" Margin="0,20,10,20" BorderBrush="#7b9d91"
         BorderThickness="4">
         <Border.Effect>
@@ -68,6 +78,7 @@
                                             </WrapPanel>
                                         </ScrollViewer>
                                         <ui:TextBox FontSize="12" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
+
                                     </Grid>
                                 </Border>
                             </Grid>
@@ -84,6 +95,10 @@
                             </Grid>
                         </TabItem>
                     </TabControl>
+                    <!-- 右上角的圆角透明按钮 -->
+                    <Border Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent">
+                        <Button Name="TagMenuBth" Click="TagMenuBtn_Click" FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Content="&#xe677;" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#F9F9F9" BorderThickness="0"/>
+                    </Border>
                 </Grid>
                 <Grid Grid.Row="1">
                     <Grid.Resources>
@@ -114,11 +129,11 @@
                                     <ColumnDefinition/>
                                 </Grid.ColumnDefinitions>
                                 <Button Grid.Column="0" Margin="0,2" Content="发送到图生图"/>
-                                <RadioButton Grid.Column="1" Margin="0,2" GroupName="DirectorTools"  Content="转线稿"/>
-                                <RadioButton Grid.Column="2" Margin="0,2" GroupName="DirectorTools"  Content="转草稿"/>
-                                <RadioButton Grid.Column="3" Margin="0,2" GroupName="DirectorTools"  Content="清理画面"/>
-                                <RadioButton Grid.Column="4" Margin="0,2" GroupName="DirectorTools"  Content="情绪修改"/>
-                                <RadioButton Grid.Column="5" Margin="0,2" GroupName="DirectorTools"  Content="着色"/>
+                                <RadioButton IsChecked="{Binding Txt2ImgPageModel.SelectedLineArt, Mode=TwoWay}" Grid.Column="1" Margin="0,2" GroupName="DirectorTools"  Content="转线稿"/>
+                                <RadioButton IsChecked="{Binding Txt2ImgPageModel.SelectedSketch, Mode=TwoWay}" Grid.Column="2" Margin="0,2" GroupName="DirectorTools"  Content="转草稿"/>
+                                <RadioButton IsChecked="{Binding Txt2ImgPageModel.SelectedDeclutter, Mode=TwoWay}" Grid.Column="3" Margin="0,2" GroupName="DirectorTools"  Content="清理画面"/>
+                                <RadioButton IsChecked="{Binding Txt2ImgPageModel.SelectedEmotion, Mode=TwoWay}" Grid.Column="4" Margin="0,2" GroupName="DirectorTools"  Content="情绪修改"/>
+                                <RadioButton IsChecked="{Binding Txt2ImgPageModel.SelectedColorize, Mode=TwoWay}" Grid.Column="5" Margin="0,2" GroupName="DirectorTools"  Content="着色"/>
                             </Grid>
                         </Border>
                         <Border Grid.Row="1" Margin="6,8" CornerRadius="10" Background="#ccdcd4">
@@ -128,7 +143,7 @@
                     <Border Grid.Column="1" Background="#ccdcd4" Margin="0,0,6,8" CornerRadius="5">
                         <Grid>
                             <ScrollViewer>
-                                
+
                             </ScrollViewer>
                         </Grid>
                     </Border>
@@ -325,7 +340,7 @@
                                     <ColumnDefinition Width="1*"/>
                                 </Grid.ColumnDefinitions>
                                 <CheckBox Grid.Column="0" Margin="2"  Content="SMEA" FontSize="10" IsChecked="{Binding Txt2ImgPageModel.IsSMEA,Mode=TwoWay}"/>
-                                <CheckBox Grid.Column="1" Margin="2"  Content="DYN" FontSize="10" IsChecked="{Binding Txt2ImgPageModel.IsDYN,Mode=TwoWay}"/>
+                                <CheckBox Grid.Column="1" Margin="2" IsEnabled="{Binding Txt2ImgPageModel.IsDYNEnabled,Mode=TwoWay}"  Content="DYN" FontSize="10" IsChecked="{Binding Txt2ImgPageModel.IsDYN,Mode=TwoWay}"/>
                             </Grid>
                         </Grid>
                         <!-- Horizontal Divider -->
@@ -338,7 +353,7 @@
                                     DragEnter="Border_DragEnter"
                                     DragOver="Border_DragOver"
                                     Drop="Border_Drop"
-                                    MouseLeftButtonUp="Border_MouseLeftButtonUp">       
+                                    MouseLeftButtonUp="Border_MouseLeftButtonUp">
                                 <Grid>
                                     <ScrollViewer x:Name="ImageScrollViewer" Grid.Row="0">
                                         <WrapPanel x:Name="ImageWrapPanel" HorizontalAlignment="Center" VerticalAlignment="Top" />
@@ -352,10 +367,56 @@
                                 </Grid>
                             </Border>
                         </Grid>
-
                     </Grid>
                 </Border>
             </Grid>
+            <Border Grid.Column="2" Background="#a2bfab" Width="335" CornerRadius="0,20,20,0" HorizontalAlignment="Right">
+                <Border.RenderTransform>
+                    <TranslateTransform X="380" Y="0" x:Name="Ttransform"/>
+                </Border.RenderTransform>
+                <TabControl Margin="0,2">
+                    <TabItem>
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Margin="0,0,6,0" Symbol="XboxConsole24" />
+                                <TextBlock Text="词条笔记本" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        <Grid>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="2*"/>
+                                    <RowDefinition Height="10*"/>
+                                </Grid.RowDefinitions>
+                                <Border Background="#ccdcd4" Margin="1,2">
+
+                                </Border>
+                                <Grid Grid.Row="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3*"/>
+                                        <ColumnDefinition Width="2*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Background="#ccdcd4" Margin="1,2,2,2">
+                                        <ListBox Height="auto" ItemsSource="{Binding ViewModel.MyItems}"/>
+                                    </Border>
+                                    <Border Grid.Column="1" Background="#ccdcd4" Margin="1,2,2,2" CornerRadius="0,0,20,0">
+                                        <ListBox Height="auto" Margin="0,0,4,8" ItemsSource="{Binding ViewModel.MyItems}"/>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+                    <TabItem IsSelected="True">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Margin="0,0,6,0" Symbol="StoreMicrosoft16" />
+                                <TextBlock Text="词条选择库" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        
+                    </TabItem>
+                </TabControl>
+            </Border>
         </Grid>
     </Border>
 </Page>

@@ -18,6 +18,7 @@ using xianyun.Model;
 using xianyun.UserControl;
 using xianyun.ViewModel;
 using System.IO;
+using System.Windows.Media.Animation;
 
 namespace xianyun.MainPages
 {
@@ -27,6 +28,7 @@ namespace xianyun.MainPages
     public partial class Txt2imgPage : Page
     {
         private bool dragInProgress = false;
+        private bool isDrawerOpen = false;
         private DragAdorner currentAdorner;
         UserControl.VibeTransfer VibeTransfer = new UserControl.VibeTransfer();
         public Txt2imgPage()
@@ -35,6 +37,21 @@ namespace xianyun.MainPages
             this.DataContext = new Txt2imgPageViewModel();
            
 
+        }
+        private void TagMenuBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (isDrawerOpen)
+            {
+                Storyboard storyboard = (Storyboard)FindResource("RightTagMenuClose");
+                storyboard.Begin();
+            }
+            else
+            {
+                Storyboard storyboard = (Storyboard)FindResource("RightTagMenu");
+                storyboard.Begin();
+            }
+
+            isDrawerOpen = !isDrawerOpen;
         }
         private void TagsContainer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
