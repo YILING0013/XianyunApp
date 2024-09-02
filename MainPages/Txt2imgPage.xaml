@@ -137,13 +137,13 @@
                             </Grid>
                         </Border>
                         <Border Grid.Row="1" Margin="6,8" CornerRadius="10" Background="#ccdcd4">
-                            <hc:ImageViewer Background="Transparent" BorderBrush="Transparent" Width="auto" Height="auto" Margin="4" ImageSource="E:\Visual_Studio_project\xianyun\Assets\Img\kbbmuajzr9j.png"/>
+                            <hc:ImageViewer x:Name="ImageViewerControl" Background="Transparent" BorderBrush="Transparent" Width="auto" Height="auto" Margin="4"/>
                         </Border>
                     </Grid>
                     <Border Grid.Column="1" Background="#ccdcd4" Margin="0,0,6,8" CornerRadius="5">
                         <Grid>
-                            <ScrollViewer>
-
+                            <ScrollViewer x:Name="ImgPreviewArea" VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="ImageStackPanel"/>
                             </ScrollViewer>
                         </Grid>
                     </Border>

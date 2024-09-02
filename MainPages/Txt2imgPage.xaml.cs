@@ -35,6 +35,17 @@ namespace xianyun.MainPages
         {
             InitializeComponent();
             this.DataContext = new Txt2imgPageViewModel();
+            this.Loaded += Txt2imgPage_Loaded;
+        }
+        private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            var viewModel = DataContext as Txt2imgPageViewModel;
+            if (viewModel != null)
+            {
+                viewModel.ImgPreviewArea = ImgPreviewArea; // 将 ImgPreviewArea 传递给 ViewModel
+                viewModel.ImageStackPanel = ImageStackPanel; // 将 ImageStackPanel 传递给 ViewModel
+                viewModel.ImageViewerControl = ImageViewerControl; // 将 ImageViewerControl 传递给 ViewModel
+            }
         }
         private void TagMenuBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -297,7 +308,6 @@ namespace xianyun.MainPages
 
         private void TagsContainer_DragOver(object sender, DragEventArgs e)
         {
-
             dragInProgress = true;
             TagControl dragControl = null;
             try
@@ -315,8 +325,7 @@ namespace xianyun.MainPages
                 e.Effects = DragDropEffects.None;
                 return;
             }
-            WrapPanel panel = sender as WrapPanel;
-            if (panel != null)
+            if (sender is WrapPanel panel)
             {
                 // 获取鼠标相对于WrapPanel的位置
                 Point position = e.GetPosition(panel);
@@ -483,8 +492,7 @@ namespace xianyun.MainPages
 
         private void TagsContainer_Drop(object sender, DragEventArgs e)
         {
-            WrapPanel panel = sender as WrapPanel;
-            if (panel == null)
+            if (!(sender is WrapPanel panel))
             {
                 return;
             }
@@ -496,7 +504,7 @@ namespace xianyun.MainPages
                 currentAdorner = null;
             }
 
-            TagControl dragControl = null;
+            TagControl dragControl;
             try
             {
                 IDataObject dataObject = e.Data;
@@ -556,9 +564,7 @@ namespace xianyun.MainPages
 
         private void TagsContainer_OnRealTargetDragLeave(object sender, DragEventArgs e)
         {
-
-            WrapPanel panel = sender as WrapPanel;
-            if (panel == null)
+            if (!(sender is WrapPanel panel))
             {
                 return;
             }

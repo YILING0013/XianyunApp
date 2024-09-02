@@ -7,29 +7,24 @@
              xmlns:hc="https://handyorg.github.io/handycontrol"
              mc:Ignorable="d" 
              d:DesignHeight="90" d:DesignWidth="90">
-    <UserControl.Resources>
-        <!--<ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>-->
-    </UserControl.Resources>
-    <Border CornerRadius="3" Margin="2,2,2,0" Background="#FEF3E2" BorderBrush="#597445" BorderThickness="1">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="8*"/>
-                <RowDefinition Height="2*"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-                <Image Height="auto" Width="auto" Margin="3"  Source="E:\Visual_Studio_project\xianyun\Assets\Img\kbbmuajzr9j.png"/>
+
+    <!-- 外层描边 -->
+    <Border x:Name="outerBorder" CornerRadius="5" BorderThickness="2" BorderBrush="Transparent">
+        <Border CornerRadius="3" Margin="2,2,2,0" Background="#FEF3E2" BorderBrush="#597445" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="8*"/>
+                    <RowDefinition Height="2*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Image x:Name="imageControl" Height="auto" Width="auto" Margin="3"/>
+                </Grid>
+                <Grid Grid.Row="1" Margin="1">
+                    <Border CornerRadius="2" Background="#EF9C66">
+                        <Button x:Name="deleteButton" BorderThickness="0" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe64f;" Background="Transparent" Margin="0" Padding="0"  Foreground="#C5705D"/>
+                    </Border>
+                </Grid>
             </Grid>
-            <Grid Grid.Row="1" Margin="1">
-                <Border CornerRadius="2" Background="#EF9C66">
-                    <Button BorderThickness="0" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe64f;" Background="#00000000" Margin="0" Padding="0"  Foreground="#C5705D"/>
-                </Border>
-                <!--<Button Content="删除Delete" FontSize="4" Background="#EF9C66" BorderThickness="0" Height="auto" Width="auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>-->
-            </Grid>
-        </Grid>
+        </Border>
     </Border>
 </UserControl>

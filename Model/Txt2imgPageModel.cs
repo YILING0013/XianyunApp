@@ -33,6 +33,18 @@ namespace xianyun.Model
         private bool _selectedEmotion;
         private bool _selectedColorize;
 
+        private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
+        {
+            { "Euler", "k_euler" },
+            { "Euler Ancestral", "k_euler_ancestral" },
+            { "DPM++ 2S Ancestral", "k_dpmpp_2s_ancestral" },
+            { "DPM++ SDE", "k_dpmpp_sde" },
+            { "DPM++ 2M", "k_dpmpp_2m" },
+            { "DDIM", "ddim_v3" }
+        };
+        // 反向映射字典
+        private readonly Dictionary<string, string> _reverseSamplingMethodMapping;
+
         public List<string> Models { get; set; } = new List<string> { "nai-diffusion-3", "nai-diffusion-furry-3" };
         public List<string> SamplingMethods { get; set; } = new List<string> { "Euler", "Euler Ancestral", "DPM++ 2S Ancestral", "DPM++ SDE", "DPM++ 2M", "DDIM" };
         public List<string> Resolutions { get; set; } = new List<string> { "1024*1024", "1216*832", "832*1216" };
@@ -40,10 +52,23 @@ namespace xianyun.Model
 
         public Txt2imgPageModel()
         {
+            // 初始化反向映射字典
+            _reverseSamplingMethodMapping = _samplingMethodMapping.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
             Model = Models[0];
             SamplingMethod = SamplingMethods[0];
             Resolution = Resolutions[0];
             NoiseSchedule = NoiseSchedules[0];
+        }
+        // 获取实际的采样方法
+        public string ActualSamplingMethod => _samplingMethodMapping.TryGetValue(SamplingMethod, out var actualMethod) ? actualMethod : null;
+
+        // 设置实际的采样方法，并更新 UI 显示选项
+        public void SetSamplingMethodFromActual(string actualMethod)
+        {
+            if (_reverseSamplingMethodMapping.TryGetValue(actualMethod, out var uiMethod))
+            {
+                SamplingMethod = uiMethod;
+            }
         }
         public bool SelectedLineArt
         {
@@ -201,7 +226,7 @@ namespace xianyun.Model
             get => _guidanceScale;
             set
             {
-                _guidanceScale = value;
+                _guidanceScale = (float)Math.Round(value, 2); // 保留两位小数
                 this.DoNotify();
             }
         }
@@ -210,7 +235,7 @@ namespace xianyun.Model
             get => _guidanceRescale;
             set
             {
-                _guidanceRescale = value;
+                _guidanceRescale = (float)Math.Round(value, 2); // 保留两位小数
                 this.DoNotify();
             }
         }
