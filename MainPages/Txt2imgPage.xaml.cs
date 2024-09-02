@@ -35,8 +35,6 @@ namespace xianyun.MainPages
         {
             InitializeComponent();
             this.DataContext = new Txt2imgPageViewModel();
-           
-
         }
         private void TagMenuBtn_Click(object sender, RoutedEventArgs e)
         {

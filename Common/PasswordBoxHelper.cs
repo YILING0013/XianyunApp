@@ -54,9 +54,6 @@ namespace xianyun.Common
             _isUpdating = true; // 设置标志位，表示正在更新
             SetBoundPassword(passwordBox, newPassword); // 更新绑定的Password属性值
             _isUpdating = false; // 重置标志位
-
-            // 输出更新后的密码（仅用于调试目的）
-            System.Diagnostics.Debug.WriteLine($"Password updated: {newPassword}");
         }
     }
 }

@@ -89,7 +89,7 @@ namespace xianyun.ViewModel
                 {
                     try
                     {
-                        string url = "https://nai3.xianyun.cool/auth/login";
+                        string url = "http://127.0.0.1:5000/auth/login";
                         var loginData = new
                         {
                             username = LoginModel.UserName,
@@ -112,7 +112,8 @@ namespace xianyun.ViewModel
                                 var sessionCookie = cookies["session"];
                                 if (sessionCookie != null)
                                 {
-                                    this.Message = $"Session: {sessionCookie.Value}";
+                                    Common.SessionManager.Session = sessionCookie.Value;
+                                    this.Message = "登录成功";
                                     OpenMainWindowAndCloseLoginWindow();  // 登录成功后打开主窗口
                                 }
                                 LoginModel.IsLoginButtonEnabled = true;
@@ -164,6 +165,7 @@ namespace xianyun.ViewModel
                             // 处理响应
                             if (responseData.information.banStatus == "not_banned" && responseData.information.banMessage == null)
                             {
+                                Common.SessionManager.Token = token;
                                 int fixedTrainingStepsLeft = responseData.subscription.trainingStepsLeft.fixedTrainingStepsLeft;
                                 bool active = responseData.subscription.active;
                                 this.Message = $"Training Steps Left: {fixedTrainingStepsLeft}, Active: {active}";

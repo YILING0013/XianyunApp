@@ -187,7 +187,8 @@
                         </Grid>
                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
                         <Button Content="Generate Image" Grid.Row="4" Margin="6,2,6,2"
-                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                Command="{Binding GenerateImageCommand}"/>
                     </Grid>
                 </Border>
                 <Border Grid.Row="1" Background="#ccdcd4" Margin="10" CornerRadius="5,5,5,5">
@@ -389,7 +390,21 @@
                                     <RowDefinition Height="10*"/>
                                 </Grid.RowDefinitions>
                                 <Border Background="#ccdcd4" Margin="1,2">
-
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                        </Grid.RowDefinitions>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+                                            <Button Content="保存词条为笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="3"/>
+                                            <Button Grid.Column="1" Content="删除当前选中笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="#F7DED0" Margin="3"/>
+                                        </Grid>
+                                        <Button Grid.Row="1" Content="使用当前笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="3" Background="#C5EBAA"/>
+                                    </Grid>
                                 </Border>
                                 <Grid Grid.Row="1">
                                     <Grid.ColumnDefinitions>
@@ -397,10 +412,27 @@
                                         <ColumnDefinition Width="2*"/>
                                     </Grid.ColumnDefinitions>
                                     <Border Grid.Column="0" Background="#ccdcd4" Margin="1,2,2,2">
-                                        <ListBox Height="auto" ItemsSource="{Binding ViewModel.MyItems}"/>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="1*"/>
+                                                <RowDefinition Height="1*"/>
+                                                <RowDefinition Height="1*"/>
+                                            </Grid.RowDefinitions>
+                                            <ui:TextBox Grid.Row="0" PlaceholderText="正面词条" Margin="4,4"/>
+                                            <ui:TextBox Grid.Row="1" PlaceholderText="负面词条" Margin="4,4"/>
+                                            <Grid Background="Transparent" Grid.Row="2">
+                                                <TextBlock Text="图像预览" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="24" Foreground="#B0C5A4"/>
+                                                <Border>
+                                                    <Image Height="auto"/>
+                                                </Border>
+                                            </Grid>
+                                        </Grid>
                                     </Border>
                                     <Border Grid.Column="1" Background="#ccdcd4" Margin="1,2,2,2" CornerRadius="0,0,20,0">
-                                        <ListBox Height="auto" Margin="0,0,4,8" ItemsSource="{Binding ViewModel.MyItems}"/>
+                                        <ListBox Height="auto" Margin="0,0,4,8" ItemsSource="{Binding ViewModel.MyItems}">
+                                            <ListBoxItem Content="Blue"/>
+                                            <ListBoxItem Content="Green"/>
+                                        </ListBox>
                                     </Border>
                                 </Grid>
                             </Grid>

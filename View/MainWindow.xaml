@@ -113,21 +113,6 @@
                 </Border>
                 <!--右侧内容-->
                 <Frame Grid.Column="1" Name="MainWindowFrame" NavigationUIVisibility="Hidden"/>
-                <!--<Border Grid.Column="1" CornerRadius="20" Margin="0,20,10,20" BorderBrush="#7b9d91"
-                        BorderThickness="4">
-                    <Border.Effect>
-                        <DropShadowEffect Color="Gray" ShadowDepth="2" 
-                                          BlurRadius="4" Opacity="0.5" 
-                                          Direction="0"/>
-                        --><!--阴影--><!--
-                    </Border.Effect>
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#ccdcd4" Offset="0" />
-                            <GradientStop Color="#a2bfab" Offset="1" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>-->
             </Grid>
         </Border>
     </Border>
