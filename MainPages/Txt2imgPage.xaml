@@ -78,7 +78,6 @@
                                             </WrapPanel>
                                         </ScrollViewer>
                                         <ui:TextBox FontSize="12" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
-
                                     </Grid>
                                 </Border>
                             </Grid>
@@ -91,7 +90,7 @@
                                 </StackPanel>
                             </TabItem.Header>
                             <Grid>
-                                <ui:TextBox PlaceholderText="Type something..." AcceptsReturn="True" TextWrapping="Wrap"/>
+                                <ui:TextBox PlaceholderText="Type something..." AcceptsReturn="True" Text="{Binding Txt2ImgPageModel.NegitivePrompt}" TextWrapping="Wrap"/>
                             </Grid>
                         </TabItem>
                     </TabControl>

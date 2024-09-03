@@ -30,7 +30,6 @@ namespace xianyun.MainPages
         private bool dragInProgress = false;
         private bool isDrawerOpen = false;
         private DragAdorner currentAdorner;
-        UserControl.VibeTransfer VibeTransfer = new UserControl.VibeTransfer();
         public Txt2imgPage()
         {
             InitializeComponent();
@@ -219,13 +218,22 @@ namespace xianyun.MainPages
                 InputTextBox.Visibility = Visibility.Collapsed;
             }
         }
-
         private void TagControl_TextChanged(object sender, EventArgs e)
+        {
+            UpdateViewModelTagsText();
+        }
+        private void UpdateViewModelTagsText()
         {
             if (TagsContainer.Children.Count > 0)
             {
                 var tagsText = string.Join(",", TagsContainer.Children.OfType<TagControl>().Select(tc => tc.GetAdjustedText()));
                 InputTextBox.Text = tagsText;
+                // 获取已绑定的 Txt2imgPageModel 实例
+                var viewModel = DataContext as Txt2imgPageViewModel;
+                if (viewModel != null && viewModel.Txt2ImgPageModel != null)
+                {
+                    viewModel.PositivePrompt = tagsText;
+                }
             }
         }
         private void ProcessInputText()
@@ -234,7 +242,13 @@ namespace xianyun.MainPages
             {
                 string inputText = InputTextBox.Text.Trim();
 
-                if (!string.IsNullOrEmpty(inputText))
+                if (string.IsNullOrEmpty(inputText))
+                {
+                    // 如果输入框为空，清空所有标签
+                    TagsContainer.Children.Clear();
+                    UpdateViewModelTagsText();
+                }
+                else
                 {
                     // 将中文逗号转换为英文逗号
                     inputText = inputText.Replace("，", ",");
@@ -256,6 +270,7 @@ namespace xianyun.MainPages
                         {
                             // 如果不存在该标签，创建新的 TagControl 并添加到容器中
                             TagControl newTagControl = new TagControl(tag, tag);
+                            newTagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
                             TagsContainer.Children.Add(newTagControl);
                         }
                         else
@@ -270,6 +285,7 @@ namespace xianyun.MainPages
                     {
                         TagsContainer.Children.Remove(tagControl);
                     }
+                    UpdateViewModelTagsText();
                 }
 
                 // 隐藏TextBox
@@ -559,6 +575,7 @@ namespace xianyun.MainPages
                     if (insertIndex > currentIndex) insertIndex--;
                     panel.Children.Insert(insertIndex, dragControl);
                 }
+                UpdateViewModelTagsText();
             }
         }
 

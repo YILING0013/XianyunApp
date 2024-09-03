@@ -89,7 +89,7 @@ namespace xianyun.ViewModel
                 {
                     try
                     {
-                        string url = "http://127.0.0.1:5000/auth/login";
+                        string url = "https://nai3.xianyun.cool/auth/login";
                         var loginData = new
                         {
                             username = LoginModel.UserName,

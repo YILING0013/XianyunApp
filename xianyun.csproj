@@ -104,10 +104,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Assets\Tags\TagTipsData.cs" />
     <Compile Include="Common\Adorner.cs" />
     <Compile Include="Common\NullableLongConverter.cs" />
     <Compile Include="Common\NotifyBase.cs" />
+    <Compile Include="Common\ParameterManager.cs" />
     <Compile Include="Common\PasswordBoxHelper.cs" />
     <Compile Include="Common\Variable.cs" />
     <Compile Include="MainPages\Img2ImgPage.xaml.cs">
@@ -173,7 +173,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DateAccess\" />
+    <Folder Include="Assets\Tags\" />
+    <Folder Include="Data\" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\pictures\icon.png" />

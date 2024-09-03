@@ -19,7 +19,7 @@
         <Border.ContextMenu>
             <ContextMenu>
                 <MenuItem Header="Change Border Color">
-                    <hc:ColorPicker SelectedBrush="{Binding BorderBrush, ElementName=BorderBg, Mode=TwoWay}"
+                    <hc:ColorPicker SelectedBrush="{Binding BorderBrush,Mode=TwoWay}"
                                     SelectedColorChanged="ColorPicker_SelectedColorChanged"/>
                 </MenuItem>
             </ContextMenu>

@@ -32,6 +32,7 @@ namespace xianyun.Model
         private bool _selectedDeclutter;
         private bool _selectedEmotion;
         private bool _selectedColorize;
+        private string _negitivePrompt;
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
         {
@@ -68,6 +69,18 @@ namespace xianyun.Model
             if (_reverseSamplingMethodMapping.TryGetValue(actualMethod, out var uiMethod))
             {
                 SamplingMethod = uiMethod;
+            }
+        }
+        public string NegitivePrompt
+        {
+            get => _negitivePrompt;
+            set
+            {
+                if (_negitivePrompt != value)
+                {
+                    _negitivePrompt = value;
+                    DoNotify();
+                }
             }
         }
         public bool SelectedLineArt
@@ -140,7 +153,7 @@ namespace xianyun.Model
             set
             {
                 _drawingFrequency = value;
-                this.DoNotify();
+                DoNotify();
             }
         }
         public int Steps
@@ -149,7 +162,7 @@ namespace xianyun.Model
             set
             {
                 _steps = value;
-                this.DoNotify();
+                DoNotify();
             }
         }
         public long? Seed
@@ -158,7 +171,7 @@ namespace xianyun.Model
             set
             {
                 _seed = value;
-                this.DoNotify();
+                DoNotify();
                 System.Diagnostics.Debug.WriteLine("Seed: " + _seed);
             }
         }
@@ -168,7 +181,7 @@ namespace xianyun.Model
             set
             {
                 _width = value;
-                this.DoNotify();
+                DoNotify();
             }
         }
         public int Height
@@ -177,7 +190,7 @@ namespace xianyun.Model
             set
             {
                 _height = value;
-                this.DoNotify();
+                DoNotify();
             }
         }
         public bool IsConvenientResolution
@@ -186,7 +199,7 @@ namespace xianyun.Model
             set
             {
                 _isConvenientResolution = value;
-                this.DoNotify();
+                DoNotify();
             }
         }
         public bool IsSMEA
@@ -200,7 +213,7 @@ namespace xianyun.Model
                 {
                     IsDYN = false;
                 }
-                this.DoNotify();
+                DoNotify();
             }
         }
         public bool IsDYNEnabled
@@ -209,7 +222,7 @@ namespace xianyun.Model
             set
             {
                 _isDYNEnabled = value;
-                this.DoNotify();
+                DoNotify();
             }
         }
         public bool IsDYN
@@ -218,7 +231,7 @@ namespace xianyun.Model
             set
             {
                 _isDYN = value;
-                this.DoNotify();
+                DoNotify();
             }
         }
         public float GuidanceScale
@@ -227,7 +240,7 @@ namespace xianyun.Model
             set
             {
                 _guidanceScale = (float)Math.Round(value, 2); // 保留两位小数
-                this.DoNotify();
+                DoNotify();
             }
         }
         public float GuidanceRescale
@@ -236,7 +249,7 @@ namespace xianyun.Model
             set
             {
                 _guidanceRescale = (float)Math.Round(value, 2); // 保留两位小数
-                this.DoNotify();
+                DoNotify();
             }
         }
         public string Model
@@ -247,7 +260,7 @@ namespace xianyun.Model
                 if (_model != value)
                 {
                     _model = value;
-                    this.DoNotify();
+                    DoNotify();
                 }
             }
         }
@@ -260,7 +273,7 @@ namespace xianyun.Model
                 if (_samplingMethod != value)
                 {
                     _samplingMethod = value;
-                    this.DoNotify();
+                    DoNotify();
                 }
             }
         }
@@ -273,7 +286,7 @@ namespace xianyun.Model
                 if (_resolution != value)
                 {
                     _resolution = value;
-                    this.DoNotify();
+                    DoNotify();
                 }
             }
         }
@@ -286,7 +299,7 @@ namespace xianyun.Model
                 if (_noiseSchedule != value)
                 {
                     _noiseSchedule = value;
-                    this.DoNotify();
+                    DoNotify();
                 }
             }
         }
