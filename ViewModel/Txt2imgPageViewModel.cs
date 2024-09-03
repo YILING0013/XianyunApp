@@ -26,7 +26,6 @@ namespace xianyun.ViewModel
         private readonly string _secretKey = "fGCGrffh$*hdr#(7904-(cSGDTJGTCLOPIYSWQSFESADZFDBJ%+)):m;(&@1#+$*hHBBB23$c(&#46&(890*@2$%&c#5$#2147905*&/MJMMLLPwr#fhdefts&dcr24x#g4*r@3&(uourw1fcgd-5cdgc$-4fhfxf+dvhvd#d*xe#&frzxhg&efxgthd@2vdffhr*ts2#g4cr#f3xffde@3$ffsxdvh4swa$gr$grOJHNBUGVCDAssddd$ss4+f5$s23xgv(/njvd1d4+g7g$213yfdh*$j*QZDEHg";
         public Txt2imgPageViewModel()
         {
-            Txt2ImgPageModel = new Txt2imgPageModel();
             GenerateImageCommand = new AsyncRelayCommand(OnGenerateButtonClick);
         }
         public string PositivePrompt

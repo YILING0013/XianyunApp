@@ -32,7 +32,34 @@ namespace xianyun.Model
         private bool _selectedDeclutter;
         private bool _selectedEmotion;
         private bool _selectedColorize;
-        private string _negitivePrompt;
+        private string _negitivePrompt= "lowres, {bad}, error, fewer, extra, missing, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract]";
+        public void LoadParameters()
+        {
+            var loadedConfig = ConfigurationService.LoadConfiguration<Txt2imgPageModel>();
+
+            // 将加载的参数应用到当前对象
+            this.Model = loadedConfig.Model;
+            this.DrawingFrequency = loadedConfig.DrawingFrequency;
+            this.Steps = loadedConfig.Steps;
+            this.Seed = loadedConfig.Seed;
+            this.Width = loadedConfig.Width;
+            this.Height = loadedConfig.Height;
+            this.IsConvenientResolution = loadedConfig.IsConvenientResolution;
+            this.IsSMEA = loadedConfig.IsSMEA;
+            this.IsDYN = loadedConfig.IsDYN;
+            this.IsDYNEnabled = loadedConfig.IsDYNEnabled;
+            this.GuidanceScale = loadedConfig.GuidanceScale;
+            this.GuidanceRescale = loadedConfig.GuidanceRescale;
+            this.SamplingMethod = loadedConfig.SamplingMethod;
+            this.Resolution = loadedConfig.Resolution;
+            this.NoiseSchedule = loadedConfig.NoiseSchedule;
+            this.SelectedLineArt = loadedConfig.SelectedLineArt;
+            this.SelectedSketch = loadedConfig.SelectedSketch;
+            this.SelectedDeclutter = loadedConfig.SelectedDeclutter;
+            this.SelectedEmotion = loadedConfig.SelectedEmotion;
+            this.SelectedColorize = loadedConfig.SelectedColorize;
+            this.NegitivePrompt = loadedConfig.NegitivePrompt;
+        }
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
         {
@@ -60,6 +87,11 @@ namespace xianyun.Model
             Resolution = Resolutions[0];
             NoiseSchedule = NoiseSchedules[0];
         }
+        public void SaveParameters()
+        {
+            ConfigurationService.SaveConfiguration(this);
+        }
+
         // 获取实际的采样方法
         public string ActualSamplingMethod => _samplingMethodMapping.TryGetValue(SamplingMethod, out var actualMethod) ? actualMethod : null;
 

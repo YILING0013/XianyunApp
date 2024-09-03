@@ -19,6 +19,7 @@ using xianyun.UserControl;
 using xianyun.ViewModel;
 using System.IO;
 using System.Windows.Media.Animation;
+using xianyun.Common;
 
 namespace xianyun.MainPages
 {
@@ -30,21 +31,36 @@ namespace xianyun.MainPages
         private bool dragInProgress = false;
         private bool isDrawerOpen = false;
         private DragAdorner currentAdorner;
+        private Txt2imgPageViewModel _viewModel;
+        private Txt2imgPageModel _model;
         public Txt2imgPage()
         {
             InitializeComponent();
-            this.DataContext = new Txt2imgPageViewModel();
+            _viewModel = new Txt2imgPageViewModel();
+            _model = new Txt2imgPageModel();
+            _viewModel.Txt2ImgPageModel = _model;
+            this.DataContext = _viewModel;
             this.Loaded += Txt2imgPage_Loaded;
+            this.Unloaded += Txt2imgPage_Unloaded;
         }
         private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
         {
             var viewModel = DataContext as Txt2imgPageViewModel;
+            if (ConfigurationService.ConfigurationExists())
+            {
+                _viewModel.Txt2ImgPageModel.LoadParameters();
+            }
             if (viewModel != null)
             {
                 viewModel.ImgPreviewArea = ImgPreviewArea; // 将 ImgPreviewArea 传递给 ViewModel
                 viewModel.ImageStackPanel = ImageStackPanel; // 将 ImageStackPanel 传递给 ViewModel
                 viewModel.ImageViewerControl = ImageViewerControl; // 将 ImageViewerControl 传递给 ViewModel
             }
+        }
+        private void Txt2imgPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            // 保存当前配置
+            _viewModel.Txt2ImgPageModel.SaveParameters();
         }
         private void TagMenuBtn_Click(object sender, RoutedEventArgs e)
         {

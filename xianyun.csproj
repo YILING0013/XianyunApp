@@ -107,7 +107,7 @@
     <Compile Include="Common\Adorner.cs" />
     <Compile Include="Common\NullableLongConverter.cs" />
     <Compile Include="Common\NotifyBase.cs" />
-    <Compile Include="Common\ParameterManager.cs" />
+    <Compile Include="Common\ConfigurationService.cs" />
     <Compile Include="Common\PasswordBoxHelper.cs" />
     <Compile Include="Common\Variable.cs" />
     <Compile Include="MainPages\Img2ImgPage.xaml.cs">
