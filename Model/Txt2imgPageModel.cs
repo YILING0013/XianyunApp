@@ -32,6 +32,7 @@ namespace xianyun.Model
         private bool _selectedDeclutter;
         private bool _selectedEmotion;
         private bool _selectedColorize;
+        private string _positivePrompt;
         private string _negitivePrompt= "lowres, {bad}, error, fewer, extra, missing, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract]";
         public void LoadParameters()
         {
@@ -59,6 +60,7 @@ namespace xianyun.Model
             this.SelectedEmotion = loadedConfig.SelectedEmotion;
             this.SelectedColorize = loadedConfig.SelectedColorize;
             this.NegitivePrompt = loadedConfig.NegitivePrompt;
+            this.PositivePrompt = loadedConfig.PositivePrompt;
         }
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
@@ -101,6 +103,20 @@ namespace xianyun.Model
             if (_reverseSamplingMethodMapping.TryGetValue(actualMethod, out var uiMethod))
             {
                 SamplingMethod = uiMethod;
+            }
+        }
+        public string PositivePrompt
+        {
+            get => _positivePrompt;
+            set
+            {
+                if (_positivePrompt != value)
+                {
+                    _positivePrompt = value;
+                    //打印正面提示词
+                    System.Diagnostics.Debug.WriteLine("PositivePrompt: " + _positivePrompt);
+                    DoNotify();
+                }
             }
         }
         public string NegitivePrompt

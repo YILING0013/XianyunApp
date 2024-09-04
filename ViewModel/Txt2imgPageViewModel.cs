@@ -17,7 +17,7 @@ namespace xianyun.ViewModel
 {
     public class Txt2imgPageViewModel : NotifyBase
     {
-        private string _positivePrompt;
+        
         public System.Windows.Controls.ScrollViewer ImgPreviewArea { get; set; }
         public StackPanel ImageStackPanel { get; set; }
         public ImageViewer ImageViewerControl { get; set; }
@@ -27,20 +27,6 @@ namespace xianyun.ViewModel
         public Txt2imgPageViewModel()
         {
             GenerateImageCommand = new AsyncRelayCommand(OnGenerateButtonClick);
-        }
-        public string PositivePrompt
-        {
-            get => _positivePrompt;
-            set
-            {
-                if (_positivePrompt != value)
-                {
-                    _positivePrompt = value;
-                    //打印正面提示词
-                    System.Diagnostics.Debug.WriteLine("PositivePrompt: " + _positivePrompt);
-                    DoNotify();
-                }
-            }
         }
 
         private async Task OnGenerateButtonClick()
@@ -53,7 +39,7 @@ namespace xianyun.ViewModel
                 var imageRequest = new ImageGenerationRequest
                 {
                     Model = Txt2ImgPageModel.Model, // 绑定模型
-                    PositivePrompt = PositivePrompt, // 示例正面提示词
+                    PositivePrompt = Txt2ImgPageModel.PositivePrompt, // 示例正面提示词
                     NegativePrompt = Txt2ImgPageModel.NegitivePrompt, // 示例负面提示词
                     Scale = Txt2ImgPageModel.GuidanceScale, // 绑定比例
                     Steps = Txt2ImgPageModel.Steps, // 绑定步数

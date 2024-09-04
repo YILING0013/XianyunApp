@@ -56,6 +56,8 @@ namespace xianyun.MainPages
                 viewModel.ImageStackPanel = ImageStackPanel; // 将 ImageStackPanel 传递给 ViewModel
                 viewModel.ImageViewerControl = ImageViewerControl; // 将 ImageViewerControl 传递给 ViewModel
             }
+            InputTextBox.Text = viewModel.Txt2ImgPageModel.PositivePrompt;
+            UpdateTagsContainer();
         }
         private void Txt2imgPage_Unloaded(object sender, RoutedEventArgs e)
         {
@@ -187,52 +189,48 @@ namespace xianyun.MainPages
         }
         private void UpdateTagsContainer()
         {
-            if (InputTextBox.Visibility == Visibility.Visible)
+            string inputText = InputTextBox.Text.Trim();
+
+            if (!string.IsNullOrEmpty(inputText))
             {
-                string inputText = InputTextBox.Text.Trim();
+                // 将中文逗号转换为英文逗号
+                inputText = inputText.Replace("，", ",");
 
-                if (!string.IsNullOrEmpty(inputText))
+                // 分割文本
+                string[] newTags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                             .Select(tag => AutoCompleteBrackets(tag.Trim()))
+                                             .ToArray();
+
+                // 获取现有的 TagControl 列表
+                var existingTagControls = TagsContainer.Children.OfType<TagControl>().ToList();
+
+                foreach (var tag in newTags)
                 {
-                    // 将中文逗号转换为英文逗号
-                    inputText = inputText.Replace("，", ",");
+                    // 使用标签文本本身作为唯一标识符
+                    var existingTagControl = existingTagControls.FirstOrDefault(tc => tc.GetAdjustedText() == tag);
 
-                    // 分割文本
-                    string[] newTags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                                                 .Select(tag => AutoCompleteBrackets(tag.Trim()))
-                                                 .ToArray();
-
-                    // 获取现有的 TagControl 列表
-                    var existingTagControls = TagsContainer.Children.OfType<TagControl>().ToList();
-
-                    foreach (var tag in newTags)
+                    if (existingTagControl == null)
                     {
-                        // 使用标签文本本身作为唯一标识符
-                        var existingTagControl = existingTagControls.FirstOrDefault(tc => tc.GetAdjustedText() == tag);
-
-                        if (existingTagControl == null)
-                        {
-                            // 如果不存在，则创建新的 TagControl 并添加到容器中
-                            TagControl newTagControl = new TagControl(tag, tag);
-                            newTagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
-                            TagsContainer.Children.Add(newTagControl);
-                        }
-                        else
-                        {
-                            // 如果存在，保持组件，并从现有列表中移除，避免删除
-                            existingTagControls.Remove(existingTagControl);
-                        }
+                        // 如果不存在，则创建新的 TagControl 并添加到容器中
+                        TagControl newTagControl = new TagControl(tag, tag);
+                        newTagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
+                        TagsContainer.Children.Add(newTagControl);
                     }
-
-                    // 删除不再需要的 TagControl
-                    foreach (var tagControl in existingTagControls)
+                    else
                     {
-                        TagsContainer.Children.Remove(tagControl);
+                        // 如果存在，保持组件，并从现有列表中移除，避免删除
+                        existingTagControls.Remove(existingTagControl);
                     }
                 }
 
-                // 隐藏 TextBox
-                InputTextBox.Visibility = Visibility.Collapsed;
+                // 删除不再需要的 TagControl
+                foreach (var tagControl in existingTagControls)
+                {
+                    TagsContainer.Children.Remove(tagControl);
+                }
             }
+            // 隐藏 TextBox
+            InputTextBox.Visibility = Visibility.Collapsed;
         }
         private void TagControl_TextChanged(object sender, EventArgs e)
         {
@@ -248,7 +246,7 @@ namespace xianyun.MainPages
                 var viewModel = DataContext as Txt2imgPageViewModel;
                 if (viewModel != null && viewModel.Txt2ImgPageModel != null)
                 {
-                    viewModel.PositivePrompt = tagsText;
+                    viewModel.Txt2ImgPageModel.PositivePrompt = tagsText;
                 }
             }
         }
