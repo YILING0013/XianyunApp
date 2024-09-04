@@ -113,8 +113,6 @@ namespace xianyun.Model
                 if (_positivePrompt != value)
                 {
                     _positivePrompt = value;
-                    //打印正面提示词
-                    System.Diagnostics.Debug.WriteLine("PositivePrompt: " + _positivePrompt);
                     DoNotify();
                 }
             }

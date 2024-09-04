@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using xianyun.Model;
 using xianyun.ViewModel;
 
 namespace xianyun.View
@@ -21,10 +22,15 @@ namespace xianyun.View
     /// </summary>
     public partial class MainWindow : Window
     {
+        private MainViewModel _mainViewModel;
+        private Txt2imgPageViewModel _txt2ImgPageViewModel;
         public MainWindow()
         {
             InitializeComponent();
-            this.DataContext = new MainViewModel();
+            _mainViewModel = new MainViewModel();
+            _txt2ImgPageViewModel = new Txt2imgPageViewModel();
+            _mainViewModel.Txt2ImgPageViewModel = _txt2ImgPageViewModel;
+            this.DataContext = _mainViewModel;
             this.Loaded += (s, e) =>
             {
                 Application.Current.Dispatcher.InvokeAsync(() =>
@@ -35,8 +41,23 @@ namespace xianyun.View
                     }
                 });
             };
+            // 订阅窗口关闭事件
+            this.Closing += MainWindow_Closing;
         }
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // 在窗口关闭时调用保存数据的逻辑
+            SaveData();
+        }
+        private void SaveData()
+        {
+            // 数据保存逻辑
 
+            if (DataContext is MainViewModel viewModel && viewModel.Txt2ImgPageViewModel != null)
+            {
+                viewModel.Txt2ImgPageViewModel.Txt2ImgPageModel.SaveParameters();
+            }
+        }
         private void Border_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)

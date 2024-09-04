@@ -123,7 +123,6 @@
       <DependentUpon>WelcomePage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Model\LoginModel.cs" />
-    <Compile Include="Model\MainWindowModel.cs" />
     <Compile Include="Model\Txt2imgPageModel.cs" />
     <Compile Include="UserControl\ImgPreview.xaml.cs">
       <DependentUpon>ImgPreview.xaml</DependentUpon>

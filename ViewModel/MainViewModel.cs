@@ -5,12 +5,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using xianyun.Common;
+using xianyun.Model;
 
 namespace xianyun.ViewModel
 {
     public class MainViewModel : NotifyBase
     {
         public ICommand NavigateCommand { get; }
+        public Txt2imgPageViewModel Txt2ImgPageViewModel { get; set; }
         private void Navigate(string pageName)
         {
             var frame = Application.Current.MainWindow.FindName("MainWindowFrame") as Frame;
