@@ -122,8 +122,6 @@
     <Compile Include="MainPages\WelcomePage.xaml.cs">
       <DependentUpon>WelcomePage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Model\LoginModel.cs" />
-    <Compile Include="Model\Txt2imgPageModel.cs" />
     <Compile Include="UserControl\ImgPreview.xaml.cs">
       <DependentUpon>ImgPreview.xaml</DependentUpon>
     </Compile>
@@ -135,7 +133,6 @@
     </Compile>
     <Compile Include="ViewModel\LoginViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
-    <Compile Include="ViewModel\Txt2imgPageViewModel.cs" />
     <Compile Include="View\Loginview.xaml.cs">
       <DependentUpon>Loginview.xaml</DependentUpon>
     </Compile>

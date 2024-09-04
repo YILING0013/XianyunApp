@@ -6,7 +6,7 @@
       xmlns:local="clr-namespace:xianyun.MainPages"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:hc="https://handyorg.github.io/handycontrol"
-      xmlns:model="clr-namespace:xianyun.Model" xmlns:common="clr-namespace:xianyun.Common" d:DataContext="{d:DesignInstance Type=model:Txt2imgPageModel}"
+      xmlns:common="clr-namespace:xianyun.Common"
       mc:Ignorable="d" 
       d:DesignHeight="758" d:DesignWidth="1129"
       FontSize="12" 
@@ -90,7 +90,7 @@
                                 </StackPanel>
                             </TabItem.Header>
                             <Grid>
-                                <ui:TextBox PlaceholderText="Type something..." AcceptsReturn="True" Text="{Binding Txt2ImgPageModel.NegitivePrompt}" TextWrapping="Wrap"/>
+                                <ui:TextBox PlaceholderText="Type something..." AcceptsReturn="True" Text="{Binding NegitivePrompt}" TextWrapping="Wrap"/>
                             </Grid>
                         </TabItem>
                     </TabControl>
@@ -128,11 +128,11 @@
                                     <ColumnDefinition/>
                                 </Grid.ColumnDefinitions>
                                 <Button Grid.Column="0" Margin="0,2" Content="发送到图生图"/>
-                                <RadioButton IsChecked="{Binding Txt2ImgPageModel.SelectedLineArt, Mode=TwoWay}" Grid.Column="1" Margin="0,2" GroupName="DirectorTools"  Content="转线稿"/>
-                                <RadioButton IsChecked="{Binding Txt2ImgPageModel.SelectedSketch, Mode=TwoWay}" Grid.Column="2" Margin="0,2" GroupName="DirectorTools"  Content="转草稿"/>
-                                <RadioButton IsChecked="{Binding Txt2ImgPageModel.SelectedDeclutter, Mode=TwoWay}" Grid.Column="3" Margin="0,2" GroupName="DirectorTools"  Content="清理画面"/>
-                                <RadioButton IsChecked="{Binding Txt2ImgPageModel.SelectedEmotion, Mode=TwoWay}" Grid.Column="4" Margin="0,2" GroupName="DirectorTools"  Content="情绪修改"/>
-                                <RadioButton IsChecked="{Binding Txt2ImgPageModel.SelectedColorize, Mode=TwoWay}" Grid.Column="5" Margin="0,2" GroupName="DirectorTools"  Content="着色"/>
+                                <RadioButton IsChecked="{Binding SelectedLineArt, Mode=TwoWay}" Grid.Column="1" Margin="0,2" GroupName="DirectorTools"  Content="转线稿"/>
+                                <RadioButton IsChecked="{Binding SelectedSketch, Mode=TwoWay}" Grid.Column="2" Margin="0,2" GroupName="DirectorTools"  Content="转草稿"/>
+                                <RadioButton IsChecked="{Binding SelectedDeclutter, Mode=TwoWay}" Grid.Column="3" Margin="0,2" GroupName="DirectorTools"  Content="清理画面"/>
+                                <RadioButton IsChecked="{Binding SelectedEmotion, Mode=TwoWay}" Grid.Column="4" Margin="0,2" GroupName="DirectorTools"  Content="情绪修改"/>
+                                <RadioButton IsChecked="{Binding SelectedColorize, Mode=TwoWay}" Grid.Column="5" Margin="0,2" GroupName="DirectorTools"  Content="着色"/>
                             </Grid>
                         </Border>
                         <Border Grid.Row="1" Margin="6,8" CornerRadius="10" Background="#ccdcd4">
@@ -170,9 +170,9 @@
                                 <ColumnDefinition Width="10*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="连续绘制(次):"/>
-                            <Slider Grid.Column="1" Value="{Binding Txt2ImgPageModel.DrawingFrequency, Mode=TwoWay}" TickPlacement="Both" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                            <Slider Grid.Column="1" Value="{Binding DrawingFrequency, Mode=TwoWay}" TickPlacement="Both" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding Txt2ImgPageModel.DrawingFrequency, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding DrawingFrequency, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </Grid>
                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
@@ -182,7 +182,7 @@
                                 <ColumnDefinition Width="120*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="使用NovelAI模型:" />
-                            <ComboBox  Grid.Column="1" ItemsSource="{Binding Txt2ImgPageModel.Models}" SelectedItem="{Binding Txt2ImgPageModel.Model,Mode=TwoWay}"/>
+                            <ComboBox  Grid.Column="1" ItemsSource="{Binding Models}" SelectedItem="{Binding Model,Mode=TwoWay}"/>
                         </Grid>
                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
                         <Button Content="Generate Image" Grid.Row="4" Margin="6,2,6,2"
@@ -220,9 +220,9 @@
                                 <ColumnDefinition Width="15*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Guidance Scale:" Grid.Column="0"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="0.1" Maximum="10" Value="{Binding Txt2ImgPageModel.GuidanceScale, Mode=TwoWay}"  TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="0.1" Maximum="10" Value="{Binding GuidanceScale, Mode=TwoWay}"  TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding Txt2ImgPageModel.GuidanceScale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding GuidanceScale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </Grid>
                         <!-- Horizontal Divider -->
@@ -240,9 +240,9 @@
                             </Grid.Resources>
                             <!-- Sampling Method ComboBox -->
                             <TextBlock Text="采样:" Grid.Column="0"/>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding Txt2ImgPageModel.SamplingMethods}" SelectedItem="{Binding Txt2ImgPageModel.SamplingMethod,Mode=TwoWay}"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding SamplingMethods}" SelectedItem="{Binding SamplingMethod,Mode=TwoWay}"/>
                             <TextBlock Text="Seed:" Grid.Column="2"/>
-                            <ui:TextBox  PlaceholderText="Enter Seed" Text="{Binding Txt2ImgPageModel.Seed, Mode=TwoWay,Converter={StaticResource NullableLongConverter}}"  Grid.Column="3"/>
+                            <ui:TextBox  PlaceholderText="Enter Seed" Text="{Binding Seed, Mode=TwoWay,Converter={StaticResource NullableLongConverter}}"  Grid.Column="3"/>
                         </Grid>
                         <!-- Horizontal Divider -->
                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
@@ -254,9 +254,9 @@
                                 <ColumnDefinition Width="14*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Steps:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="{Binding Txt2ImgPageModel.Steps, Mode=TwoWay}"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="{Binding Steps, Mode=TwoWay}"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding Txt2ImgPageModel.Steps, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Steps, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </Grid>
 
@@ -271,9 +271,9 @@
                                 <ColumnDefinition Width="25*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Width:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="{Binding Txt2ImgPageModel.Width, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="{Binding Width, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding Txt2ImgPageModel.Width, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Width, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </Grid>
 
@@ -288,9 +288,9 @@
                                 <ColumnDefinition Width="25*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Height:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="{Binding Txt2ImgPageModel.Height, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="{Binding Height, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding Txt2ImgPageModel.Height, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Height, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </Grid>
                         <!-- Horizontal Divider -->
@@ -304,8 +304,8 @@
                             </Grid.ColumnDefinitions>
                             <!-- Resolution ComboBox -->
                             <TextBlock Text="便捷分辨率:"/>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding Txt2ImgPageModel.Resolutions}" SelectedItem="{Binding Txt2ImgPageModel.Resolution,Mode=TwoWay}"/>
-                            <ui:ToggleSwitch OffContent="禁用中" OnContent="已开启" IsChecked="{Binding Txt2ImgPageModel.IsConvenientResolution, Mode=TwoWay}" Grid.Column="2" FontSize="12" HorizontalAlignment="Right" Foreground="DarkSlateGray"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding Resolution,Mode=TwoWay}"/>
+                            <ui:ToggleSwitch OffContent="禁用中" OnContent="已开启" IsChecked="{Binding IsConvenientResolution, Mode=TwoWay}" Grid.Column="2" FontSize="12" HorizontalAlignment="Right" Foreground="DarkSlateGray"/>
                         </Grid>
                         <!-- Horizontal Divider -->
                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="11" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
@@ -317,9 +317,9 @@
                                 <ColumnDefinition Width="25*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Prompt Guidance Rescale:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="{Binding Txt2ImgPageModel.GuidanceRescale, Mode=TwoWay}" IsSnapToTickEnabled="True" TickFrequency="0.01" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
+                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="{Binding GuidanceRescale, Mode=TwoWay}" IsSnapToTickEnabled="True" TickFrequency="0.01" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
                             <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding Txt2ImgPageModel.GuidanceRescale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding GuidanceRescale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </Grid>
                         <!-- Horizontal Divider -->
@@ -333,14 +333,14 @@
                             </Grid.ColumnDefinitions>
                             <!-- Noise Schedule ComboBox -->
                             <TextBlock Text="Noise Schedule:"/>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding Txt2ImgPageModel.NoiseSchedules}" SelectedItem="{Binding Txt2ImgPageModel.NoiseSchedule,Mode=TwoWay}"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding NoiseSchedules}" SelectedItem="{Binding NoiseSchedule,Mode=TwoWay}"/>
                             <Grid Grid.Column="2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1*"/>
                                     <ColumnDefinition Width="1*"/>
                                 </Grid.ColumnDefinitions>
-                                <CheckBox Grid.Column="0" Margin="2"  Content="SMEA" FontSize="10" IsChecked="{Binding Txt2ImgPageModel.IsSMEA,Mode=TwoWay}"/>
-                                <CheckBox Grid.Column="1" Margin="2" IsEnabled="{Binding Txt2ImgPageModel.IsDYNEnabled,Mode=TwoWay}"  Content="DYN" FontSize="10" IsChecked="{Binding Txt2ImgPageModel.IsDYN,Mode=TwoWay}"/>
+                                <CheckBox Grid.Column="0" Margin="2"  Content="SMEA" FontSize="10" IsChecked="{Binding IsSMEA,Mode=TwoWay}"/>
+                                <CheckBox Grid.Column="1" Margin="2" IsEnabled="{Binding IsDYNEnabled,Mode=TwoWay}"  Content="DYN" FontSize="10" IsChecked="{Binding IsDYN,Mode=TwoWay}"/>
                             </Grid>
                         </Grid>
                         <!-- Horizontal Divider -->

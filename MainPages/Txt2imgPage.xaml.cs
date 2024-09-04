@@ -14,7 +14,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using xianyun.Model;
 using xianyun.UserControl;
 using xianyun.ViewModel;
 using System.IO;
@@ -31,38 +30,36 @@ namespace xianyun.MainPages
         private bool dragInProgress = false;
         private bool isDrawerOpen = false;
         private DragAdorner currentAdorner;
-        private Txt2imgPageViewModel _viewModel;
-        private Txt2imgPageModel _model;
+        private MainViewModel _viewModel;
         public Txt2imgPage()
         {
             InitializeComponent();
-            _viewModel = new Txt2imgPageViewModel();
-            _model = new Txt2imgPageModel();
-            _viewModel.Txt2ImgPageModel = _model;
+            _viewModel = new MainViewModel();
+            _viewModel.Navigate("Welcome");
             this.DataContext = _viewModel;
             this.Loaded += Txt2imgPage_Loaded;
             this.Unloaded += Txt2imgPage_Unloaded;
         }
         private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
         {
-            var viewModel = DataContext as Txt2imgPageViewModel;
+            var viewModel = DataContext as MainViewModel;
             if (ConfigurationService.ConfigurationExists())
             {
-                _viewModel.Txt2ImgPageModel.LoadParameters();
+                _viewModel.LoadParameters();
             }
             if (viewModel != null)
             {
-                viewModel.ImgPreviewArea = ImgPreviewArea; // 将 ImgPreviewArea 传递给 ViewModel
-                viewModel.ImageStackPanel = ImageStackPanel; // 将 ImageStackPanel 传递给 ViewModel
-                viewModel.ImageViewerControl = ImageViewerControl; // 将 ImageViewerControl 传递给 ViewModel
+                viewModel.ImgPreviewArea = ImgPreviewArea;
+                viewModel.ImageStackPanel = ImageStackPanel;
+                viewModel.ImageViewerControl = ImageViewerControl;
             }
-            InputTextBox.Text = viewModel.Txt2ImgPageModel.PositivePrompt;
+            InputTextBox.Text = viewModel.PositivePrompt;
             UpdateTagsContainer();
         }
         private void Txt2imgPage_Unloaded(object sender, RoutedEventArgs e)
         {
             // 保存当前配置
-            _viewModel.Txt2ImgPageModel.SaveParameters();
+            _viewModel.SaveParameters();
         }
         private void TagMenuBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -243,10 +240,10 @@ namespace xianyun.MainPages
                 var tagsText = string.Join(",", TagsContainer.Children.OfType<TagControl>().Select(tc => tc.GetAdjustedText()));
                 InputTextBox.Text = tagsText;
                 // 获取已绑定的 Txt2imgPageModel 实例
-                var viewModel = DataContext as Txt2imgPageViewModel;
-                if (viewModel != null && viewModel.Txt2ImgPageModel != null)
+                var viewModel = DataContext as MainViewModel;
+                if (viewModel != null && viewModel != null)
                 {
-                    viewModel.Txt2ImgPageModel.PositivePrompt = tagsText;
+                    viewModel.PositivePrompt = tagsText;
                 }
             }
         }

@@ -1,18 +1,16 @@
 ﻿using HandyControl.Controls;       // 引入 HandyControl 库，用于控件和窗口处理
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;         // 引入 ICommand 接口
 using xianyun.Common;
-using xianyun.Model;
 using Newtonsoft.Json;  // 用于序列化和反序列化 JSON
 using CommunityToolkit.Mvvm.Input;
 using WpfWindow = System.Windows.Window;
 using xianyun.View;
+using System.Linq;
 
 namespace xianyun.ViewModel
 {
@@ -21,19 +19,59 @@ namespace xianyun.ViewModel
     {
         // 定义一个关闭窗口的命令
         public ICommand CloseWindowCommand { get; }
-
         public ICommand LoginCommand { get; }
 
         private string _Message;
-
         public string Message
         {
             get { return _Message; }
             set { _Message = value; this.DoNotify(); }
         }
 
-        // 定义登录数据模型的属性
-        public LoginModel LoginModel { get; set; } = new LoginModel();
+        // 登录模型中的字段移至 ViewModel 中作为属性
+        private string _userName;
+        public string UserName
+        {
+            get => _userName;
+            set
+            {
+                _userName = value;
+                this.DoNotify(); // 触发属性更改通知
+            }
+        }
+
+        private string _password;
+        public string Password
+        {
+            get => _password;
+            set
+            {
+                _password = value;
+                this.DoNotify(); // 触发属性更改通知
+            }
+        }
+
+        private string _accessToken;
+        public string AccessToken
+        {
+            get => _accessToken;
+            set
+            {
+                _accessToken = value;
+                this.DoNotify(); // 触发属性更改通知
+            }
+        }
+
+        private bool _isLoginButtonEnabled = true;
+        public bool IsLoginButtonEnabled
+        {
+            get => _isLoginButtonEnabled;
+            set
+            {
+                _isLoginButtonEnabled = value;
+                DoNotify();  // 通知UI更新
+            }
+        }
 
         // LoginViewModel 的构造函数，初始化登录模型和关闭窗口的命令
         public LoginViewModel()
@@ -53,6 +91,7 @@ namespace xianyun.ViewModel
             });
             LoginCommand = new RelayCommand(Login);
         }
+
         private void OpenMainWindowAndCloseLoginWindow()
         {
             var currentWindow = System.Windows.Application.Current.Windows.OfType<WpfWindow>().SingleOrDefault(w => w.IsActive);
@@ -65,18 +104,19 @@ namespace xianyun.ViewModel
                 currentWindow.Close();
             }
         }
+
         private async void Login()
         {
             this.Message = string.Empty;
-            LoginModel.IsLoginButtonEnabled = false;
+            IsLoginButtonEnabled = false;
 
-            if (string.IsNullOrEmpty(LoginModel.AccessToken))
+            if (string.IsNullOrEmpty(AccessToken))
             {
                 // 如果 AccessToken 为空，执行原来的登录逻辑
-                if (string.IsNullOrEmpty(LoginModel.UserName) || string.IsNullOrEmpty(LoginModel.Password))
+                if (string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(Password))
                 {
                     this.Message = "用户名和密码不能为空";
-                    LoginModel.IsLoginButtonEnabled = true;
+                    IsLoginButtonEnabled = true;
                     return;
                 }
 
@@ -92,8 +132,8 @@ namespace xianyun.ViewModel
                         string url = "https://nai3.xianyun.cool/auth/login";
                         var loginData = new
                         {
-                            username = LoginModel.UserName,
-                            password = LoginModel.Password
+                            username = UserName,
+                            password = Password
                         };
 
                         string jsonData = JsonConvert.SerializeObject(loginData);
@@ -116,24 +156,24 @@ namespace xianyun.ViewModel
                                     this.Message = "登录成功";
                                     OpenMainWindowAndCloseLoginWindow();  // 登录成功后打开主窗口
                                 }
-                                LoginModel.IsLoginButtonEnabled = true;
+                                IsLoginButtonEnabled = true;
                             }
                             else
                             {
                                 this.Message = responseData.message.ToString();
-                                LoginModel.IsLoginButtonEnabled = true;
+                                IsLoginButtonEnabled = true;
                             }
                         }
                         else
                         {
                             this.Message = "服务器错误，请稍后再试。";
-                            LoginModel.IsLoginButtonEnabled = true;
+                            IsLoginButtonEnabled = true;
                         }
                     }
                     catch (Exception ex)
                     {
                         this.Message = $"登录失败：{ex.Message}";
-                        LoginModel.IsLoginButtonEnabled = true;
+                        IsLoginButtonEnabled = true;
                     }
                 }
             }
@@ -147,7 +187,7 @@ namespace xianyun.ViewModel
                         string url = "https://api.novelai.net/user/data";
 
                         // 检查并补全 Bearer 头
-                        string token = LoginModel.AccessToken;
+                        string token = AccessToken;
                         if (!token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                         {
                             token = "Bearer " + token;
@@ -170,24 +210,24 @@ namespace xianyun.ViewModel
                                 bool active = responseData.subscription.active;
                                 this.Message = $"Training Steps Left: {fixedTrainingStepsLeft}, Active: {active}";
                                 OpenMainWindowAndCloseLoginWindow();  // 登录成功后打开主窗口
-                                LoginModel.IsLoginButtonEnabled = true;
+                                IsLoginButtonEnabled = true;
                             }
                             else if (responseData.information.banStatus == "banned")
                             {
                                 this.Message = $"Account banned: {responseData.information.banMessage}";
-                                LoginModel.IsLoginButtonEnabled = true;
+                                IsLoginButtonEnabled = true;
                             }
                         }
                         else
                         {
                             this.Message = "无法获取用户数据，请检查 AccessToken。";
-                            LoginModel.IsLoginButtonEnabled = true;
+                            IsLoginButtonEnabled = true;
                         }
                     }
                     catch (Exception ex)
                     {
                         this.Message = $"请求失败：{ex.Message}";
-                        LoginModel.IsLoginButtonEnabled = true;
+                        IsLoginButtonEnabled = true;
                     }
                 }
             }
