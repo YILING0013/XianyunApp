@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:xianyun.UserControl"
-             xmlns:hc="https://handyorg.github.io/handycontrol"
              mc:Ignorable="d" 
              d:DesignHeight="90" d:DesignWidth="90">
 
@@ -13,15 +12,22 @@
         <Border CornerRadius="3" Margin="2,2,2,0" Background="#FEF3E2" BorderBrush="#597445" BorderThickness="1">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="8*"/>
+                    <RowDefinition Height="7*"/>
                     <RowDefinition Height="2*"/>
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
                     <Image x:Name="imageControl" Height="auto" Width="auto" Margin="3"/>
                 </Grid>
                 <Grid Grid.Row="1" Margin="1">
-                    <Border CornerRadius="2" Background="#EF9C66">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Border CornerRadius="2" Margin="1" Background="#EF9C66">
                         <Button x:Name="deleteButton" BorderThickness="0" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe64f;" Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0" Padding="0"  Foreground="#C5705D"/>
+                    </Border>
+                    <Border Grid.Column="1" CornerRadius="2" Margin="1" Background="#CEDF9F">
+                        <Button x:Name="ViewPreview_Bth" BorderThickness="0" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe641;" Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0" Padding="0"  Foreground="#708871"/>
                     </Border>
                 </Grid>
             </Grid>

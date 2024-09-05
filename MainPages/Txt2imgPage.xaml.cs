@@ -34,7 +34,7 @@ namespace xianyun.MainPages
         public Txt2imgPage()
         {
             InitializeComponent();
-            _viewModel = new MainViewModel();
+            _viewModel = App.GlobalViewModel;
             _viewModel.Navigate("Welcome");
             this.DataContext = _viewModel;
             this.Loaded += Txt2imgPage_Loaded;

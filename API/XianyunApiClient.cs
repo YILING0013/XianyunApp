@@ -55,36 +55,37 @@ namespace xianyun.API
                 throw new Exception($"Request failed with status code {response.StatusCode}: {errorData}");
             }
         }
-
         // 检查图像生成结果
-        public async Task<string> CheckResultAsync(string jobId)
+        public async Task<(string status, string imageBase64, int queuePosition)> CheckResultAsync(string jobId)
         {
-            while (true)
+            var response = await _httpClient.GetAsync($"api/get_result/{jobId}");
+            if (response.IsSuccessStatusCode)
             {
-                var response = await _httpClient.GetAsync($"api/get_result/{jobId}");
-                if (response.IsSuccessStatusCode)
+                var responseData = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<GetResultResponse>(responseData);
+
+                if (result.Status == "completed")
                 {
-                    var responseData = await response.Content.ReadAsStringAsync();
-                    var result = JsonConvert.DeserializeObject<GetResultResponse>(responseData);
-
-                    if (result.Status == "completed")
-                    {
-                        return result.ImageBase64;
-                    }
-                    else if (result.Status == "failed")
-                    {
-                        throw new Exception("Image generation failed.");
-                    }
-
-                    // 若未完成，则等待一段时间后重试
-                    await Task.Delay(2000); // 2秒后再试
+                    // 返回生成完成的状态及图像数据
+                    return (result.Status, result.ImageBase64, 0);
                 }
-                else
+                else if (result.Status == "queued")
                 {
-                    var errorData = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Error checking result: {response.StatusCode} - {errorData}");
+                    // 返回队列中的位置
+                    return (result.Status, null, result.QueuePosition);
+                }
+                else if (result.Status == "processing")
+                {
+                    // 返回正在处理的状态
+                    return (result.Status, null, 0); // 此时QueuePosition为0
+                }
+                else if (result.Status == "failed")
+                {
+                    throw new Exception("图像生成失败。");
                 }
             }
+
+            throw new Exception($"检查结果时发生错误: {response.StatusCode}");
         }
     }
     // 请求结构体
@@ -154,5 +155,7 @@ namespace xianyun.API
 
         [JsonProperty("completed_at")]
         public string CompletedAt { get; set; }
+        [JsonProperty("queue_position")]
+        public int QueuePosition { get; set; }
     }
 }

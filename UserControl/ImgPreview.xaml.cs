@@ -2,7 +2,6 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -10,6 +9,8 @@ namespace xianyun.UserControl
 {
     public partial class ImgPreview
     {
+        // 保存传入的 Base64 字符串
+        private string _base64Image;
         // 定义图像点击事件
         public event EventHandler<string> ImageClicked;
 
@@ -17,16 +18,14 @@ namespace xianyun.UserControl
         public ImgPreview(string base64Image)
         {
             InitializeComponent();
+            _base64Image = base64Image;  // 保存 Base64 字符串
             SetImage(base64Image);
 
             // 注册删除按钮的点击事件
             deleteButton.Click += DeleteButton_Click;
 
-            // 直接为 Image 注册点击事件
-            imageControl.MouseLeftButtonUp += ImgPreview_MouseLeftButtonUp;
-
-            // 输出日志确认事件已注册
-            Console.WriteLine("MouseLeftButtonUp event registered.");
+            // 注册 ViewPreview_Bth 的点击事件，用于预览图像
+            ViewPreview_Bth.Click += ViewPreview_Click;
         }
 
         // 设置图像的方法
@@ -55,17 +54,11 @@ namespace xianyun.UserControl
             parent?.Children.Remove(this);
         }
 
-        // 图像点击事件的处理方法
-        private void ImgPreview_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        // ViewPreview_Bth 点击事件的处理方法
+        private void ViewPreview_Click(object sender, RoutedEventArgs e)
         {
-            // 触发 ImageClicked 事件并传递图像的 base64 数据
-            ImageClicked?.Invoke(this, imageControl.Source.ToString());
-
-            // 设置描边颜色表示选中状态
-            outerBorder.BorderBrush = new SolidColorBrush(Colors.Blue);
-
-            // 确保事件继续传播
-            e.Handled = false;
+            // 使用存储的 Base64 字符串触发 ImageClicked 事件
+            ImageClicked?.Invoke(this, _base64Image);
         }
     }
 }

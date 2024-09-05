@@ -20,6 +20,7 @@ namespace xianyun.ViewModel
     public class MainViewModel : NotifyBase
     {
         // 从 Txt2imgPageModel 导入的字段
+        private double _progressValue = 0;
         private string _model;
         private int _drawingFrequency = 1;
         private int _steps = 28;
@@ -125,7 +126,15 @@ namespace xianyun.ViewModel
                 }
             }
         }
-        // 从 Txt2imgPageModel 导入的属性
+        public double ProgressValue
+        {
+            get => _progressValue;
+            set
+            {
+                _progressValue = value;
+                DoNotify();
+            }
+        }
         public string PositivePrompt
         {
             get => _positivePrompt;
@@ -372,7 +381,7 @@ namespace xianyun.ViewModel
             }
         }
 
-        // 加载参数的方法，来自 Txt2imgPageModel
+        // 加载参数的方法
         public void LoadParameters()
         {
             var loadedConfig = ConfigurationService.LoadConfiguration<MainViewModel>();
@@ -416,46 +425,107 @@ namespace xianyun.ViewModel
                 var apiClient = new XianyunApiClient("https://nai3.xianyun.cool", SessionManager.Session);
                 Console.WriteLine(SessionManager.Session);
 
-                var imageRequest = new ImageGenerationRequest
+                // 用于生成随机种子的函数
+                long GenerateRandomSeed()
                 {
-                    Model = this.Model,
-                    PositivePrompt = this.PositivePrompt,
-                    NegativePrompt = this.NegitivePrompt,
-                    Scale = this.GuidanceScale,
-                    Steps = this.Steps,
-                    Width = this.Width,
-                    Height = this.Height,
-                    PromptGuidanceRescale = this.GuidanceRescale,
-                    NoiseSchedule = this.NoiseSchedule,
-                    Seed = this.Seed?.ToString() ?? "0",
-                    Sampler = this.ActualSamplingMethod,
-                    Sm = this.IsSMEA,
-                    SmDyn = this.IsDYN,
-                    PictureId = TotpGenerator.GenerateTotp(_secretKey)
-                };
+                    var random = new Random();
+                    int length = random.Next(9, 13); // 生成9到12位长度的随机数
+                    long seed = 0;
+                    for (int i = 0; i < length; i++)
+                    {
+                        seed = seed * 10 + random.Next(0, 10);
+                    }
+                    return seed;
+                }
 
-                var (jobId, queuePosition) = await apiClient.GenerateImageAsync(imageRequest);
-                Console.WriteLine($"Job submitted with ID: {jobId}, queue position: {queuePosition}");
-
-                string imageBase64 = await apiClient.CheckResultAsync(jobId);
-                Console.WriteLine("Image generated successfully!");
-
-                var bitmapFrame = ConvertBase64ToBitmapFrame(imageBase64);
-
-                Application.Current.Dispatcher.Invoke(() =>
+                // 循环生成图像请求
+                for (int i = 0; i < this.DrawingFrequency; i++)
                 {
-                    var imgPreview = new ImgPreview(imageBase64);
-                    imgPreview.ImageClicked += OnImageClicked;
-                    ImageStackPanel.Children.Add(imgPreview);
-                    ImageViewerControl.ImageSource = bitmapFrame;
-                });
+                    var seedValue = this.Seed?.ToString() ?? GenerateRandomSeed().ToString();
+
+                    var imageRequest = new ImageGenerationRequest
+                    {
+                        Model = this.Model,
+                        PositivePrompt = this.PositivePrompt,
+                        NegativePrompt = this.NegitivePrompt,
+                        Scale = this.GuidanceScale,
+                        Steps = this.Steps,
+                        Width = this.Width,
+                        Height = this.Height,
+                        PromptGuidanceRescale = this.GuidanceRescale,
+                        NoiseSchedule = this.NoiseSchedule,
+                        Seed = seedValue,  // 使用新的随机种子
+                        Sampler = this.ActualSamplingMethod,
+                        Sm = this.IsSMEA,
+                        SmDyn = this.IsDYN,
+                        PictureId = TotpGenerator.GenerateTotp(_secretKey)
+                    };
+
+                    var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
+                    Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
+
+                    int currentQueuePosition = initialQueuePosition;
+                    ProgressValue = 0;
+
+                    while (currentQueuePosition > 0)
+                    {
+                        var (status, imageBase64, queuePosition) = await apiClient.CheckResultAsync(jobId);
+                        if (status == "processing")
+                        {
+                            // 队列已到0，进入processing状态，生成图像中
+                            ProgressValue = 70;
+                            Console.WriteLine($"进度: {ProgressValue}% (正在生成图像)");
+                            currentQueuePosition = queuePosition;
+                        }
+                        else if (status == "queued")
+                        {
+                            // 根据队列位置更新进度
+                            ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
+                            Console.WriteLine($"进度: {ProgressValue}% (队列位置: {queuePosition})");
+                            currentQueuePosition = queuePosition;
+                        }
+                        await Task.Delay(2000); // 每2秒检查一次
+                    }
+
+                    // 当状态为processing时，模拟从70%到96%的进度
+                    while (ProgressValue < 96)
+                    {
+                        ProgressValue += new Random().Next(1, 4);
+                        Console.WriteLine($"进度: {ProgressValue}%");
+                        await Task.Delay(1500);
+                    }
+
+                    // 检查状态直到生成完成
+                    while (true)
+                    {
+                        var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
+                        if (status == "completed")
+                        {
+                            ProgressValue = 100;
+                            Console.WriteLine("图像生成成功！");
+
+                            var bitmapFrame = ConvertBase64ToBitmapFrame(imageBase64);
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                var imgPreview = new ImgPreview(imageBase64);
+                                imgPreview.ImageClicked += OnImageClicked;
+                                ImageStackPanel.Children.Add(imgPreview);
+                                ImageViewerControl.ImageSource = bitmapFrame;
+                            });
+                            break;
+                        }
+                        await Task.Delay(2000); // 每2秒检查一次生成状态
+                    }
+
+                    Console.WriteLine("进度: 100%");
+                    await Task.Delay(3000); // 请求间隔3秒
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("错误: " + ex.Message);
             }
         }
-
         // 将 Base64 字符串转换为 BitmapFrame 的方法
         private BitmapFrame ConvertBase64ToBitmapFrame(string base64String)
         {
