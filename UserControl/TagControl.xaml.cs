@@ -29,6 +29,8 @@ namespace xianyun.UserControl
         public event EventHandler TextChanged;
         private Brush _originalBorderBrush; // 存储原始边框颜色
 
+        public event EventHandler TagDeleted;
+
         public TagControl(string tagId, string englishText, string chineseText = null, Brush color = null)
         {
             InitializeComponent();
@@ -139,6 +141,7 @@ namespace xianyun.UserControl
             // Remove this control from its parent
             var parent = this.Parent as Panel;
             parent?.Children.Remove(this);
+            TagDeleted?.Invoke(this, EventArgs.Empty);
         }
 
         private void AdjustTextStrength(bool increase)

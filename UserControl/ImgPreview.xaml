@@ -21,7 +21,7 @@
                 </Grid>
                 <Grid Grid.Row="1" Margin="1">
                     <Border CornerRadius="2" Background="#EF9C66">
-                        <Button x:Name="deleteButton" BorderThickness="0" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe64f;" Background="Transparent" Margin="0" Padding="0"  Foreground="#C5705D"/>
+                        <Button x:Name="deleteButton" BorderThickness="0" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe64f;" Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0" Padding="0"  Foreground="#C5705D"/>
                     </Border>
                 </Grid>
             </Grid>

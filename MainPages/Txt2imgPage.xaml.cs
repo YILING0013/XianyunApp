@@ -211,6 +211,7 @@ namespace xianyun.MainPages
                         // 如果不存在，则创建新的 TagControl 并添加到容器中
                         TagControl newTagControl = new TagControl(tag, tag);
                         newTagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
+                        newTagControl.TagDeleted += TagControl_TagDeleted; // Subscribe to the delete event
                         TagsContainer.Children.Add(newTagControl);
                     }
                     else
@@ -228,6 +229,14 @@ namespace xianyun.MainPages
             }
             // 隐藏 TextBox
             InputTextBox.Visibility = Visibility.Collapsed;
+        }
+        private void TagControl_TagDeleted(object sender, EventArgs e)
+        {
+            if (sender is TagControl tagControl)
+            {
+                TagsContainer.Children.Remove(tagControl);
+                UpdateViewModelTagsText();  // Update PositivePrompt after removal
+            }
         }
         private void TagControl_TextChanged(object sender, EventArgs e)
         {
