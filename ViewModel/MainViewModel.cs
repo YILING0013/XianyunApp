@@ -490,20 +490,38 @@ namespace xianyun.ViewModel
                     // 当状态为processing时，模拟从70%到96%的进度
                     while (ProgressValue < 96)
                     {
+                        var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
+                        if (status == "completed")
+                        {
+                            // 图像生成成功，直接跳到100%
+                            ProgressValue = 100;
+                            Console.WriteLine("图像生成成功！");
+                            var bitmapFrame = ConvertBase64ToBitmapFrame(imageBase64);
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                var imgPreview = new ImgPreview(imageBase64);
+                                imgPreview.ImageClicked += OnImageClicked;
+                                ImageStackPanel.Children.Add(imgPreview);
+                                ImageViewerControl.ImageSource = bitmapFrame;
+                            });
+                            break; // 跳出模拟进度的循环
+                        }
+
+                        // 图像未生成完成，继续增加进度
                         ProgressValue += new Random().Next(1, 4);
                         Console.WriteLine($"进度: {ProgressValue}%");
-                        await Task.Delay(1500);
+                        await Task.Delay(1500); // 延迟1.5秒
                     }
 
-                    // 检查状态直到生成完成
-                    while (true)
+                    // 如果图像生成完成，跳过这个循环，否则继续检查
+                    while (ProgressValue < 100)
                     {
+                        await Task.Delay(2000); // 延迟2秒再检查
                         var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
                         if (status == "completed")
                         {
                             ProgressValue = 100;
                             Console.WriteLine("图像生成成功！");
-
                             var bitmapFrame = ConvertBase64ToBitmapFrame(imageBase64);
                             Application.Current.Dispatcher.Invoke(() =>
                             {
@@ -514,9 +532,7 @@ namespace xianyun.ViewModel
                             });
                             break;
                         }
-                        await Task.Delay(2000); // 每2秒检查一次生成状态
                     }
-
                     Console.WriteLine("进度: 100%");
                     await Task.Delay(3000); // 请求间隔3秒
                 }

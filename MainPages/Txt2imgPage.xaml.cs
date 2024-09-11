@@ -40,6 +40,41 @@ namespace xianyun.MainPages
             this.Loaded += Txt2imgPage_Loaded;
             this.Unloaded += Txt2imgPage_Unloaded;
         }
+        public (string[] base64Images, double[] informationExtracted, double[] referenceStrength) ExtractImageData()
+        {
+            // 创建三个列表来存储图像的 base64 编码、InformationExtracted 和 ReferenceStrength 参数
+            List<string> reference_image_multiple = new List<string>();
+            List<double> reference_information_extracted_multiple = new List<double>();
+            List<double> reference_strength_multiple = new List<double>();
+
+            // 遍历 ImageWrapPanel 中的所有子控件
+            foreach (var child in ImageWrapPanel.Children)
+            {
+                if (child is xianyun.UserControl.VibeTransfer vibeTransfer)
+                {
+                    // 获取图像的 base64 编码
+                    string base64Image = vibeTransfer.GetImageAsBase64();
+                    if (!string.IsNullOrEmpty(base64Image))
+                    {
+                        reference_image_multiple.Add(base64Image);
+                    }
+
+                    // 获取 InformationExtracted 和 ReferenceStrength 参数
+                    double informationExtracted = vibeTransfer.InformationExtracted;
+                    double referenceStrength = vibeTransfer.ReferenceStrength;
+
+                    reference_information_extracted_multiple.Add(informationExtracted);
+                    reference_strength_multiple.Add(referenceStrength);
+                }
+            }
+
+            // 转换为数组并返回
+            return (
+                reference_image_multiple.ToArray(),
+                reference_information_extracted_multiple.ToArray(),
+                reference_strength_multiple.ToArray()
+            );
+        }
         private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
         {
             var viewModel = DataContext as MainViewModel;

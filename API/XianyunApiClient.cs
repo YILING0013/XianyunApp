@@ -132,6 +132,15 @@ namespace xianyun.API
 
         [JsonProperty("pictureid")]
         public string PictureId { get; set; }
+
+        [JsonProperty("reference_image_multiple")]
+        public string ReferenceImage { get; set; }
+
+        [JsonProperty("reference_information_extracted_multiple")]
+        public double InformationExtracted { get; set; }
+
+        [JsonProperty("reference_strength_multiple")]
+        public double ReferenceStrength { get; set; }
     }
 
     // 生成图像响应结构体
