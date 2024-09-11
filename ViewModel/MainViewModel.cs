@@ -45,7 +45,7 @@ namespace xianyun.ViewModel
         private string _negitivePrompt = "lowres, {bad}, error, fewer, extra, missing, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract]";
 
         // 密钥
-        private readonly string _secretKey = "fGCGrffh$*hdr#(7904-(cSGDTJGTCLOPIYSWQSFESADZFDBJ%+)):m;(&@1#+$*hHBBB23$c(&#46&(890*@2$%&c#5$#2147905*&/MJMMLLPwr#fhdefts&dcr24x#g4*r@3&(uourw1fcgd-5cdgc$-4fhfxf+dvhvd#d*xe#&frzxhg&efxgthd@2vdffhr*ts2#g4cr#f3xffde@3$ffsxdvh4swa$gr$grOJHNBUGVCDAssddd$ss4+f5$s23xgv(/njvd1d4+g7g$213yfdh*$j*QZDEHg";
+        public readonly string _secretKey = "fGCGrffh$*hdr#(7904-(cSGDTJGTCLOPIYSWQSFESADZFDBJ%+)):m;(&@1#+$*hHBBB23$c(&#46&(890*@2$%&c#5$#2147905*&/MJMMLLPwr#fhdefts&dcr24x#g4*r@3&(uourw1fcgd-5cdgc$-4fhfxf+dvhvd#d*xe#&frzxhg&efxgthd@2vdffhr*ts2#g4cr#f3xffde@3$ffsxdvh4swa$gr$grOJHNBUGVCDAssddd$ss4+f5$s23xgv(/njvd1d4+g7g$213yfdh*$j*QZDEHg";
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
         {
@@ -99,7 +99,7 @@ namespace xianyun.ViewModel
                 }
             });
 
-            GenerateImageCommand = new AsyncRelayCommand(OnGenerateButtonClick);
+            //GenerateImageCommand = new AsyncRelayCommand(OnGenerateButtonClick);
         }
         public void Navigate(string pageName)
         {
@@ -418,132 +418,132 @@ namespace xianyun.ViewModel
         }
 
         // 生成图像的命令方法，来自 MainViewModel
-        private async Task OnGenerateButtonClick()
-        {
-            try
-            {
-                var apiClient = new XianyunApiClient("https://nai3.xianyun.cool", SessionManager.Session);
-                Console.WriteLine(SessionManager.Session);
+        //private async Task OnGenerateButtonClick()
+        //{
+        //    try
+        //    {
+        //        var apiClient = new XianyunApiClient("https://nai3.xianyun.cool", SessionManager.Session);
+        //        Console.WriteLine(SessionManager.Session);
 
-                // 用于生成随机种子的函数
-                long GenerateRandomSeed()
-                {
-                    var random = new Random();
-                    int length = random.Next(9, 13); // 生成9到12位长度的随机数
-                    long seed = 0;
-                    for (int i = 0; i < length; i++)
-                    {
-                        seed = seed * 10 + random.Next(0, 10);
-                    }
-                    return seed;
-                }
+        //        // 用于生成随机种子的函数
+        //        long GenerateRandomSeed()
+        //        {
+        //            var random = new Random();
+        //            int length = random.Next(9, 13); // 生成9到12位长度的随机数
+        //            long seed = 0;
+        //            for (int i = 0; i < length; i++)
+        //            {
+        //                seed = seed * 10 + random.Next(0, 10);
+        //            }
+        //            return seed;
+        //        }
 
-                // 循环生成图像请求
-                for (int i = 0; i < this.DrawingFrequency; i++)
-                {
-                    var seedValue = this.Seed?.ToString() ?? GenerateRandomSeed().ToString();
+        //        // 循环生成图像请求
+        //        for (int i = 0; i < this.DrawingFrequency; i++)
+        //        {
+        //            var seedValue = this.Seed?.ToString() ?? GenerateRandomSeed().ToString();
 
-                    var imageRequest = new ImageGenerationRequest
-                    {
-                        Model = this.Model,
-                        PositivePrompt = this.PositivePrompt,
-                        NegativePrompt = this.NegitivePrompt,
-                        Scale = this.GuidanceScale,
-                        Steps = this.Steps,
-                        Width = this.Width,
-                        Height = this.Height,
-                        PromptGuidanceRescale = this.GuidanceRescale,
-                        NoiseSchedule = this.NoiseSchedule,
-                        Seed = seedValue,  // 使用新的随机种子
-                        Sampler = this.ActualSamplingMethod,
-                        Sm = this.IsSMEA,
-                        SmDyn = this.IsDYN,
-                        PictureId = TotpGenerator.GenerateTotp(_secretKey)
-                    };
+        //            var imageRequest = new ImageGenerationRequest
+        //            {
+        //                Model = this.Model,
+        //                PositivePrompt = this.PositivePrompt,
+        //                NegativePrompt = this.NegitivePrompt,
+        //                Scale = this.GuidanceScale,
+        //                Steps = this.Steps,
+        //                Width = this.Width,
+        //                Height = this.Height,
+        //                PromptGuidanceRescale = this.GuidanceRescale,
+        //                NoiseSchedule = this.NoiseSchedule,
+        //                Seed = seedValue,  // 使用新的随机种子
+        //                Sampler = this.ActualSamplingMethod,
+        //                Sm = this.IsSMEA,
+        //                SmDyn = this.IsDYN,
+        //                PictureId = TotpGenerator.GenerateTotp(_secretKey)
+        //            };
 
-                    var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
-                    Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
+        //            var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
+        //            Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
 
-                    int currentQueuePosition = initialQueuePosition;
-                    ProgressValue = 0;
+        //            int currentQueuePosition = initialQueuePosition;
+        //            ProgressValue = 0;
 
-                    while (currentQueuePosition > 0)
-                    {
-                        var (status, imageBase64, queuePosition) = await apiClient.CheckResultAsync(jobId);
-                        if (status == "processing")
-                        {
-                            // 队列已到0，进入processing状态，生成图像中
-                            ProgressValue = 70;
-                            Console.WriteLine($"进度: {ProgressValue}% (正在生成图像)");
-                            currentQueuePosition = queuePosition;
-                        }
-                        else if (status == "queued")
-                        {
-                            // 根据队列位置更新进度
-                            ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
-                            Console.WriteLine($"进度: {ProgressValue}% (队列位置: {queuePosition})");
-                            currentQueuePosition = queuePosition;
-                        }
-                        await Task.Delay(2000); // 每2秒检查一次
-                    }
+        //            while (currentQueuePosition > 0)
+        //            {
+        //                var (status, imageBase64, queuePosition) = await apiClient.CheckResultAsync(jobId);
+        //                if (status == "processing")
+        //                {
+        //                    // 队列已到0，进入processing状态，生成图像中
+        //                    ProgressValue = 70;
+        //                    Console.WriteLine($"进度: {ProgressValue}% (正在生成图像)");
+        //                    currentQueuePosition = queuePosition;
+        //                }
+        //                else if (status == "queued")
+        //                {
+        //                    // 根据队列位置更新进度
+        //                    ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
+        //                    Console.WriteLine($"进度: {ProgressValue}% (队列位置: {queuePosition})");
+        //                    currentQueuePosition = queuePosition;
+        //                }
+        //                await Task.Delay(2000); // 每2秒检查一次
+        //            }
 
-                    // 当状态为processing时，模拟从70%到96%的进度
-                    while (ProgressValue < 96)
-                    {
-                        var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
-                        if (status == "completed")
-                        {
-                            // 图像生成成功，直接跳到100%
-                            ProgressValue = 100;
-                            Console.WriteLine("图像生成成功！");
-                            var bitmapFrame = ConvertBase64ToBitmapFrame(imageBase64);
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                var imgPreview = new ImgPreview(imageBase64);
-                                imgPreview.ImageClicked += OnImageClicked;
-                                ImageStackPanel.Children.Add(imgPreview);
-                                ImageViewerControl.ImageSource = bitmapFrame;
-                            });
-                            break; // 跳出模拟进度的循环
-                        }
+        //            // 当状态为processing时，模拟从70%到96%的进度
+        //            while (ProgressValue < 96)
+        //            {
+        //                var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
+        //                if (status == "completed")
+        //                {
+        //                    // 图像生成成功，直接跳到100%
+        //                    ProgressValue = 100;
+        //                    Console.WriteLine("图像生成成功！");
+        //                    var bitmapFrame = ConvertBase64ToBitmapFrame(imageBase64);
+        //                    Application.Current.Dispatcher.Invoke(() =>
+        //                    {
+        //                        var imgPreview = new ImgPreview(imageBase64);
+        //                        imgPreview.ImageClicked += OnImageClicked;
+        //                        ImageStackPanel.Children.Add(imgPreview);
+        //                        ImageViewerControl.ImageSource = bitmapFrame;
+        //                    });
+        //                    break; // 跳出模拟进度的循环
+        //                }
 
-                        // 图像未生成完成，继续增加进度
-                        ProgressValue += new Random().Next(1, 4);
-                        Console.WriteLine($"进度: {ProgressValue}%");
-                        await Task.Delay(1500); // 延迟1.5秒
-                    }
+        //                // 图像未生成完成，继续增加进度
+        //                ProgressValue += new Random().Next(1, 4);
+        //                Console.WriteLine($"进度: {ProgressValue}%");
+        //                await Task.Delay(1500); // 延迟1.5秒
+        //            }
 
-                    // 如果图像生成完成，跳过这个循环，否则继续检查
-                    while (ProgressValue < 100)
-                    {
-                        await Task.Delay(2000); // 延迟2秒再检查
-                        var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
-                        if (status == "completed")
-                        {
-                            ProgressValue = 100;
-                            Console.WriteLine("图像生成成功！");
-                            var bitmapFrame = ConvertBase64ToBitmapFrame(imageBase64);
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                var imgPreview = new ImgPreview(imageBase64);
-                                imgPreview.ImageClicked += OnImageClicked;
-                                ImageStackPanel.Children.Add(imgPreview);
-                                ImageViewerControl.ImageSource = bitmapFrame;
-                            });
-                            break;
-                        }
-                    }
-                    Console.WriteLine("进度: 100%");
-                    await Task.Delay(3000); // 请求间隔3秒
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("错误: " + ex.Message);
-            }
-        }
+        //            // 如果图像生成完成，跳过这个循环，否则继续检查
+        //            while (ProgressValue < 100)
+        //            {
+        //                await Task.Delay(2000); // 延迟2秒再检查
+        //                var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
+        //                if (status == "completed")
+        //                {
+        //                    ProgressValue = 100;
+        //                    Console.WriteLine("图像生成成功！");
+        //                    var bitmapFrame = ConvertBase64ToBitmapFrame(imageBase64);
+        //                    Application.Current.Dispatcher.Invoke(() =>
+        //                    {
+        //                        var imgPreview = new ImgPreview(imageBase64);
+        //                        imgPreview.ImageClicked += OnImageClicked;
+        //                        ImageStackPanel.Children.Add(imgPreview);
+        //                        ImageViewerControl.ImageSource = bitmapFrame;
+        //                    });
+        //                    break;
+        //                }
+        //            }
+        //            Console.WriteLine("进度: 100%");
+        //            await Task.Delay(3000); // 请求间隔3秒
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine("错误: " + ex.Message);
+        //    }
+        //}
         // 将 Base64 字符串转换为 BitmapFrame 的方法
-        private BitmapFrame ConvertBase64ToBitmapFrame(string base64String)
+        public BitmapFrame ConvertBase64ToBitmapFrame(string base64String)
         {
             byte[] imageBytes = Convert.FromBase64String(base64String);
             BitmapImage bitmapImage = new BitmapImage();
@@ -558,13 +558,13 @@ namespace xianyun.ViewModel
         }
 
         // 图像点击事件的处理方法
-        private void OnImageClicked(object sender, string base64Image)
+        public void OnImageClicked(object sender, string base64Image)
         {
             var bitmapFrame = ConvertBase64ToBitmapFrame(base64Image);
             ImageViewerControl.ImageSource = bitmapFrame;
         }
 
         // 获取实际的采样方法
-        private string ActualSamplingMethod => _samplingMethodMapping.TryGetValue(SamplingMethod, out var actualMethod) ? actualMethod : null;
+        public string ActualSamplingMethod => _samplingMethodMapping.TryGetValue(SamplingMethod, out var actualMethod) ? actualMethod : null;
     }
 }

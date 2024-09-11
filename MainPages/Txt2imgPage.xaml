@@ -194,7 +194,7 @@
                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
                         <Button Content="Generate Image" Grid.Row="4" Margin="6,2,6,2"
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                Command="{Binding GenerateImageCommand}"/>
+                                Click="GenerateButton_Click"/>
                     </Grid>
                 </Border>
                 <Border Grid.Row="1" Background="#ccdcd4" Margin="10" CornerRadius="5,5,5,5">

@@ -19,6 +19,7 @@ using xianyun.ViewModel;
 using System.IO;
 using System.Windows.Media.Animation;
 using xianyun.Common;
+using xianyun.API;
 
 namespace xianyun.MainPages
 {
@@ -74,6 +75,129 @@ namespace xianyun.MainPages
                 reference_information_extracted_multiple.ToArray(),
                 reference_strength_multiple.ToArray()
             );
+        }
+        private async void GenerateButton_Click(object sender, RoutedEventArgs e)
+        {
+            await GenerateImageRequest();
+        }
+
+        private async Task GenerateImageRequest()
+        {
+            try
+            {
+                var apiClient = new XianyunApiClient("https://nai3.xianyun.cool", SessionManager.Session);
+                Console.WriteLine(SessionManager.Session);
+
+                // Function to generate a random seed
+                long GenerateRandomSeed()
+                {
+                    var random = new Random();
+                    int length = random.Next(9, 13); // Generates a random seed between 9 to 12 digits
+                    long seed = 0;
+                    for (int i = 0; i < length; i++)
+                    {
+                        seed = seed * 10 + random.Next(0, 10);
+                    }
+                    return seed;
+                }
+
+                // Loop to generate image requests
+                for (int i = 0; i < _viewModel.DrawingFrequency; i++)
+                {
+                    var seedValue = _viewModel.Seed?.ToString() ?? GenerateRandomSeed().ToString();
+
+                    // Create image request object
+                    var imageRequest = new ImageGenerationRequest
+                    {
+                        Model = _viewModel.Model,
+                        PositivePrompt = _viewModel.PositivePrompt,
+                        NegativePrompt = _viewModel.NegitivePrompt,
+                        Scale = _viewModel.GuidanceScale,
+                        Steps = _viewModel.Steps,
+                        Width = _viewModel.Width,
+                        Height = _viewModel.Height,
+                        PromptGuidanceRescale = _viewModel.GuidanceRescale,
+                        NoiseSchedule = _viewModel.NoiseSchedule,
+                        Seed = seedValue,
+                        Sampler = _viewModel.ActualSamplingMethod,
+                        Sm = _viewModel.IsSMEA,
+                        SmDyn = _viewModel.IsDYN,
+                        PictureId = TotpGenerator.GenerateTotp(_viewModel._secretKey)
+                    };
+
+                    var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
+                    Console.WriteLine($"Task submitted. Job ID: {jobId}, Initial Queue Position: {initialQueuePosition}");
+
+                    int currentQueuePosition = initialQueuePosition;
+                    _viewModel.ProgressValue = 0;
+
+                    while (currentQueuePosition > 0)
+                    {
+                        var (status, imageBase64, queuePosition) = await apiClient.CheckResultAsync(jobId);
+                        if (status == "processing")
+                        {
+                            _viewModel.ProgressValue = 70;
+                            currentQueuePosition = queuePosition;
+                        }
+                        else if (status == "queued")
+                        {
+                            _viewModel.ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
+                            currentQueuePosition = queuePosition;
+                        }
+                        await Task.Delay(2000); // Polling delay
+                    }
+
+                    // Continue updating progress and handle image generation
+                    while (_viewModel.ProgressValue < 96)
+                    {
+                        var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
+                        if (status == "completed")
+                        {
+                            _viewModel.ProgressValue = 100;
+                            Console.WriteLine("Image generated successfully!");
+
+                            var bitmapFrame = _viewModel.ConvertBase64ToBitmapFrame(imageBase64);
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                var imgPreview = new ImgPreview(imageBase64);
+                                imgPreview.ImageClicked += _viewModel.OnImageClicked;
+                                ImageStackPanel.Children.Add(imgPreview);
+                                ImageViewerControl.ImageSource = bitmapFrame;
+                            });
+                            break;
+                        }
+
+                        _viewModel.ProgressValue += new Random().Next(1, 4);
+                        await Task.Delay(1500);
+                    }
+
+                    // Final check for completion
+                    while (_viewModel.ProgressValue < 100)
+                    {
+                        await Task.Delay(2000);
+                        var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
+                        if (status == "completed")
+                        {
+                            _viewModel.ProgressValue = 100;
+                            var bitmapFrame = _viewModel.ConvertBase64ToBitmapFrame(imageBase64);
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                var imgPreview = new ImgPreview(imageBase64);
+                                imgPreview.ImageClicked += _viewModel.OnImageClicked;
+                                ImageStackPanel.Children.Add(imgPreview);
+                                ImageViewerControl.ImageSource = bitmapFrame;
+                            });
+                            break;
+                        }
+                    }
+
+                    await Task.Delay(3000); // Delay between requests
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
         }
         private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
         {
