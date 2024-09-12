@@ -19,6 +19,7 @@ namespace xianyun.ViewModel
 {
     public class MainViewModel : NotifyBase
     {
+        private bool _isDynamicRowVisible=false;
         // 从 Txt2imgPageModel 导入的字段
         private double _progressValue = 0;
         private string _model;
@@ -77,7 +78,7 @@ namespace xianyun.ViewModel
             get { return _mainContent; }
             set { _mainContent = value; this.DoNotify(); }
         }
-
+        
         // 构造函数
         public MainViewModel()
         {
@@ -140,6 +141,15 @@ namespace xianyun.ViewModel
                 frame.Navigate(page);
             }
         }
+        public bool IsDynamicRowVisible
+        {
+            get => _isDynamicRowVisible;
+            set
+            {
+                _isDynamicRowVisible = value;
+                DoNotify();
+            }
+        }
         public double ProgressValue
         {
             get => _progressValue;
@@ -181,6 +191,7 @@ namespace xianyun.ViewModel
                 if (_selectedLineArt != value || value == false)
                 {
                     _selectedLineArt = value;
+                    //IsDynamicRowVisible = false;
                     DoNotify();
                 }
                 else { _selectedLineArt = !value; DoNotify(); }
@@ -194,6 +205,7 @@ namespace xianyun.ViewModel
                 if (_selectedSketch != value || value == false)
                 {
                     _selectedSketch = value;
+                    //IsDynamicRowVisible = false;
                     DoNotify();
                 }
                 else { _selectedSketch = !value; DoNotify(); }
@@ -207,6 +219,7 @@ namespace xianyun.ViewModel
                 if (_selectedDeclutter != value || value == false)
                 {
                     _selectedDeclutter = value;
+                    //IsDynamicRowVisible = false;
                     DoNotify();
                 }
                 else { _selectedDeclutter = !value; DoNotify(); }
@@ -221,8 +234,9 @@ namespace xianyun.ViewModel
                 {
                     _selectedEmotion = value;
                     DoNotify();
+                    IsDynamicRowVisible = value;
                 }
-                else { _selectedEmotion = !value; DoNotify(); }
+                else { _selectedEmotion = !value; DoNotify(); IsDynamicRowVisible = !value; }
             }
         }
         public bool SelectedColorize
@@ -234,8 +248,9 @@ namespace xianyun.ViewModel
                 {
                     _selectedColorize = value;
                     DoNotify();
+                    IsDynamicRowVisible = value;
                 }
-                else { _selectedColorize = !value; DoNotify(); }
+                else { _selectedColorize = !value; DoNotify(); IsDynamicRowVisible = !value; }
             }
         }
         public int DrawingFrequency
@@ -430,132 +445,6 @@ namespace xianyun.ViewModel
         {
             ConfigurationService.SaveConfiguration(this);
         }
-
-        // 生成图像的命令方法，来自 MainViewModel
-        //private async Task OnGenerateButtonClick()
-        //{
-        //    try
-        //    {
-        //        var apiClient = new XianyunApiClient("https://nai3.xianyun.cool", SessionManager.Session);
-        //        Console.WriteLine(SessionManager.Session);
-
-        //        // 用于生成随机种子的函数
-        //        long GenerateRandomSeed()
-        //        {
-        //            var random = new Random();
-        //            int length = random.Next(9, 13); // 生成9到12位长度的随机数
-        //            long seed = 0;
-        //            for (int i = 0; i < length; i++)
-        //            {
-        //                seed = seed * 10 + random.Next(0, 10);
-        //            }
-        //            return seed;
-        //        }
-
-        //        // 循环生成图像请求
-        //        for (int i = 0; i < this.DrawingFrequency; i++)
-        //        {
-        //            var seedValue = this.Seed?.ToString() ?? GenerateRandomSeed().ToString();
-
-        //            var imageRequest = new ImageGenerationRequest
-        //            {
-        //                Model = this.Model,
-        //                PositivePrompt = this.PositivePrompt,
-        //                NegativePrompt = this.NegitivePrompt,
-        //                Scale = this.GuidanceScale,
-        //                Steps = this.Steps,
-        //                Width = this.Width,
-        //                Height = this.Height,
-        //                PromptGuidanceRescale = this.GuidanceRescale,
-        //                NoiseSchedule = this.NoiseSchedule,
-        //                Seed = seedValue,  // 使用新的随机种子
-        //                Sampler = this.ActualSamplingMethod,
-        //                Sm = this.IsSMEA,
-        //                SmDyn = this.IsDYN,
-        //                PictureId = TotpGenerator.GenerateTotp(_secretKey)
-        //            };
-
-        //            var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
-        //            Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
-
-        //            int currentQueuePosition = initialQueuePosition;
-        //            ProgressValue = 0;
-
-        //            while (currentQueuePosition > 0)
-        //            {
-        //                var (status, imageBase64, queuePosition) = await apiClient.CheckResultAsync(jobId);
-        //                if (status == "processing")
-        //                {
-        //                    // 队列已到0，进入processing状态，生成图像中
-        //                    ProgressValue = 70;
-        //                    Console.WriteLine($"进度: {ProgressValue}% (正在生成图像)");
-        //                    currentQueuePosition = queuePosition;
-        //                }
-        //                else if (status == "queued")
-        //                {
-        //                    // 根据队列位置更新进度
-        //                    ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
-        //                    Console.WriteLine($"进度: {ProgressValue}% (队列位置: {queuePosition})");
-        //                    currentQueuePosition = queuePosition;
-        //                }
-        //                await Task.Delay(2000); // 每2秒检查一次
-        //            }
-
-        //            // 当状态为processing时，模拟从70%到96%的进度
-        //            while (ProgressValue < 96)
-        //            {
-        //                var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
-        //                if (status == "completed")
-        //                {
-        //                    // 图像生成成功，直接跳到100%
-        //                    ProgressValue = 100;
-        //                    Console.WriteLine("图像生成成功！");
-        //                    var bitmapFrame = ConvertBase64ToBitmapFrame(imageBase64);
-        //                    Application.Current.Dispatcher.Invoke(() =>
-        //                    {
-        //                        var imgPreview = new ImgPreview(imageBase64);
-        //                        imgPreview.ImageClicked += OnImageClicked;
-        //                        ImageStackPanel.Children.Add(imgPreview);
-        //                        ImageViewerControl.ImageSource = bitmapFrame;
-        //                    });
-        //                    break; // 跳出模拟进度的循环
-        //                }
-
-        //                // 图像未生成完成，继续增加进度
-        //                ProgressValue += new Random().Next(1, 4);
-        //                Console.WriteLine($"进度: {ProgressValue}%");
-        //                await Task.Delay(1500); // 延迟1.5秒
-        //            }
-
-        //            // 如果图像生成完成，跳过这个循环，否则继续检查
-        //            while (ProgressValue < 100)
-        //            {
-        //                await Task.Delay(2000); // 延迟2秒再检查
-        //                var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
-        //                if (status == "completed")
-        //                {
-        //                    ProgressValue = 100;
-        //                    Console.WriteLine("图像生成成功！");
-        //                    var bitmapFrame = ConvertBase64ToBitmapFrame(imageBase64);
-        //                    Application.Current.Dispatcher.Invoke(() =>
-        //                    {
-        //                        var imgPreview = new ImgPreview(imageBase64);
-        //                        imgPreview.ImageClicked += OnImageClicked;
-        //                        ImageStackPanel.Children.Add(imgPreview);
-        //                        ImageViewerControl.ImageSource = bitmapFrame;
-        //                    });
-        //                    break;
-        //                }
-        //            }
-        //            Console.WriteLine("进度: 100%");
-        //            await Task.Delay(3000); // 请求间隔3秒
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine("错误: " + ex.Message);
-        //    }
-        //}
         // 将 Base64 字符串转换为 BitmapFrame 的方法
         public BitmapFrame ConvertBase64ToBitmapFrame(string base64String)
         {

@@ -17,6 +17,8 @@
                 <ui:ThemesDictionary Theme="Light" />
                 <ui:ControlsDictionary />
             </ResourceDictionary.MergedDictionaries>
+            <!-- 定义 BooleanToVisibilityConverter -->
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="DarkSlateGray"/>
                 <Setter Property="FontSize" Value="12"/>
@@ -30,11 +32,6 @@
             </Storyboard>
         </ResourceDictionary>
     </Page.Resources>
-    <!--<Page.Triggers>
-        <EventTrigger RoutedEvent="Button.Click" SourceName="TagMenuBth">
-            <BeginStoryboard Storyboard="{StaticResource RightTagMenu}"/>
-        </EventTrigger>
-    </Page.Triggers>-->
     <Border CornerRadius="20" Margin="0,20,10,20" BorderBrush="#7b9d91"
         BorderThickness="4">
         <Border.Effect>
@@ -115,6 +112,8 @@
                     <Grid Grid.Column="0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*"/>
+                            <!-- 新增一行用于动态展示额外控件 -->
+                            <RowDefinition Height="Auto" x:Name="DynamicRow" />
                             <RowDefinition Height="10*"/>
                         </Grid.RowDefinitions>
                         <Border Grid.Row="0" Background="#ccdcd4" Margin="6,0" CornerRadius="5">
@@ -135,7 +134,11 @@
                                 <RadioButton IsChecked="{Binding SelectedColorize, Mode=TwoWay}" Grid.Column="5" Margin="0,2" GroupName="DirectorTools"  Content="着色"/>
                             </Grid>
                         </Border>
-                        <Border Grid.Row="1" Margin="6,8" CornerRadius="10,10,4,4" Background="#ccdcd4">
+                        <!-- 在点击按钮时显示动态控件 -->
+                        <Grid Grid.Row="1" Visibility="{Binding IsDynamicRowVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="6,0">
+                            <TextBox Text="{Binding InputText}" Width="200" Height="30" Margin="10"/>
+                        </Grid>
+                        <Border Grid.Row="2" Margin="6,8" CornerRadius="10,10,4,4" Background="#ccdcd4">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="10*"/>
