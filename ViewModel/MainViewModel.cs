@@ -98,8 +98,6 @@ namespace xianyun.ViewModel
                     });
                 }
             });
-
-            //GenerateImageCommand = new AsyncRelayCommand(OnGenerateButtonClick);
         }
         public void Navigate(string pageName)
         {

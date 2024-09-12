@@ -76,11 +76,36 @@ namespace xianyun.MainPages
                 reference_strength_multiple.ToArray()
             );
         }
+        private bool _isCancelling = false; // 用于标记是否取消
+        private bool _isGenerating = false; // 用于标记是否正在生成
+
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            await GenerateImageRequest();
-        }
+            var button = sender as Button;
 
+            // 如果当前正在生成图像，则点击按钮应取消后续操作，并锁定按钮
+            if (_isGenerating)
+            {
+                _isCancelling = true;
+                button.Content = "正在取消...";
+                button.IsEnabled = false; // 锁定按钮，防止重复点击
+            }
+            else
+            {
+                _isCancelling = false;
+                _isGenerating = true;
+                button.Content = "取消生成";
+                button.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F7DED0"));
+
+                await GenerateImageRequest();
+
+                // 恢复按钮状态
+                button.Content = "Generate Image";
+                button.Background = new SolidColorBrush(Colors.White);
+                button.IsEnabled = true; // 恢复按钮为可点击状态
+                _isGenerating = false; // 标记为生成已完成
+            }
+        }
         private async Task GenerateImageRequest()
         {
             try
@@ -88,11 +113,14 @@ namespace xianyun.MainPages
                 var apiClient = new XianyunApiClient("https://nai3.xianyun.cool", SessionManager.Session);
                 Console.WriteLine(SessionManager.Session);
 
-                // Function to generate a random seed
+                // 获取 VibeTransfer 的数据
+                var (base64Images, informationExtracted, referenceStrength) = ExtractImageData();
+
+                // 生成随机种子的方法
                 long GenerateRandomSeed()
                 {
                     var random = new Random();
-                    int length = random.Next(9, 13); // Generates a random seed between 9 to 12 digits
+                    int length = random.Next(9, 13); // 生成9到12位长度的随机数
                     long seed = 0;
                     for (int i = 0; i < length; i++)
                     {
@@ -101,12 +129,12 @@ namespace xianyun.MainPages
                     return seed;
                 }
 
-                // Loop to generate image requests
+                // 循环生成图像请求
                 for (int i = 0; i < _viewModel.DrawingFrequency; i++)
                 {
                     var seedValue = _viewModel.Seed?.ToString() ?? GenerateRandomSeed().ToString();
 
-                    // Create image request object
+                    // 创建图像生成请求对象
                     var imageRequest = new ImageGenerationRequest
                     {
                         Model = _viewModel.Model,
@@ -125,8 +153,23 @@ namespace xianyun.MainPages
                         PictureId = TotpGenerator.GenerateTotp(_viewModel._secretKey)
                     };
 
+                    // 检查是否有 VibeTransfer 数据
+                    if (base64Images.Length > 0 && informationExtracted.Length > 0 && referenceStrength.Length > 0)
+                    {
+                        imageRequest.ReferenceImage = base64Images;
+                        imageRequest.InformationExtracted = informationExtracted;
+                        imageRequest.ReferenceStrength = referenceStrength;
+                    }
+                    else
+                    {
+                        // 如果没有VibeTransfer数据，则将这些字段设置为null
+                        imageRequest.ReferenceImage = null;
+                        imageRequest.InformationExtracted = null;
+                        imageRequest.ReferenceStrength = null;
+                    }
+
                     var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
-                    Console.WriteLine($"Task submitted. Job ID: {jobId}, Initial Queue Position: {initialQueuePosition}");
+                    Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
 
                     int currentQueuePosition = initialQueuePosition;
                     _viewModel.ProgressValue = 0;
@@ -144,17 +187,17 @@ namespace xianyun.MainPages
                             _viewModel.ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
                             currentQueuePosition = queuePosition;
                         }
-                        await Task.Delay(2000); // Polling delay
+                        await Task.Delay(2000); // 轮询延迟
                     }
 
-                    // Continue updating progress and handle image generation
+                    // 继续更新进度并处理图像生成
                     while (_viewModel.ProgressValue < 96)
                     {
                         var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
                         if (status == "completed")
                         {
                             _viewModel.ProgressValue = 100;
-                            Console.WriteLine("Image generated successfully!");
+                            Console.WriteLine("图像生成成功！");
 
                             var bitmapFrame = _viewModel.ConvertBase64ToBitmapFrame(imageBase64);
                             Application.Current.Dispatcher.Invoke(() =>
@@ -171,7 +214,7 @@ namespace xianyun.MainPages
                         await Task.Delay(1500);
                     }
 
-                    // Final check for completion
+                    // 最终检查生成完成
                     while (_viewModel.ProgressValue < 100)
                     {
                         await Task.Delay(2000);
@@ -191,12 +234,12 @@ namespace xianyun.MainPages
                         }
                     }
 
-                    await Task.Delay(3000); // Delay between requests
+                    await Task.Delay(3000); // 请求间隔3秒
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("错误: " + ex.Message);
             }
         }
         private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
