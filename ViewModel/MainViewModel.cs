@@ -99,29 +99,45 @@ namespace xianyun.ViewModel
                 }
             });
         }
+        private Dictionary<string, Page> _pageCache = new Dictionary<string, Page>();
         public void Navigate(string pageName)
         {
             var frame = Application.Current.MainWindow.FindName("MainWindowFrame") as Frame;
 
             if (frame != null)
             {
-                switch (pageName)
+                Page page;
+                if (_pageCache.ContainsKey(pageName))
                 {
-                    case "Welcome":
-                        frame.Navigate(new MainPages.WelcomePage());
-                        break;
-                    case "Page1":
-                        frame.Navigate(new MainPages.Txt2imgPage());
-                        break;
-                    case "Page2":
-                        frame.Navigate(new MainPages.Img2ImgPage());
-                        break;
-                    case "Page3":
-                        frame.Navigate(new MainPages.superResolutionPage());
-                        break;
-                    default:
-                        break;
+                    // 如果页面已经缓存，直接使用缓存的页面实例
+                    page = _pageCache[pageName];
                 }
+                else
+                {
+                    // 否则创建新页面并缓存
+                    switch (pageName)
+                    {
+                        case "Welcome":
+                            page = new MainPages.WelcomePage();
+                            break;
+                        case "Page1":
+                            page = new MainPages.Txt2imgPage();
+                            break;
+                        case "Page2":
+                            page = new MainPages.Img2ImgPage();
+                            break;
+                        case "Page3":
+                            page = new MainPages.superResolutionPage();
+                            break;
+                        default:
+                            return;
+                    }
+
+                    _pageCache[pageName] = page;  // 将页面实例缓存
+                }
+
+                // 导航到目标页面
+                frame.Navigate(page);
             }
         }
         public double ProgressValue
