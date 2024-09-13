@@ -409,10 +409,10 @@
                                                 <ColumnDefinition/>
                                                 <ColumnDefinition/>
                                             </Grid.ColumnDefinitions>
-                                            <Button Content="保存词条为笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="3"/>
-                                            <Button Grid.Column="1" Content="删除当前选中笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="#F7DED0" Margin="3"/>
+                                            <Button Content="保存词条为笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="3" Click="SaveNote_Click"/>
+                                            <Button Grid.Column="1" Content="删除当前选中笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="#F7DED0" Margin="3" Click="DeleteNote_Click"/>
                                         </Grid>
-                                        <Button Grid.Row="1" Content="使用当前笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="3" Background="#C5EBAA"/>
+                                        <Button Grid.Row="1" Content="使用当前笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="3" Background="#C5EBAA" Click="UseNote_Click"/>
                                     </Grid>
                                 </Border>
                                 <Grid Grid.Row="1">
@@ -427,21 +427,18 @@
                                                 <RowDefinition Height="1*"/>
                                                 <RowDefinition Height="1*"/>
                                             </Grid.RowDefinitions>
-                                            <ui:TextBox Grid.Row="0" PlaceholderText="正面词条" Margin="4,4"/>
-                                            <ui:TextBox Grid.Row="1" PlaceholderText="负面词条" Margin="4,4"/>
+                                            <ui:TextBox Grid.Row="0" PlaceholderText="正面词条" x:Name="PositiveTextBox" Margin="4,4" AcceptsReturn="True" TextWrapping="Wrap"/>
+                                            <ui:TextBox Grid.Row="1" PlaceholderText="负面词条" x:Name="NegativeTextBox" Margin="4,4" AcceptsReturn="True" TextWrapping="Wrap"/>
                                             <Grid Background="Transparent" Grid.Row="2">
                                                 <TextBlock Text="图像预览" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="24" Foreground="#B0C5A4"/>
                                                 <Border>
-                                                    <Image Height="auto"/>
+                                                    <Image x:Name="NoteImgPreview" Height="auto"/>
                                                 </Border>
                                             </Grid>
                                         </Grid>
                                     </Border>
                                     <Border Grid.Column="1" Background="#ccdcd4" Margin="1,2,2,2" CornerRadius="0,0,20,0">
-                                        <ListBox Height="auto" Margin="0,0,4,8" ItemsSource="{Binding ViewModel.MyItems}">
-                                            <ListBoxItem Content="Blue"/>
-                                            <ListBoxItem Content="Green"/>
-                                        </ListBox>
+                                        <ListBox x:Name="NoteBookListBox" Height="auto" Margin="0,0,4,8" ItemsSource="{Binding Notes}" DisplayMemberPath="Name" SelectionChanged="ListBox_SelectionChanged"/>
                                     </Border>
                                 </Grid>
                             </Grid>

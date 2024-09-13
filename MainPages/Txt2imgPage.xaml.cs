@@ -40,6 +40,157 @@ namespace xianyun.MainPages
             this.Loaded += Txt2imgPage_Loaded;
             this.Unloaded += Txt2imgPage_Unloaded;
         }
+        public class NoteModel
+        {
+            public string Name { get; set; }
+            public string PositivePrompt { get; set; }
+            public string NegativePrompt { get; set; }
+            public string ImagePath { get; set; }
+        }
+        private void SaveNote_Click(object sender, RoutedEventArgs e)
+        {
+            // 弹出输入框获取保存名称
+            string noteName = Microsoft.VisualBasic.Interaction.InputBox("请输入保存名称", "保存笔记", "");
+
+            if (!string.IsNullOrEmpty(noteName))
+            {
+                // 检查是否存在重名
+                var existingNote = _viewModel.Notes.FirstOrDefault(note => note.Name == noteName);
+                if (existingNote != null)
+                {
+                    MessageBox.Show("该名称已存在，请选择其他名称。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // 保存正面和负面词条
+                string positivePrompt = _viewModel.PositivePrompt;
+                string negativePrompt = _viewModel.NegitivePrompt;
+
+                // 检查是否有图像，如果有则保存图像
+                string imagePath = null;
+                if (ImageViewerControl.ImageSource != null)
+                {
+                    // 确保目标文件夹存在
+                    string folderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NoteBookImgPath");
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    // 设置图像的保存路径
+                    imagePath = System.IO.Path.Combine(folderPath, $"{noteName}.png");
+
+                    var encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create((BitmapSource)ImageViewerControl.ImageSource));
+
+                    // 保存图像
+                    using (var fileStream = new System.IO.FileStream(imagePath, System.IO.FileMode.Create))
+                    {
+                        encoder.Save(fileStream);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("没有图像可保存，保存的笔记将不包含图像。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+
+                // 创建新的笔记对象并存储
+                var newNote = new NoteModel
+                {
+                    Name = noteName,
+                    PositivePrompt = positivePrompt,
+                    NegativePrompt = negativePrompt,
+                    ImagePath = imagePath // 如果没有图像，ImagePath 将为 null
+                };
+                _viewModel.Notes.Add(newNote);
+
+                // 更新ListBoxItem
+                UpdateListBoxItems();
+            }
+        }
+
+        private void UpdateListBoxItems()
+        {
+            // 确保 ViewModel 中的 Notes 集合已经更新
+            ListBox listBox = this.FindName("NoteBookListBox") as ListBox;
+            if (listBox != null)
+            {
+                // 因为 ListBox 已经通过 ItemsSource 绑定到 _viewModel.Notes，所以不需要手动清空和添加项目
+                // 只需通知 UI 数据已更新即可，确保 Notes 集合是 ObservableCollection<NoteModel>
+                // 如果不是 ObservableCollection，需要改为 ObservableCollection，以便自动通知 UI 更新
+                listBox.ItemsSource = null; // 解除现有绑定
+                listBox.ItemsSource = _viewModel.Notes; // 重新绑定
+            }
+        }
+        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (NoteBookListBox.SelectedItem is NoteModel selectedNote)
+            {
+                // 更新正面和负面词条文本框
+                PositiveTextBox.Text = selectedNote.PositivePrompt;
+                NegativeTextBox.Text = selectedNote.NegativePrompt;
+
+                // 更新图像控件
+                if (!string.IsNullOrEmpty(selectedNote.ImagePath) && File.Exists(selectedNote.ImagePath))
+                {
+                    var image = new BitmapImage();
+                    using (var stream = new FileStream(selectedNote.ImagePath, FileMode.Open, FileAccess.Read))
+                    {
+                        image.BeginInit();
+                        image.CacheOption = BitmapCacheOption.OnLoad; // 确保图像加载后不锁定文件
+                        image.StreamSource = stream;
+                        image.EndInit();
+                    }
+                    NoteImgPreview.Source = image;
+                }
+                else
+                {
+                    NoteImgPreview.Source = null; // 如果没有图像，清空预览
+                }
+            }
+        }
+        private void DeleteNote_Click(object sender, RoutedEventArgs e)
+        {
+            if (NoteBookListBox.SelectedItem is NoteModel selectedNote)
+            {
+                // 清空图像预览，确保文件不被锁定
+                NoteImgPreview.Source = null;
+
+                // 删除图像文件（如果存在）
+                if (!string.IsNullOrEmpty(selectedNote.ImagePath) && File.Exists(selectedNote.ImagePath))
+                {
+                    try
+                    {
+                        File.Delete(selectedNote.ImagePath);
+                    }
+                    catch (IOException ex)
+                    {
+                        MessageBox.Show($"删除文件时发生错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+
+                // 从集合中移除
+                _viewModel.Notes.Remove(selectedNote);
+            }
+            else
+            {
+                MessageBox.Show("请先选择一个笔记。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        private void UseNote_Click(object sender, RoutedEventArgs e)
+        {
+            if (NoteBookListBox.SelectedItem is NoteModel selectedNote)
+            {
+                // 更新 _viewModel 中的词条
+                _viewModel.PositivePrompt = selectedNote.PositivePrompt;
+                _viewModel.NegitivePrompt = selectedNote.NegativePrompt;
+            }
+            else
+            {
+                MessageBox.Show("请先选择一个笔记。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
         public (string[] base64Images, double[] informationExtracted, double[] referenceStrength) ExtractImageData()
         {
             // 创建三个列表来存储图像的 base64 编码、InformationExtracted 和 ReferenceStrength 参数

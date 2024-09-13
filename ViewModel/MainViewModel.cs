@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using System.Windows.Media.Imaging;
 using xianyun.API;
 using xianyun.Common;
 using xianyun.UserControl;
+using static xianyun.MainPages.Txt2imgPage;
 
 namespace xianyun.ViewModel
 {
@@ -78,11 +80,21 @@ namespace xianyun.ViewModel
             get { return _mainContent; }
             set { _mainContent = value; this.DoNotify(); }
         }
-        
+        private ObservableCollection<NoteModel> _notes;
+        public ObservableCollection<NoteModel> Notes
+        {
+            get => _notes;
+            set
+            {
+                _notes = value;
+                this.DoNotify();
+            }
+        }
         // 构造函数
         public MainViewModel()
         {
             NavigateCommand = new RelayCommand<string>(Navigate);
+            _notes = new ObservableCollection<NoteModel>();
             // 初始化反向映射字典
             _reverseSamplingMethodMapping = _samplingMethodMapping.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
             Model = Models[0];
@@ -443,6 +455,7 @@ namespace xianyun.ViewModel
             this.SelectedColorize = loadedConfig.SelectedColorize;
             this.NegitivePrompt = loadedConfig.NegitivePrompt;
             this.PositivePrompt = loadedConfig.PositivePrompt;
+            this.Notes = loadedConfig.Notes;
         }
 
         // 保存参数的方法，来自 Txt2imgPageModel
