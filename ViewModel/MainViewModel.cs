@@ -150,6 +150,11 @@ namespace xianyun.ViewModel
                 DoNotify();
             }
         }
+        private void UpdateDynamicRowVisibility()
+        {
+            // 仅当SelectedEmotion或SelectedColorize为true时，才显示控件
+            IsDynamicRowVisible = SelectedEmotion || SelectedColorize;
+        }
         public double ProgressValue
         {
             get => _progressValue;
@@ -191,10 +196,10 @@ namespace xianyun.ViewModel
                 if (_selectedLineArt != value || value == false)
                 {
                     _selectedLineArt = value;
-                    //IsDynamicRowVisible = false;
                     DoNotify();
+                    UpdateDynamicRowVisibility(); // 更新是否显示控件
                 }
-                else { _selectedLineArt = !value; DoNotify(); }
+                else { _selectedLineArt = !value; DoNotify();}
             }
         }
         public bool SelectedSketch
@@ -205,10 +210,10 @@ namespace xianyun.ViewModel
                 if (_selectedSketch != value || value == false)
                 {
                     _selectedSketch = value;
-                    //IsDynamicRowVisible = false;
                     DoNotify();
+                    UpdateDynamicRowVisibility(); // 更新是否显示控件
                 }
-                else { _selectedSketch = !value; DoNotify(); }
+                else { _selectedSketch = !value; DoNotify();}
             }
         }
         public bool SelectedDeclutter
@@ -219,10 +224,10 @@ namespace xianyun.ViewModel
                 if (_selectedDeclutter != value || value == false)
                 {
                     _selectedDeclutter = value;
-                    //IsDynamicRowVisible = false;
                     DoNotify();
+                    UpdateDynamicRowVisibility(); // 更新是否显示控件
                 }
-                else { _selectedDeclutter = !value; DoNotify(); }
+                else { _selectedDeclutter = !value; DoNotify();}
             }
         }
         public bool SelectedEmotion
@@ -234,9 +239,9 @@ namespace xianyun.ViewModel
                 {
                     _selectedEmotion = value;
                     DoNotify();
-                    IsDynamicRowVisible = value;
+                    UpdateDynamicRowVisibility(); // 更新是否显示控件
                 }
-                else { _selectedEmotion = !value; DoNotify(); IsDynamicRowVisible = !value; }
+                else { _selectedEmotion = !value; DoNotify(); UpdateDynamicRowVisibility();}
             }
         }
         public bool SelectedColorize
@@ -248,10 +253,10 @@ namespace xianyun.ViewModel
                 {
                     _selectedColorize = value;
                     DoNotify();
-                    IsDynamicRowVisible = value;
+                    UpdateDynamicRowVisibility(); // 更新是否显示控件
                 }
-                else { _selectedColorize = !value; DoNotify(); IsDynamicRowVisible = !value; }
-            }
+                else { _selectedColorize = !value; DoNotify(); UpdateDynamicRowVisibility();}
+                }
         }
         public int DrawingFrequency
         {

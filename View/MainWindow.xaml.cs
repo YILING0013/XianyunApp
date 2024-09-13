@@ -21,12 +21,11 @@ namespace xianyun.View
     /// </summary>
     public partial class MainWindow : Window
     {
-        private MainViewModel _mainViewModel;
+        //private MainViewModel _mainViewModel;
         public MainWindow()
         {
             InitializeComponent();
-            _mainViewModel = new MainViewModel();
-            this.DataContext = _mainViewModel;
+            this.DataContext = App.GlobalViewModel;
             this.Loaded += (s, e) =>
             {
                 Application.Current.Dispatcher.InvokeAsync(() =>
