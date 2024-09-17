@@ -185,6 +185,8 @@ namespace xianyun.MainPages
                 // 更新 _viewModel 中的词条
                 _viewModel.PositivePrompt = selectedNote.PositivePrompt;
                 _viewModel.NegitivePrompt = selectedNote.NegativePrompt;
+                InputTextBox.Text = _viewModel.PositivePrompt;
+                UpdateTagsContainerForNotes();
             }
             else
             {
@@ -579,6 +581,39 @@ namespace xianyun.MainPages
                     TagsContainer.Children.Remove(tagControl);
                 }
             }
+            // 隐藏 TextBox
+            InputTextBox.Visibility = Visibility.Collapsed;
+        }
+        private void UpdateTagsContainerForNotes()
+        {
+            string inputText = InputTextBox.Text.Trim();
+
+            if (!string.IsNullOrEmpty(inputText))
+            {
+                // 将中文逗号转换为英文逗号
+                inputText = inputText.Replace("，", ",");
+
+                // 分割文本
+                string[] newTags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                             .Select(tag => AutoCompleteBrackets(tag.Trim()))
+                                             .ToArray();
+
+                // 清空现有的 TagControl，确保顺序与新内容一致
+                TagsContainer.Children.Clear();
+
+                // 根据新的标签内容，按顺序重新生成 TagControl
+                foreach (var tag in newTags)
+                {
+                    TagControl newTagControl = new TagControl(tag, tag);
+                    newTagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
+                    newTagControl.TagDeleted += TagControl_TagDeleted;   // 监听删除事件
+                    TagsContainer.Children.Add(newTagControl);           // 将新的 TagControl 添加到容器中
+                }
+
+                // 更新 ViewModel 中的 PositivePrompt 以保持一致性
+                UpdateViewModelTagsText();
+            }
+
             // 隐藏 TextBox
             InputTextBox.Visibility = Visibility.Collapsed;
         }
