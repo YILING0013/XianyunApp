@@ -20,6 +20,7 @@ using System.IO;
 using System.Windows.Media.Animation;
 using xianyun.Common;
 using xianyun.API;
+using Newtonsoft.Json;
 
 namespace xianyun.MainPages
 {
@@ -46,6 +47,157 @@ namespace xianyun.MainPages
             public string PositivePrompt { get; set; }
             public string NegativePrompt { get; set; }
             public string ImagePath { get; set; }
+        }
+        private void SearchInTreeView(string searchText)
+        {
+            // 清空 ListBox 中的现有项
+            TagListBox.Items.Clear();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                return; // 如果搜索文本为空，则不进行任何操作
+            }
+
+            // 遍历 TreeView 中的所有节点
+            foreach (TreeViewItem fileNode in TagTreeView.Items)
+            {
+                foreach (TreeViewItem categoryNode in fileNode.Items)
+                {
+                    if (categoryNode.Tag is Dictionary<string, string> dictionary)
+                    {
+                        // 遍历字典中的所有键值对
+                        foreach (var keyValuePair in dictionary)
+                        {
+                            // 如果键或值包含搜索文本，将键（中文）添加到 ListBox 中
+                            if (keyValuePair.Key.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                keyValuePair.Value.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                            {
+                                // 将键添加为 ListBox 项目，显示中文文本
+                                TagListBox.Items.Add(new ListBoxItem
+                                {
+                                    Content = keyValuePair.Key, // 显示中文文本
+                                    Tag = keyValuePair.Value    // 将值存储在 Tag 中以备后用
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 如果没有找到匹配项，可以考虑显示一个提示
+            if (TagListBox.Items.Count == 0)
+            {
+                TagListBox.Items.Add(new ListBoxItem { Content = "未找到匹配的结果。" });
+            }
+        }
+        // 当按下回车键时进行搜索
+        private void AutoSuggestBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                var searchBox = sender as Wpf.Ui.Controls.AutoSuggestBox;
+                string searchText = searchBox.Text;
+
+                // 调用搜索方法
+                SearchInTreeView(searchText);
+            }
+        }
+        // 当输入框失去焦点时进行搜索
+        private void AutoSuggestBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var searchBox = sender as Wpf.Ui.Controls.AutoSuggestBox;
+            string searchText = searchBox.Text;
+
+            // 调用搜索方法
+            SearchInTreeView(searchText);
+        }
+        private void LoadJsonFilesToTreeView(string folderPath)
+        {
+            // 确保文件夹存在
+            if (!Directory.Exists(folderPath))
+            {
+                MessageBox.Show("指定的文件夹不存在。");
+                return;
+            }
+
+            // 遍历文件夹中的所有 JSON 文件
+            var jsonFiles = Directory.GetFiles(folderPath, "*.json");
+
+            foreach (var file in jsonFiles)
+            {
+                // 读取文件内容
+                string jsonContent = File.ReadAllText(file);
+
+                // 解析 JSON 内容到字典
+                var dict = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(jsonContent);
+
+                // 获取文件名作为 TreeView 顶层节点
+                var fileName = System.IO.Path.GetFileNameWithoutExtension(file);
+                TreeViewItem fileNode = new TreeViewItem
+                {
+                    Header = fileName
+                };
+
+                // 将 JSON 字典内容作为子节点添加到 TreeView 中
+                foreach (var category in dict)
+                {
+                    TreeViewItem categoryNode = new TreeViewItem
+                    {
+                        Header = category.Key,
+                        Tag = category.Value // 将字典内容存储在 Tag 中，方便后续操作
+                    };
+                    fileNode.Items.Add(categoryNode);
+                }
+
+                // 将顶层文件节点添加到 TreeView 中
+                TagTreeView.Items.Add(fileNode);
+            }
+        }
+        private void TagTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var selectedItem = TagTreeView.SelectedItem as TreeViewItem;
+            if (selectedItem?.Tag is Dictionary<string, string> dictionary)
+            {
+                // 清空 ListBox
+                TagListBox.Items.Clear();
+
+                // 将字典中的键添加到 ListBox 中
+                foreach (var key in dictionary.Keys)
+                {
+                    TagListBox.Items.Add(key);
+                }
+            }
+        }
+        private void TagListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // 如果选中项是从 ListBox 中的搜索结果
+            if (TagListBox.SelectedItem is ListBoxItem selectedItem && selectedItem.Tag is string value)
+            {
+                // 从搜索结果中获取键（中文）和值（英文）
+                string selectedKey = selectedItem.Content.ToString(); // 键（中文）
+
+                // 创建新的 TagControl，并添加到 TagsContainer
+                TagControl newTagControl = new TagControl(selectedKey, value);
+                newTagControl.TextChanged += TagControl_TextChanged;
+                newTagControl.TagDeleted += TagControl_TagDeleted;
+                TagsContainer.Children.Add(newTagControl);
+            }
+            // 如果是从 TreeView 中选择的项目
+            else if (TagListBox.SelectedItem is string selectedKey)
+            {
+                var selectedTreeViewItem = TagTreeView.SelectedItem as TreeViewItem;
+                if (selectedTreeViewItem?.Tag is Dictionary<string, string> dictionary)
+                {
+                    // 获取对应的值
+                    var selectedValue = dictionary[selectedKey];
+
+                    // 创建新的 TagControl，并添加到 TagsContainer
+                    TagControl newTagControl = new TagControl(selectedKey, selectedValue);
+                    newTagControl.TextChanged += TagControl_TextChanged;
+                    newTagControl.TagDeleted += TagControl_TagDeleted;
+                    TagsContainer.Children.Add(newTagControl);
+                }
+            }
         }
         private void SaveNote_Click(object sender, RoutedEventArgs e)
         {
@@ -409,6 +561,8 @@ namespace xianyun.MainPages
             }
             InputTextBox.Text = viewModel.PositivePrompt;
             UpdateTagsContainer();
+            string folderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "E:\\Visual_Studio_project\\xianyun\\json_files");
+            LoadJsonFilesToTreeView(folderPath);
         }
         private void Txt2imgPage_Unloaded(object sender, RoutedEventArgs e)
         {

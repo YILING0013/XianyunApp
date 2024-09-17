@@ -451,7 +451,27 @@
                                 <TextBlock Text="词条选择库" />
                             </StackPanel>
                         </TabItem.Header>
-                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="3*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="1*"/>
+                                    <RowDefinition Height="14*"/>
+                                </Grid.RowDefinitions>
+                                <ui:AutoSuggestBox PlaceholderText="Search..." Margin="4,4" IsSuggestionListOpen="False" KeyDown="AutoSuggestBox_KeyDown" LostFocus="AutoSuggestBox_LostFocus"/>
+                                <Border Grid.Row="1" Background="#ccdcd4" Margin="4,2">
+                                    <ListBox x:Name="TagListBox" MouseDoubleClick="TagListBox_MouseDoubleClick" />
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1">
+                                <Border Background="#ccdcd4" Margin="0,4,4,2" CornerRadius="0,0,20,0">
+                                    <TreeView x:Name="TagTreeView" SelectedItemChanged="TagTreeView_SelectedItemChanged" />
+                                </Border>
+                            </Grid>
+                        </Grid>
                     </TabItem>
                 </TabControl>
             </Border>

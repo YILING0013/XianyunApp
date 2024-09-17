@@ -161,6 +161,54 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <Resource Include="Assets\Fonts\iconfont.ttf" />
+    <None Include="json_files\上衣.json" />
+    <None Include="json_files\下装.json" />
+    <None Include="json_files\主题.json" />
+    <None Include="json_files\人物.json" />
+    <None Include="json_files\人设性格.json" />
+    <None Include="json_files\光效.json" />
+    <None Include="json_files\兽耳和角.json" />
+    <None Include="json_files\动物.json" />
+    <None Include="json_files\基本画面.json" />
+    <None Include="json_files\头发.json" />
+    <None Include="json_files\头饰.json" />
+    <None Include="json_files\姿势.json" />
+    <None Include="json_files\小物件.json" />
+    <None Include="json_files\帽子.json" />
+    <None Include="json_files\手部姿势.json" />
+    <None Include="json_files\时间.json" />
+    <None Include="json_files\服装.json" />
+    <None Include="json_files\服装主题.json" />
+    <None Include="json_files\服装状态.json" />
+    <None Include="json_files\服装纹样.json" />
+    <None Include="json_files\构图.json" />
+    <None Include="json_files\植物.json" />
+    <None Include="json_files\滤镜.json" />
+    <None Include="json_files\物件关系.json" />
+    <None Include="json_files\画风.json" />
+    <None Include="json_files\眼睛.json" />
+    <None Include="json_files\种族.json" />
+    <None Include="json_files\翅膀和尾巴.json" />
+    <None Include="json_files\职业.json" />
+    <None Include="json_files\背景关系.json" />
+    <None Include="json_files\背景场所.json" />
+    <None Include="json_files\背景样式.json" />
+    <None Include="json_files\背景氛围.json" />
+    <None Include="json_files\背景物件.json" />
+    <None Include="json_files\脸部.json" />
+    <None Include="json_files\腿部姿势.json" />
+    <None Include="json_files\行动.json" />
+    <None Include="json_files\表情.json" />
+    <None Include="json_files\袜子.json" />
+    <None Include="json_files\装饰.json" />
+    <None Include="json_files\身体部位.json" />
+    <None Include="json_files\身材.json" />
+    <None Include="json_files\配饰.json" />
+    <None Include="json_files\铠甲.json" />
+    <None Include="json_files\镜头.json" />
+    <None Include="json_files\鞋子.json" />
+    <None Include="json_files\领子与袖口.json" />
+    <None Include="json_files\食物.json" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
