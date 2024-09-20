@@ -250,5 +250,8 @@
   <ItemGroup>
     <Resource Include="Assets\Img\kbbmuajzr9j.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Icon\favicon.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -102,13 +102,162 @@
                             <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
                                          Content="&#xe669;" Foreground="#70677e" GroupName="LeftMenu"/>
                         </Border>
+                        <!-- 最小化按钮 -->
+                        <Border Grid.Row="9" Margin="5" CornerRadius="15" Background="#7c9c84">
+                            <Button Template="{StaticResource LeftMenuBthTemplate}" 
+                                    Content="&#xe642;" Foreground="#70677e" Click="MinimizeButton_Click"/>
+                        </Border>
                         <Border Grid.Row="10" Margin="5" CornerRadius="15" Background="#7c9c84">
                             <Button Template="{StaticResource LeftMenuBthTemplate}" 
                                     Content="&#xe651;" Foreground="#70677e"
                                     Command="{Binding CloseWindowCommand}" 
                                     CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
                         </Border>
+                        <!-- 托盘图标 -->
+                        <hc:NotifyIcon x:Name="notifyIcon" 
+               Text="Xianyun" 
+               Icon="../Assets/Icon/favicon.ico" 
+               IsBlink="false"
+               Visibility="Visible"
+               MouseDoubleClick="NotifyIcon_MouseDoubleClick" Click="NotifyIcon_Click">
+                            <!-- 右键菜单 -->
+                            <hc:NotifyIcon.ContextContent>
+                                <Border BorderBrush="#D3D3D3" BorderThickness="1" CornerRadius="12" Padding="12" Background="#F0F0F0">
+                                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                        <!-- 显示窗口按钮 -->
+                                        <Button Content="显示窗口" Width="80" Margin="8" Click="NotifyIcon_Show_Click">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="#EAEAEA"/>
+                                                    <Setter Property="Foreground" Value="#333"/>
+                                                    <Setter Property="Padding" Value="5,3"/>
+                                                    <Setter Property="FontSize" Value="14"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#CCCCCC"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsPressed" Value="True">
+                                                                        <Setter Property="Background" Value="#AAAAAA"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
 
+                                        <!-- 设置按钮 -->
+                                        <Button Content="设置" Width="80" Margin="8" Click="NotifyIcon_Settings_Click">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="#EAEAEA"/>
+                                                    <Setter Property="Foreground" Value="#333"/>
+                                                    <Setter Property="Padding" Value="5,3"/>
+                                                    <Setter Property="FontSize" Value="14"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#CCCCCC"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsPressed" Value="True">
+                                                                        <Setter Property="Background" Value="#AAAAAA"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                        <!-- 检查更新按钮 -->
+                                        <Button Content="检查更新" Width="80" Margin="8" Click="NotifyIcon_CheckUpdate_Click">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="#EAEAEA"/>
+                                                    <Setter Property="Foreground" Value="#333"/>
+                                                    <Setter Property="Padding" Value="5,3"/>
+                                                    <Setter Property="FontSize" Value="14"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#CCCCCC"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsPressed" Value="True">
+                                                                        <Setter Property="Background" Value="#AAAAAA"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                        <!-- 分隔线 -->
+                                        <Separator Margin="5"/>
+
+                                        <!-- 退出程序按钮 -->
+                                        <Button Content="退出程序" Width="80" Margin="8" Click="NotifyIcon_Exit_Click" Foreground="Red">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="#EAEAEA"/>
+                                                    <Setter Property="Foreground" Value="Red"/>
+                                                    <Setter Property="Padding" Value="5,3"/>
+                                                    <Setter Property="FontSize" Value="14"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#CCCCCC"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsPressed" Value="True">
+                                                                        <Setter Property="Background" Value="#AAAAAA"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+                            </hc:NotifyIcon.ContextContent>
+                        </hc:NotifyIcon>
                     </Grid>
                 </Border>
                 <!--右侧内容-->

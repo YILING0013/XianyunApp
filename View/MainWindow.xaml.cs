@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HandyControl.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,6 +45,14 @@ namespace xianyun.View
             // 在窗口关闭时调用保存数据的逻辑
             SaveData();
         }
+        private void NotifyIcon_Settings_Click(object sender, RoutedEventArgs e)
+        {
+            // 打开设置窗口
+        }
+        private void NotifyIcon_CheckUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            // 更新检查逻辑
+        }
         private void SaveData()
         {
             // 数据保存逻辑
@@ -53,6 +62,55 @@ namespace xianyun.View
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 this.DragMove();
+            }
+        }
+        // 最小化按钮点击事件
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Hide(); // 隐藏窗口
+            notifyIcon.ShowBalloonTip("提示", "应用程序最小化到了系统托盘", NotifyIconInfoType.Info); // 显示气泡提示
+        }
+
+        // 托盘图标单击事件
+        private void NotifyIcon_Click(object sender, RoutedEventArgs e)
+        {
+            // 单击托盘图标时显示窗口
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Activate();
+        }
+
+        // 托盘图标双击事件
+        private void NotifyIcon_MouseDoubleClick(object sender, RoutedEventArgs e)
+        {
+            // 双击托盘图标时显示窗口
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Activate();
+        }
+
+        // 托盘图标点击 "显示" 时的事件
+        private void NotifyIcon_Show_Click(object sender, RoutedEventArgs e)
+        {
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Activate();
+        }
+
+        // 托盘图标点击 "退出" 时的事件
+        private void NotifyIcon_Exit_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown(); // 关闭应用程序
+        }
+
+        // 当窗口状态改变时的处理逻辑
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+            if (WindowState == WindowState.Minimized)
+            {
+                this.Hide(); // 隐藏窗口
+                notifyIcon.ShowBalloonTip("提示", "Xianyun App最小化到了系统托盘", NotifyIconInfoType.Info);
             }
         }
     }
