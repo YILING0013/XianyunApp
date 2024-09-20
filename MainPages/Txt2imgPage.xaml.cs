@@ -41,6 +41,57 @@ namespace xianyun.MainPages
             this.Loaded += Txt2imgPage_Loaded;
             this.Unloaded += Txt2imgPage_Unloaded;
         }
+        private void WidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (HeightSlider == null)
+            {
+                return; // 如果 HeightSlider 未初始化，直接返回，避免空引用错误
+            }
+            // 获取当前的宽度值
+            double widthValue = e.NewValue;
+
+            // 调用计算最大高度的方法
+            double maxHeight = CalculateMaxHeight(widthValue);
+
+            // 设置 Height 滑条的最大值
+            HeightSlider.Maximum = maxHeight;
+            // 如果当前高度值大于新的最大高度，更新高度值
+            if (_viewModel.Height > maxHeight)
+            {
+                _viewModel.Height = (int)maxHeight;
+            }
+        }
+        private double CalculateMaxHeight(double widthValue)
+        {
+            // 定义最小和最大边界值
+            double minBound = 1011712;
+            double maxBound = 1048576;
+            double maxHeight = 512;
+            double closestBelow = 512;
+            double closestBelowDiff = double.MaxValue;
+
+            // 遍历高度范围
+            for (double x = 512; x <= 2048; x += 64)
+            {
+                double product = x * widthValue;
+                if (product >= minBound && product <= maxBound)
+                {
+                    maxHeight = x;
+                }
+                else if (product < minBound)
+                {
+                    double diff = minBound - product;
+                    if (diff < closestBelowDiff)
+                    {
+                        closestBelow = x;
+                        closestBelowDiff = diff;
+                    }
+                }
+            }
+
+            // 返回最大高度值
+            return (maxHeight != 512) ? maxHeight : closestBelow;
+        }
         public class NoteModel
         {
             public string Name { get; set; }
@@ -177,7 +228,7 @@ namespace xianyun.MainPages
                 string selectedKey = selectedItem.Content.ToString(); // 键（中文）
 
                 // 创建新的 TagControl，并添加到 TagsContainer
-                TagControl newTagControl = new TagControl(selectedKey, value);
+                TagControl newTagControl = new TagControl(value, value, selectedKey);
                 newTagControl.TextChanged += TagControl_TextChanged;
                 newTagControl.TagDeleted += TagControl_TagDeleted;
                 TagsContainer.Children.Add(newTagControl);
@@ -192,12 +243,14 @@ namespace xianyun.MainPages
                     var selectedValue = dictionary[selectedKey];
 
                     // 创建新的 TagControl，并添加到 TagsContainer
-                    TagControl newTagControl = new TagControl(selectedKey, selectedValue);
+                    TagControl newTagControl = new TagControl(selectedValue, selectedValue, selectedKey);
                     newTagControl.TextChanged += TagControl_TextChanged;
                     newTagControl.TagDeleted += TagControl_TagDeleted;
                     TagsContainer.Children.Add(newTagControl);
                 }
             }
+            // 添加完 TagControl 后，更新 PositivePrompt 和 InputTextBox
+            UpdateViewModelTagsText();
         }
         private void SaveNote_Click(object sender, RoutedEventArgs e)
         {

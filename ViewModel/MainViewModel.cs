@@ -21,7 +21,7 @@ namespace xianyun.ViewModel
 {
     public class MainViewModel : NotifyBase
     {
-        private bool _isDynamicRowVisible=false;
+        private bool _isEmotionVisible=false;
         // 从 Txt2imgPageModel 导入的字段
         private double _progressValue = 0;
         private string _model;
@@ -153,19 +153,19 @@ namespace xianyun.ViewModel
                 frame.Navigate(page);
             }
         }
-        public bool IsDynamicRowVisible
+        public bool IsEmotionVisible
         {
-            get => _isDynamicRowVisible;
+            get => _isEmotionVisible;
             set
             {
-                _isDynamicRowVisible = value;
+                _isEmotionVisible = value;
                 DoNotify();
             }
         }
         private void UpdateDynamicRowVisibility()
         {
             // 仅当SelectedEmotion或SelectedColorize为true时，才显示控件
-            IsDynamicRowVisible = SelectedEmotion || SelectedColorize;
+            IsEmotionVisible = SelectedEmotion;
         }
         public double ProgressValue
         {
