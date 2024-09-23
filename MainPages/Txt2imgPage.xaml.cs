@@ -85,8 +85,6 @@ namespace xianyun.MainPages
             }
             // 获取当前的宽度值
             double widthValue = e.NewValue;
-
-            // 调用计算最大高度的方法
             double maxHeight = CalculateMaxHeight(widthValue);
 
             // 设置 Height 滑条的最大值
@@ -171,7 +169,7 @@ namespace xianyun.MainPages
                 }
             }
 
-            // 如果没有找到匹配项，可以考虑显示一个提示
+            // 如果没有找到匹配项，显示一个提示
             if (TagListBox.Items.Count == 0)
             {
                 TagListBox.Items.Add(new ListBoxItem { Content = "未找到匹配的结果。" });
@@ -560,7 +558,44 @@ namespace xianyun.MainPages
                         imageRequest.InformationExtracted = null;
                         imageRequest.ReferenceStrength = null;
                     }
+                    if (_viewModel.ReqType != null)
+                    {
+                        // 检查 ImageViewerControl.ImageSource 是否存在图像
+                        if (ImageViewerControl.ImageSource != null)
+                        {
+                            // 获取图像的长和宽
+                            var image = ImageViewerControl.ImageSource as BitmapSource;
+                            if (image != null)
+                            {
+                                int width = image.PixelWidth;
+                                int height = image.PixelHeight;
 
+                                // 将图像转换为 Base64
+                                byte[] imageBytes;
+                                using (MemoryStream memoryStream = new MemoryStream())
+                                {
+                                    BitmapEncoder encoder = new PngBitmapEncoder(); // 使用PNG编码
+                                    encoder.Frames.Add(BitmapFrame.Create(image));
+                                    encoder.Save(memoryStream);
+                                    imageBytes = memoryStream.ToArray();
+                                }
+                                string base64Image = Convert.ToBase64String(imageBytes);
+
+                                imageRequest.Width = width;
+                                imageRequest.Height = height;
+                                imageRequest.Image = base64Image;
+                                imageRequest.ReqType = _viewModel.ReqType;
+
+                                // 进一步检查 ReqType 是否为 "emotion" 或 "colorize"
+                                if (_viewModel.ReqType == "emotion")
+                                {
+                                    // 设置 Prompt 和 Defry
+                                    imageRequest.Prompt = _viewModel.ActualEmotion + ";;" + _viewModel.Prompt;
+                                    imageRequest.Defry = _viewModel.Defry;
+                                }
+                            }
+                        }
+                    }
                     var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
                     Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
 

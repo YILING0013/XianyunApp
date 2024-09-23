@@ -141,6 +141,17 @@ namespace xianyun.API
 
         [JsonProperty("reference_strength_multiple", NullValueHandling = NullValueHandling.Ignore)]
         public double[] ReferenceStrength { get; set; }
+
+        [JsonProperty("req_type", NullValueHandling = NullValueHandling.Ignore)]
+        public string ReqType { get; set; }
+
+        [JsonProperty("image",NullValueHandling = NullValueHandling.Ignore)]
+        public string Image { get; set; }
+        [JsonProperty("prompt", NullValueHandling = NullValueHandling.Ignore)]
+        public string Prompt { get; set; }
+
+        [JsonProperty("defry", NullValueHandling = NullValueHandling.Ignore)]
+        public int Defry { get; set; }
     }
 
     // 生成图像响应结构体

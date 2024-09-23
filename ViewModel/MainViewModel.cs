@@ -25,6 +25,7 @@ namespace xianyun.ViewModel
         // 从 Txt2imgPageModel 导入的字段
         private double _progressValue = 0;
         private string _model;
+        private string _reqType=null;
         private int _defry = 0;
         private int _drawingFrequency = 1;
         private int _steps = 28;
@@ -64,31 +65,32 @@ namespace xianyun.ViewModel
         // Emotion 与其值的反向映射词典
         private readonly Dictionary<string, string> _emotionMapping = new Dictionary<string, string>
         {
-            { "neutral", "中立" },
-            { "happy", "开心" },
-            { "sad", "悲伤" },
-            { "angry", "愤怒" },
-            { "surprised", "惊讶" },
-            { "disgusted", "厌恶" },
-            { "scared", "害怕" },
-            { "confused", "困惑" },
-            { "tired", "疲倦" },
-            { "excited", "兴奋" },
-            { "embarrassed", "尴尬" },
-            { "shy", "害羞" },
-            { "smug", "得意" },
-            { "determined", "坚定" },
-            { "bored", "无聊" },
-            { "thinking", "思考" },
-            { "nervous", "紧张" },
-            { "laughing", "大笑" },
-            { "irritated", "恼火" },
-            { "aroused", "激动" },
-            { "worried", "担忧" },
-            { "love", "恋爱" },
-            { "hurt", "痛苦" },
-            { "playful", "调皮" }
+            { "中立", "neutral" },
+            { "开心", "happy" },
+            { "悲伤", "sad" },
+            { "愤怒", "angry" },
+            { "惊讶", "surprised" },
+            { "厌恶", "disgusted" },
+            { "害怕", "scared" },
+            { "困惑", "confused" },
+            { "疲倦", "tired" },
+            { "兴奋", "excited" },
+            { "尴尬", "embarrassed" },
+            { "害羞", "shy" },
+            { "得意", "smug" },
+            { "坚定", "determined" },
+            { "无聊", "bored" },
+            { "思考", "thinking" },
+            { "紧张", "nervous" },
+            { "大笑", "laughing" },
+            { "恼火", "irritated" },
+            { "激动", "aroused" },
+            { "担忧", "worried" },
+            { "恋爱", "love" },
+            { "痛苦", "hurt" },
+            { "调皮", "playful" }
         };
+
         private readonly Dictionary<string, string> _reverseSamplingMethodMapping;
         private readonly Dictionary<string, string> _reverseEmotionMapping;
         public List<string> Emotions { get; set; } = new List<string>{"中立","开心","悲伤","愤怒","惊讶","厌恶","害怕","困惑","疲倦","兴奋","尴尬","害羞","得意","坚定","无聊","思考","紧张","大笑","恼火","激动","担忧","恋爱","痛苦","调皮"};
@@ -187,6 +189,43 @@ namespace xianyun.ViewModel
                 frame.Navigate(page);
             }
         }
+        public string ReqType
+        {
+            get => _reqType;
+            set
+            {
+                _reqType = value;
+                DoNotify();
+            }
+        }
+        // 新增方法来更新 ReqType
+        private void UpdateReqType()
+        {
+            if (SelectedLineArt)
+            {
+                ReqType = "lineart";
+            }
+            else if (SelectedSketch)
+            {
+                ReqType = "sketch";
+            }
+            else if (SelectedDeclutter)
+            {
+                ReqType = "declutter";
+            }
+            else if (SelectedEmotion)
+            {
+                ReqType = "emotion";
+            }
+            else if (SelectedColorize)
+            {
+                ReqType = "colorize";
+            }
+            else
+            {
+                ReqType = null; // 当没有选中的控件时，设置 ReqType 为 null
+            }
+        }
         public bool IsEmotionVisible
         {
             get => _isEmotionVisible;
@@ -256,8 +295,14 @@ namespace xianyun.ViewModel
                     _selectedLineArt = value;
                     DoNotify();
                     UpdateDynamicRowVisibility(); // 更新是否显示控件
+                    UpdateReqType();
                 }
-                else { _selectedLineArt = !value; DoNotify();}
+                else 
+                { 
+                    _selectedLineArt = !value;
+                    DoNotify();
+                    UpdateReqType();
+                }
             }
         }
         public bool SelectedSketch
@@ -270,8 +315,14 @@ namespace xianyun.ViewModel
                     _selectedSketch = value;
                     DoNotify();
                     UpdateDynamicRowVisibility(); // 更新是否显示控件
+                    UpdateReqType();
                 }
-                else { _selectedSketch = !value; DoNotify();}
+                else 
+                { 
+                    _selectedSketch = !value; 
+                    DoNotify();
+                    UpdateReqType();
+                }
             }
         }
         public bool SelectedDeclutter
@@ -284,8 +335,14 @@ namespace xianyun.ViewModel
                     _selectedDeclutter = value;
                     DoNotify();
                     UpdateDynamicRowVisibility(); // 更新是否显示控件
+                    UpdateReqType();
                 }
-                else { _selectedDeclutter = !value; DoNotify();}
+                else 
+                { 
+                    _selectedDeclutter = !value; 
+                    DoNotify();
+                    UpdateReqType();
+                }
             }
         }
         public bool SelectedEmotion
@@ -298,8 +355,15 @@ namespace xianyun.ViewModel
                     _selectedEmotion = value;
                     DoNotify();
                     UpdateDynamicRowVisibility(); // 更新是否显示控件
+                    UpdateReqType();
                 }
-                else { _selectedEmotion = !value; DoNotify(); UpdateDynamicRowVisibility();}
+                else 
+                { 
+                    _selectedEmotion = !value; 
+                    DoNotify();
+                    UpdateDynamicRowVisibility();
+                    UpdateReqType();
+                }
             }
         }
         public bool SelectedColorize
@@ -312,9 +376,16 @@ namespace xianyun.ViewModel
                     _selectedColorize = value;
                     DoNotify();
                     UpdateDynamicRowVisibility(); // 更新是否显示控件
+                    UpdateReqType();
                 }
-                else { _selectedColorize = !value; DoNotify(); UpdateDynamicRowVisibility();}
+                else
+                { 
+                    _selectedColorize = !value;
+                    DoNotify();
+                    UpdateDynamicRowVisibility();
+                    UpdateReqType();
                 }
+            }
         }
         public int DrawingFrequency
         {
@@ -555,6 +626,18 @@ namespace xianyun.ViewModel
 
         // 获取实际的采样方法
         public string ActualSamplingMethod => _samplingMethodMapping.TryGetValue(SamplingMethod, out var actualMethod) ? actualMethod : null;
-        public string ActualEmotion => _emotionMapping.TryGetValue(Emotion, out var actualEmotion) ? actualEmotion : null;
+        public string ActualEmotion
+        {
+            get
+            {
+                if (_emotionMapping.TryGetValue(Emotion, out var actualEmotion))
+                {
+                    System.Diagnostics.Debug.WriteLine($"ActualEmotion: {actualEmotion}");
+                    return actualEmotion;
+                }
+                System.Diagnostics.Debug.WriteLine("ActualEmotion: null");
+                return null;
+            }
+        }
     }
 }
