@@ -25,6 +25,7 @@ namespace xianyun.ViewModel
         // 从 Txt2imgPageModel 导入的字段
         private double _progressValue = 0;
         private string _model;
+        private int _defry = 0;
         private int _drawingFrequency = 1;
         private int _steps = 28;
         private long? _seed = null;
@@ -37,6 +38,7 @@ namespace xianyun.ViewModel
         private float _guidanceScale = 5.0f;
         private float _guidanceRescale = 0.0f;
         private string _samplingMethod;
+        private string _emotion;
         private string _resolution;
         private string _noiseSchedule;
         private bool _selectedLineArt;
@@ -46,7 +48,7 @@ namespace xianyun.ViewModel
         private bool _selectedColorize;
         private string _positivePrompt;
         private string _negitivePrompt = "lowres, {bad}, error, fewer, extra, missing, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract]";
-
+        private string _prompt = null;
         // 密钥
         public readonly string _secretKey = "fGCGrffh$*hdr#(7904-(cSGDTJGTCLOPIYSWQSFESADZFDBJ%+)):m;(&@1#+$*hHBBB23$c(&#46&(890*@2$%&c#5$#2147905*&/MJMMLLPwr#fhdefts&dcr24x#g4*r@3&(uourw1fcgd-5cdgc$-4fhfxf+dvhvd#d*xe#&frzxhg&efxgthd@2vdffhr*ts2#g4cr#f3xffde@3$ffsxdvh4swa$gr$grOJHNBUGVCDAssddd$ss4+f5$s23xgv(/njvd1d4+g7g$213yfdh*$j*QZDEHg";
 
@@ -59,7 +61,37 @@ namespace xianyun.ViewModel
             { "DPM++ 2M", "k_dpmpp_2m" },
             { "DDIM", "ddim_v3" }
         };
+        // Emotion 与其值的反向映射词典
+        private readonly Dictionary<string, string> _emotionMapping = new Dictionary<string, string>
+        {
+            { "neutral", "中立" },
+            { "happy", "开心" },
+            { "sad", "悲伤" },
+            { "angry", "愤怒" },
+            { "surprised", "惊讶" },
+            { "disgusted", "厌恶" },
+            { "scared", "害怕" },
+            { "confused", "困惑" },
+            { "tired", "疲倦" },
+            { "excited", "兴奋" },
+            { "embarrassed", "尴尬" },
+            { "shy", "害羞" },
+            { "smug", "得意" },
+            { "determined", "坚定" },
+            { "bored", "无聊" },
+            { "thinking", "思考" },
+            { "nervous", "紧张" },
+            { "laughing", "大笑" },
+            { "irritated", "恼火" },
+            { "aroused", "激动" },
+            { "worried", "担忧" },
+            { "love", "恋爱" },
+            { "hurt", "痛苦" },
+            { "playful", "调皮" }
+        };
         private readonly Dictionary<string, string> _reverseSamplingMethodMapping;
+        private readonly Dictionary<string, string> _reverseEmotionMapping;
+        public List<string> Emotions { get; set; } = new List<string>{"中立","开心","悲伤","愤怒","惊讶","厌恶","害怕","困惑","疲倦","兴奋","尴尬","害羞","得意","坚定","无聊","思考","紧张","大笑","恼火","激动","担忧","恋爱","痛苦","调皮"};
         public List<string> Models { get; set; } = new List<string> { "nai-diffusion-3", "nai-diffusion-furry-3" };
         public List<string> SamplingMethods { get; set; } = new List<string> { "Euler", "Euler Ancestral", "DPM++ 2S Ancestral", "DPM++ SDE", "DPM++ 2M", "DDIM" };
         public List<string> Resolutions { get; set; } = new List<string> { "1024*1024", "1216*832", "832*1216" };
@@ -97,8 +129,10 @@ namespace xianyun.ViewModel
             _notes = new ObservableCollection<NoteModel>();
             // 初始化反向映射字典
             _reverseSamplingMethodMapping = _samplingMethodMapping.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+            _reverseEmotionMapping = _emotionMapping.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
             Model = Models[0];
             SamplingMethod = SamplingMethods[0];
+            Emotion = Emotions[0];
             Resolution = Resolutions[0];
             NoiseSchedule = NoiseSchedules[0];
             CloseWindowCommand = new RelayCommand<System.Windows.Window>(async window =>
@@ -200,6 +234,18 @@ namespace xianyun.ViewModel
                 }
             }
         }
+        public string Prompt
+        {
+            get => _prompt;
+            set
+            {
+                if (_prompt != value)
+                {
+                    _prompt = value;
+                    DoNotify();
+                }
+            }
+        }
         public bool SelectedLineArt
         {
             get => _selectedLineArt;
@@ -276,6 +322,15 @@ namespace xianyun.ViewModel
             set
             {
                 _drawingFrequency = value;
+                DoNotify();
+            }
+        }
+        public int Defry
+        {
+            get => _defry;
+            set
+            {
+                _defry = value;
                 DoNotify();
             }
         }
@@ -400,6 +455,18 @@ namespace xianyun.ViewModel
                 }
             }
         }
+        public string Emotion
+        {
+            get => _emotion;
+            set
+            {
+                if (_emotion != value)
+                {
+                    _emotion = value;
+                    DoNotify();
+                }
+            }
+        }
 
         public string Resolution
         {
@@ -446,6 +513,7 @@ namespace xianyun.ViewModel
             this.GuidanceScale = loadedConfig.GuidanceScale;
             this.GuidanceRescale = loadedConfig.GuidanceRescale;
             this.SamplingMethod = loadedConfig.SamplingMethod;
+            this.Emotion = loadedConfig.Emotion;
             this.Resolution = loadedConfig.Resolution;
             this.NoiseSchedule = loadedConfig.NoiseSchedule;
             this.SelectedLineArt = loadedConfig.SelectedLineArt;
@@ -487,5 +555,6 @@ namespace xianyun.ViewModel
 
         // 获取实际的采样方法
         public string ActualSamplingMethod => _samplingMethodMapping.TryGetValue(SamplingMethod, out var actualMethod) ? actualMethod : null;
+        public string ActualEmotion => _emotionMapping.TryGetValue(Emotion, out var actualEmotion) ? actualEmotion : null;
     }
 }

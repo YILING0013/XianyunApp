@@ -131,7 +131,7 @@
                                 <RadioButton IsChecked="{Binding SelectedSketch, Mode=TwoWay}" Grid.Column="2" Margin="0,2" GroupName="DirectorTools"  Content="转草稿"/>
                                 <RadioButton IsChecked="{Binding SelectedDeclutter, Mode=TwoWay}" Grid.Column="3" Margin="0,2" GroupName="DirectorTools"  Content="清理画面"/>
                                 <RadioButton IsChecked="{Binding SelectedEmotion, Mode=TwoWay}" Grid.Column="4" Margin="0,2" GroupName="DirectorTools"  Content="情绪修改"/>
-                                <RadioButton IsChecked="{Binding SelectedColorize, Mode=TwoWay}" Grid.Column="5" Margin="0,2" GroupName="DirectorTools"  Content="着色"/>
+                                <RadioButton IsChecked="{Binding SelectedColorize, Mode=TwoWay}" Grid.Column="5" Margin="0,2" GroupName="DirectorTools"  Content="着色" IsEnabled="False" ToolTip="当前页面无法上传自定义黑白图像，该功能不可用，请在图生图功能使用"/>
                             </Grid>
                         </Border>
                         <!-- 在点击按钮时显示动态控件 -->
@@ -146,12 +146,12 @@
                                 <ColumnDefinition Width="300*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Emotion:" Margin="2,0,2,0"/>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding FontFamilies}" Margin="1,4,1,4"/>
-                            <Button x:Name="EmotionDefryReduce" Grid.Column="2" Content="-" Background="#51829B" Foreground="#EADFB4"/>
-                            <Button x:Name="EmotionDefryPlus" Grid.Column="3" Content="+" Background="#F6995C" Foreground="#EADFB4"/>
-                            <TextBlock Grid.Column="4" Text="Normal" FontSize="10" Margin="2,0,2,0"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding Emotions}" SelectedItem="{Binding Emotion,Mode=TwoWay}"  Margin="1,4,1,4"/>
+                            <Button x:Name="EmotionDefryReduce" Click="EmotionDefryReduce_Click" Grid.Column="2" Content="-" Background="#51829B" Foreground="#EADFB4"/>
+                            <Button x:Name="EmotionDefryPlus" Click="EmotionDefryPlus_Click" Grid.Column="3" Content="+" Background="#F6995C" Foreground="#EADFB4"/>
+                            <TextBlock x:Name="defryGrade" Grid.Column="4" Text="Normal" FontSize="10" Margin="2,0,2,0"/>
                             <TextBlock Grid.Column="5" Text="Prompt:" Margin="2,0,2,0"/>
-                            <TextBox Grid.Column="6" Text="{Binding InputText}" Width="auto" Height="auto" Margin="2,6,2,6"/>
+                            <TextBox Grid.Column="6" Text="{Binding Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
                         </Grid>
                         <Border Grid.Row="2" Margin="6,8" CornerRadius="10,10,4,4" Background="#ccdcd4">
                             <Grid>

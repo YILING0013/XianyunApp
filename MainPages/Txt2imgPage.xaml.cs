@@ -41,6 +41,42 @@ namespace xianyun.MainPages
             this.Loaded += Txt2imgPage_Loaded;
             this.Unloaded += Txt2imgPage_Unloaded;
         }
+        private void EmotionDefryReduce_Click(object sender, RoutedEventArgs e)
+        {
+            // 确保 Defry 值不能小于 0
+            if (_viewModel.Defry > 0)
+            {
+                _viewModel.Defry--;
+                UpdateDefryGrade();
+            }
+
+            // 禁用 EmotionDefryReduce 按钮当 Defry 为 0
+            EmotionDefryReduce.IsEnabled = _viewModel.Defry > 0;
+
+            // 确保当 Defry 小于 5 时，EmotionDefryPlus 按钮始终启用
+            EmotionDefryPlus.IsEnabled = _viewModel.Defry < 5;
+        }
+        private void EmotionDefryPlus_Click(object sender, RoutedEventArgs e)
+        {
+            // 确保 Defry 值不能大于 5
+            if (_viewModel.Defry < 5)
+            {
+                _viewModel.Defry++;
+                UpdateDefryGrade();
+            }
+
+            // 禁用 EmotionDefryPlus 按钮当 Defry 为 5
+            EmotionDefryPlus.IsEnabled = _viewModel.Defry < 5;
+
+            // 确保当 Defry 大于 0 时，EmotionDefryReduce 按钮始终启用
+            EmotionDefryReduce.IsEnabled = _viewModel.Defry > 0;
+        }
+        private void UpdateDefryGrade()
+        {
+            string[] grades = { "Normal", "Slightly Weak", "Weak", "Even Weaker", "Very Weak", "Weakest" };
+            defryGrade.Text = grades[_viewModel.Defry];
+        }
+
         private void WidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (HeightSlider == null)

@@ -1,5 +1,6 @@
 ﻿using HandyControl.Controls;       // 引入 HandyControl 库，用于控件和窗口处理
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -11,12 +12,18 @@ using CommunityToolkit.Mvvm.Input;
 using WpfWindow = System.Windows.Window;
 using xianyun.View;
 using System.Linq;
+using IniParser.Model;
+using IniParser;
 
 namespace xianyun.ViewModel
 {
     // 这是用于登录窗口的 ViewModel，包含登录数据和关闭窗口的命令
     public class LoginViewModel : NotifyBase
     {
+        private const string ConfigFilePath = "account.ini";
+        private const string Section = "LoginInfo";
+        private const string UserNameKey = "UserName";
+        private const string PasswordKey = "Password";
         // 定义一个关闭窗口的命令
         public ICommand CloseWindowCommand { get; }
         public ICommand LoginCommand { get; }
@@ -76,6 +83,8 @@ namespace xianyun.ViewModel
         // LoginViewModel 的构造函数，初始化登录模型和关闭窗口的命令
         public LoginViewModel()
         {
+            // 尝试从配置文件中加载用户名和密码
+            LoadLoginInfo();
             // 初始化 CloseWindowCommand 命令，使用 RelayCommand<System.Windows.Window>，允许关闭传入的窗口
             CloseWindowCommand = new RelayCommand<System.Windows.Window>(async window =>
             {
@@ -91,7 +100,42 @@ namespace xianyun.ViewModel
             });
             LoginCommand = new RelayCommand(Login);
         }
+        // 保存用户名和密码到 ini 文件
+        private void SaveLoginInfo()
+        {
+            var parser = new FileIniDataParser();
+            IniData data = new IniData();
 
+            // 如果配置文件已经存在，加载旧数据
+            if (File.Exists(ConfigFilePath))
+            {
+                data = parser.ReadFile(ConfigFilePath);
+            }
+
+            // 更新用户名和密码
+            data[Section][UserNameKey] = UserName;
+            data[Section][PasswordKey] = Password;
+
+            // 保存到配置文件
+            parser.WriteFile(ConfigFilePath, data);
+        }
+
+        // 从 ini 文件加载用户名和密码
+        private void LoadLoginInfo()
+        {
+            if (File.Exists(ConfigFilePath))
+            {
+                var parser = new FileIniDataParser();
+                IniData data = parser.ReadFile(ConfigFilePath);
+
+                // 从配置文件中读取用户名和密码
+                if (data.Sections.ContainsSection(Section))
+                {
+                    UserName = data[Section][UserNameKey];
+                    Password = data[Section][PasswordKey];
+                }
+            }
+        }
         private void OpenMainWindowAndCloseLoginWindow()
         {
             var currentWindow = System.Windows.Application.Current.Windows.OfType<WpfWindow>().SingleOrDefault(w => w.IsActive);
@@ -154,6 +198,8 @@ namespace xianyun.ViewModel
                                 {
                                     Common.SessionManager.Session = sessionCookie.Value;
                                     this.Message = "登录成功";
+                                    // 保存登录信息
+                                    SaveLoginInfo();
                                     OpenMainWindowAndCloseLoginWindow();  // 登录成功后打开主窗口
                                 }
                                 IsLoginButtonEnabled = true;
