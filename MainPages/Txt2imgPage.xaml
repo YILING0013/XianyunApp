@@ -32,464 +32,464 @@
             </Storyboard>
         </ResourceDictionary>
     </Page.Resources>
-    <Border CornerRadius="20" Margin="0,20,10,20" BorderBrush="#7b9d91"
-        BorderThickness="4">
-        <Border.Effect>
-            <DropShadowEffect Color="Gray" ShadowDepth="2" 
-                          BlurRadius="4" Opacity="0.5" 
-                          Direction="0"/>
-
-            <!--阴影-->
-        </Border.Effect>
-        <Border.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#ccdcd4" Offset="0" />
-                <GradientStop Color="#a2bfab" Offset="1" />
-            </LinearGradientBrush>
-        </Border.Background>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="770*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="340*"/>
-            </Grid.ColumnDefinitions>
-            <Grid Grid.Column="0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="4*"/>
-                    <RowDefinition Height="12*"/>
-                </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
-                    <TabControl Margin="6,4">
-                        <TabItem  IsSelected="True">
-                            <TabItem.Header>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Text="&#xe6d9;" Background="Transparent" HorizontalAlignment="Center" Margin="6,4"/>
-                                    <TextBlock Text="正面提示词" />
-                                </StackPanel>
-                            </TabItem.Header>
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalAlignment="Right" VerticalAlignment="Top" Width="360" Panel.ZIndex="10" Height="auto">
+            <StackPanel hc:Growl.Token="ImageGeneration" VerticalAlignment="Top" Margin="0,10,10,10"/>
+        </ScrollViewer>
+        <Border CornerRadius="20" Margin="0,20,10,20" BorderBrush="#7b9d91" BorderThickness="4">
+            <Border.Effect>
+                <DropShadowEffect Color="Gray" ShadowDepth="2" BlurRadius="4" Opacity="0.5" Direction="0"/>
+                <!--阴影-->
+            </Border.Effect>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#ccdcd4" Offset="0" />
+                    <GradientStop Color="#a2bfab" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="770*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="340*"/>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="4*"/>
+                        <RowDefinition Height="12*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <TabControl Margin="6,4">
+                            <TabItem  IsSelected="True">
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Text="&#xe6d9;" Background="Transparent" HorizontalAlignment="Center" Margin="6,4"/>
+                                        <TextBlock Text="正面提示词" />
+                                    </StackPanel>
+                                </TabItem.Header>
+                                <Grid>
+                                    <Border Margin="1,1" CornerRadius="5" Background="#F9F9F9">
+                                        <Grid>
+                                            <ScrollViewer Name="ScrollViewer"  VerticalScrollBarVisibility="Auto">
+                                                <WrapPanel MouseDown="TagsContainer_MouseDoubleClick" Name="TagsContainer" DragOver="TagsContainer_DragOver" Drop="TagsContainer_Drop" DragLeave="TagsContainer_DragLeave" DragEnter="TagsContainer_DragEnter" AllowDrop="True" Background="Transparent" >
+                                                </WrapPanel>
+                                            </ScrollViewer>
+                                            <ui:TextBox FontSize="12" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </TabItem>
+                            <TabItem>
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Text="&#xe60f;" Background="Transparent" HorizontalAlignment="Center" Margin="6,4"/>
+                                        <TextBlock Text="负面提示词" />
+                                    </StackPanel>
+                                </TabItem.Header>
+                                <Grid>
+                                    <ui:TextBox PlaceholderText="Type something..." AcceptsReturn="True" Text="{Binding NegitivePrompt}" TextWrapping="Wrap"/>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
+                        <!-- 右上角的圆角透明按钮 -->
+                        <Border Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent">
+                            <Button Name="TagMenuBth" Click="TagMenuBtn_Click" FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Content="&#xe677;" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#F9F9F9" BorderThickness="0"/>
+                        </Border>
+                    </Grid>
+                    <Grid Grid.Row="1">
+                        <Grid.Resources>
+                            <ResourceDictionary>
+                                <ResourceDictionary.MergedDictionaries>
+                                    <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+                                    <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
+                                </ResourceDictionary.MergedDictionaries>
+                            </ResourceDictionary>
+                        </Grid.Resources>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="20*"/>
+                            <ColumnDefinition Width="3*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <!-- 新增一行用于动态展示额外控件 -->
+                                <RowDefinition Height="Auto" x:Name="DynamicRow" />
+                                <RowDefinition Height="10*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0" Background="#ccdcd4" Margin="6,0" CornerRadius="5">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Margin="0,2" Content="发送到图生图"/>
+                                    <RadioButton IsChecked="{Binding SelectedLineArt, Mode=TwoWay}" Grid.Column="1" Margin="0,2" GroupName="DirectorTools"  Content="转线稿"/>
+                                    <RadioButton IsChecked="{Binding SelectedSketch, Mode=TwoWay}" Grid.Column="2" Margin="0,2" GroupName="DirectorTools"  Content="转草稿"/>
+                                    <RadioButton IsChecked="{Binding SelectedDeclutter, Mode=TwoWay}" Grid.Column="3" Margin="0,2" GroupName="DirectorTools"  Content="清理画面"/>
+                                    <RadioButton IsChecked="{Binding SelectedEmotion, Mode=TwoWay}" Grid.Column="4" Margin="0,2" GroupName="DirectorTools"  Content="情绪修改"/>
+                                    <RadioButton IsChecked="{Binding SelectedColorize, Mode=TwoWay}" Grid.Column="5" Margin="0,2" GroupName="DirectorTools"  Content="着色" IsEnabled="False" ToolTip="当前页面无法上传自定义黑白图像，该功能不可用，请在图生图功能使用"/>
+                                </Grid>
+                            </Border>
+                            <!-- 在点击按钮时显示动态控件 -->
+                            <Grid Grid.Row="1" Visibility="{Binding IsEmotionVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="6,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60*"/>
+                                    <ColumnDefinition Width="150*"/>
+                                    <ColumnDefinition Width="30*"/>
+                                    <ColumnDefinition Width="30*"/>
+                                    <ColumnDefinition Width="60*"/>
+                                    <ColumnDefinition Width="60*"/>
+                                    <ColumnDefinition Width="300*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Emotion:" Margin="2,0,2,0"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding Emotions}" SelectedItem="{Binding Emotion,Mode=TwoWay}"  Margin="1,4,1,4"/>
+                                <Button x:Name="EmotionDefryReduce" Click="EmotionDefryReduce_Click" Grid.Column="2" Content="-" Background="#51829B" Foreground="#EADFB4"/>
+                                <Button x:Name="EmotionDefryPlus" Click="EmotionDefryPlus_Click" Grid.Column="3" Content="+" Background="#F6995C" Foreground="#EADFB4"/>
+                                <TextBlock x:Name="defryGrade" Grid.Column="4" Text="Normal" FontSize="10" Margin="2,0,2,0"/>
+                                <TextBlock Grid.Column="5" Text="Prompt:" Margin="2,0,2,0"/>
+                                <TextBox Grid.Column="6" Text="{Binding Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
+                            </Grid>
+                            <Border Grid.Row="2" Margin="6,8" CornerRadius="10,10,4,4" Background="#ccdcd4">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="10"/>
+                                    </Grid.RowDefinitions>
+                                    <hc:ImageViewer x:Name="ImageViewerControl" Background="Transparent" BorderBrush="Transparent" Width="auto" Height="auto" Margin="4"/>
+                                    <ProgressBar Grid.Row="1" Value="{Binding ProgressValue}" Height="auto" Background="#C9DABF" Foreground="#86AB89"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        <Border Grid.Column="1" Background="#ccdcd4" Margin="0,0,6,8" CornerRadius="5">
                             <Grid>
-                                <Border Margin="1,1" CornerRadius="5" Background="#F9F9F9">
+                                <ScrollViewer x:Name="ImgPreviewArea" VerticalScrollBarVisibility="Auto" Background="Transparent">
+                                    <StackPanel x:Name="ImageStackPanel"/>
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+                <GridSplitter Grid.Column="1" Width="1" Background="#597445" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,4"/>
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="3*"/>
+                        <RowDefinition Height="12*"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Background="#ccdcd4" Margin="10" CornerRadius="5,5,5,5">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="15*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="15*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="15*"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Margin="6,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="22*"/>
+                                    <ColumnDefinition Width="60*"/>
+                                    <ColumnDefinition Width="10*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="连续绘制(次):"/>
+                                <Slider Grid.Column="1" Value="{Binding DrawingFrequency, Mode=TwoWay}" TickPlacement="Both" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                    <TextBlock Text="{Binding DrawingFrequency, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                            <Grid Grid.Row="2" Margin="6,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60*"/>
+                                    <ColumnDefinition Width="120*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="使用NovelAI模型:" />
+                                <ComboBox  Grid.Column="1" ItemsSource="{Binding Models}" SelectedItem="{Binding Model,Mode=TwoWay}"/>
+                            </Grid>
+                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                            <Button Content="Generate Image" Grid.Row="4" Margin="6,2,6,2"
+                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                        Click="GenerateButton_Click"/>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Row="1" Background="#ccdcd4" Margin="10" CornerRadius="5,5,5,5">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="10*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="10*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="10*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="10*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="10*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="10*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="10*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="10*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="45*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Guidance Scale Slider -->
+                            <Grid Grid.Row="0" Margin="6,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50*"/>
+                                    <ColumnDefinition Width="100*"/>
+                                    <ColumnDefinition Width="15*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Guidance Scale:" Grid.Column="0"/>
+                                <Slider Grid.Column="1" TickPlacement="Both" Minimum="0.1" Maximum="10" Value="{Binding GuidanceScale, Mode=TwoWay}"  TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                    <TextBlock Text="{Binding GuidanceScale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <!-- Horizontal Divider -->
+                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                            <!-- 采样 (Sampling) ComboBox -->
+                            <Grid Grid.Row="2" Margin="6,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="25*"/>
+                                    <ColumnDefinition Width="80*"/>
+                                    <ColumnDefinition Width="25*"/>
+                                    <ColumnDefinition Width="90*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.Resources>
+                                    <common:NullableLongConverter x:Key="NullableLongConverter"/>
+                                </Grid.Resources>
+                                <!-- Sampling Method ComboBox -->
+                                <TextBlock Text="采样:" Grid.Column="0"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding SamplingMethods}" SelectedItem="{Binding SamplingMethod,Mode=TwoWay}"/>
+                                <TextBlock Text="Seed:" Grid.Column="2"/>
+                                <ui:TextBox  PlaceholderText="Enter Seed" Text="{Binding Seed, Mode=TwoWay,Converter={StaticResource NullableLongConverter}}"  Grid.Column="3"/>
+                            </Grid>
+                            <!-- Horizontal Divider -->
+                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+                            <!-- Steps Slider -->
+                            <Grid Grid.Row="4" Margin="6,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="16*"/>
+                                    <ColumnDefinition Width="90*"/>
+                                    <ColumnDefinition Width="14*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Steps:"/>
+                                <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="{Binding Steps, Mode=TwoWay}"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                    <TextBlock Text="{Binding Steps, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+
+                            <!-- Horizontal Divider -->
+                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="5" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+
+                            <!-- Width and Height Sliders -->
+                            <Grid Grid.Row="6" Margin="6,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20*"/>
+                                    <ColumnDefinition Width="100*"/>
+                                    <ColumnDefinition Width="25*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Width:"/>
+                                <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048"  Value="{Binding Width, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True"  HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" ValueChanged="WidthSlider_ValueChanged"/>
+                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                    <TextBlock Text="{Binding Width, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+
+                            <!-- Horizontal Divider -->
+                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="7" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+
+                            <Grid Grid.Row="8" Margin="6,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20*"/>
+                                    <ColumnDefinition Width="100*"/>
+                                    <ColumnDefinition Width="25*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Height:"/>
+                                <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="{Binding Height, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" x:Name="HeightSlider"/>
+                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                    <TextBlock Text="{Binding Height, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <!-- Horizontal Divider -->
+                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="9" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+                            <!-- 便捷分辨率 (Convenient Resolution) ComboBox -->
+                            <Grid Grid.Row="10" Margin="6,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60*"/>
+                                    <ColumnDefinition Width="130*"/>
+                                    <ColumnDefinition Width="80*"/>
+                                </Grid.ColumnDefinitions>
+                                <!-- Resolution ComboBox -->
+                                <TextBlock Text="便捷分辨率:"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding Resolution,Mode=TwoWay}"/>
+                                <ui:ToggleSwitch OffContent="禁用中" OnContent="已开启" IsChecked="{Binding IsConvenientResolution, Mode=TwoWay}" Grid.Column="2" FontSize="12" HorizontalAlignment="Right" Foreground="DarkSlateGray"/>
+                            </Grid>
+                            <!-- Horizontal Divider -->
+                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="11" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+                            <!-- Prompt Guidance Rescale Slider -->
+                            <Grid Grid.Row="12" Margin="6,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100*"/>
+                                    <ColumnDefinition Width="75*"/>
+                                    <ColumnDefinition Width="25*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Prompt Guidance Rescale:"/>
+                                <Slider Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="{Binding GuidanceRescale, Mode=TwoWay}" IsSnapToTickEnabled="True" TickFrequency="0.01" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
+                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                    <TextBlock Text="{Binding GuidanceRescale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <!-- Horizontal Divider -->
+                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="13" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                            <!-- Noise Schedule ComboBox -->
+                            <Grid Grid.Row="14" Margin="6,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110*"/>
+                                    <ColumnDefinition Width="100*"/>
+                                    <ColumnDefinition Width="140*"/>
+                                </Grid.ColumnDefinitions>
+                                <!-- Noise Schedule ComboBox -->
+                                <TextBlock Text="Noise Schedule:"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding NoiseSchedules}" SelectedItem="{Binding NoiseSchedule,Mode=TwoWay}"/>
+                                <Grid Grid.Column="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox Grid.Column="0" Margin="2"  Content="SMEA" FontSize="10" IsChecked="{Binding IsSMEA,Mode=TwoWay}"/>
+                                    <CheckBox Grid.Column="1" Margin="2" IsEnabled="{Binding IsDYNEnabled,Mode=TwoWay}"  Content="DYN" FontSize="10" IsChecked="{Binding IsDYN,Mode=TwoWay}"/>
+                                </Grid>
+                            </Grid>
+                            <!-- Horizontal Divider -->
+                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="15" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                            <!-- Vibe Transfer Button -->
+                            <Grid Grid.Row="16" Margin="6,4">
+                                <Border BorderBrush="#FFC0C0C0" BorderThickness="1" CornerRadius="8" Background="#F7F9F2"
+                                            VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                            AllowDrop="True"
+                                            DragEnter="Border_DragEnter"
+                                            DragOver="Border_DragOver"
+                                            Drop="Border_Drop"
+                                            MouseLeftButtonUp="Border_MouseLeftButtonUp">
                                     <Grid>
-                                        <ScrollViewer Name="ScrollViewer"  VerticalScrollBarVisibility="Auto">
-                                            <WrapPanel MouseDown="TagsContainer_MouseDoubleClick" Name="TagsContainer" DragOver="TagsContainer_DragOver" Drop="TagsContainer_Drop" DragLeave="TagsContainer_DragLeave" DragEnter="TagsContainer_DragEnter" AllowDrop="True" Background="Transparent" >
-                                            </WrapPanel>
+                                        <ScrollViewer x:Name="ImageScrollViewer" Grid.Row="0">
+                                            <WrapPanel x:Name="ImageWrapPanel" HorizontalAlignment="Center" VerticalAlignment="Top" />
                                         </ScrollViewer>
-                                        <ui:TextBox FontSize="12" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
+                                        <StackPanel x:Name="UploadStackPanel" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Visible">
+                                            <!-- Icon -->
+                                            <Button FontFamily="../Assets/Fonts/#iconfont" FontSize="64" Foreground="#708871" Content="&#xe6b7;" Background="Transparent" BorderThickness="0" HorizontalAlignment="Center"/>
+                                            <!-- Text -->
+                                            <TextBlock FontSize="16" Foreground="#FF808080" Text="上传图像到Vibe Transfer" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                                        </StackPanel>
                                     </Grid>
                                 </Border>
                             </Grid>
-                        </TabItem>
+                        </Grid>
+                    </Border>
+                </Grid>
+                <Border Grid.Column="2" Background="#a2bfab" Width="335" CornerRadius="0,20,20,0" HorizontalAlignment="Right">
+                    <Border.RenderTransform>
+                        <TranslateTransform X="380" Y="0" x:Name="Ttransform"/>
+                    </Border.RenderTransform>
+                    <TabControl Margin="0,2">
                         <TabItem>
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Text="&#xe60f;" Background="Transparent" HorizontalAlignment="Center" Margin="6,4"/>
-                                    <TextBlock Text="负面提示词" />
+                                    <ui:SymbolIcon Margin="0,0,6,0" Symbol="XboxConsole24" />
+                                    <TextBlock Text="词条笔记本" />
                                 </StackPanel>
                             </TabItem.Header>
                             <Grid>
-                                <ui:TextBox PlaceholderText="Type something..." AcceptsReturn="True" Text="{Binding NegitivePrompt}" TextWrapping="Wrap"/>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="2*"/>
+                                        <RowDefinition Height="10*"/>
+                                    </Grid.RowDefinitions>
+                                    <Border Background="#ccdcd4" Margin="1,2">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition/>
+                                                <RowDefinition/>
+                                            </Grid.RowDefinitions>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition/>
+                                                    <ColumnDefinition/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Content="保存词条为笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="3" Click="SaveNote_Click"/>
+                                                <Button Grid.Column="1" Content="删除当前选中笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="#F7DED0" Margin="3" Click="DeleteNote_Click"/>
+                                            </Grid>
+                                            <Button Grid.Row="1" Content="使用当前笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="3" Background="#C5EBAA" Click="UseNote_Click"/>
+                                        </Grid>
+                                    </Border>
+                                    <Grid Grid.Row="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="3*"/>
+                                            <ColumnDefinition Width="2*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="#ccdcd4" Margin="1,2,2,2">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="1*"/>
+                                                    <RowDefinition Height="1*"/>
+                                                    <RowDefinition Height="1*"/>
+                                                </Grid.RowDefinitions>
+                                                <ui:TextBox Grid.Row="0" PlaceholderText="正面词条" x:Name="PositiveTextBox" Margin="4,4" AcceptsReturn="True" TextWrapping="Wrap"/>
+                                                <ui:TextBox Grid.Row="1" PlaceholderText="负面词条" x:Name="NegativeTextBox" Margin="4,4" AcceptsReturn="True" TextWrapping="Wrap"/>
+                                                <Grid Background="Transparent" Grid.Row="2">
+                                                    <TextBlock Text="图像预览" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="24" Foreground="#B0C5A4"/>
+                                                    <Border>
+                                                        <Image x:Name="NoteImgPreview" Height="auto"/>
+                                                    </Border>
+                                                </Grid>
+                                            </Grid>
+                                        </Border>
+                                        <Border Grid.Column="1" Background="#ccdcd4" Margin="1,2,2,2" CornerRadius="0,0,20,0">
+                                            <ListBox x:Name="NoteBookListBox" Height="auto" Margin="0,0,4,8" ItemsSource="{Binding Notes}" DisplayMemberPath="Name" SelectionChanged="ListBox_SelectionChanged"/>
+                                        </Border>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </TabItem>
+                        <TabItem IsSelected="True">
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Margin="0,0,6,0" Symbol="StoreMicrosoft16" />
+                                    <TextBlock Text="词条选择库" />
+                                </StackPanel>
+                            </TabItem.Header>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="14*"/>
+                                    </Grid.RowDefinitions>
+                                    <ui:AutoSuggestBox PlaceholderText="Search..." Margin="4,4" IsSuggestionListOpen="False" KeyDown="AutoSuggestBox_KeyDown" LostFocus="AutoSuggestBox_LostFocus"/>
+                                    <Border Grid.Row="1" Background="#ccdcd4" Margin="4,2">
+                                        <ListBox x:Name="TagListBox" MouseDoubleClick="TagListBox_MouseDoubleClick" />
+                                    </Border>
+                                </Grid>
+                                <Grid Grid.Column="1">
+                                    <Border Background="#ccdcd4" Margin="0,4,4,2" CornerRadius="0,0,20,0">
+                                        <TreeView x:Name="TagTreeView" SelectedItemChanged="TagTreeView_SelectedItemChanged" />
+                                    </Border>
+                                </Grid>
                             </Grid>
                         </TabItem>
                     </TabControl>
-                    <!-- 右上角的圆角透明按钮 -->
-                    <Border Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent">
-                        <Button Name="TagMenuBth" Click="TagMenuBtn_Click" FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Content="&#xe677;" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#F9F9F9" BorderThickness="0"/>
-                    </Border>
-                </Grid>
-                <Grid Grid.Row="1">
-                    <Grid.Resources>
-                        <ResourceDictionary>
-                            <ResourceDictionary.MergedDictionaries>
-                                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
-                                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
-                            </ResourceDictionary.MergedDictionaries>
-                        </ResourceDictionary>
-                    </Grid.Resources>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="20*"/>
-                        <ColumnDefinition Width="3*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="1*"/>
-                            <!-- 新增一行用于动态展示额外控件 -->
-                            <RowDefinition Height="Auto" x:Name="DynamicRow" />
-                            <RowDefinition Height="10*"/>
-                        </Grid.RowDefinitions>
-                        <Border Grid.Row="0" Background="#ccdcd4" Margin="6,0" CornerRadius="5">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition/>
-                                </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Margin="0,2" Content="发送到图生图"/>
-                                <RadioButton IsChecked="{Binding SelectedLineArt, Mode=TwoWay}" Grid.Column="1" Margin="0,2" GroupName="DirectorTools"  Content="转线稿"/>
-                                <RadioButton IsChecked="{Binding SelectedSketch, Mode=TwoWay}" Grid.Column="2" Margin="0,2" GroupName="DirectorTools"  Content="转草稿"/>
-                                <RadioButton IsChecked="{Binding SelectedDeclutter, Mode=TwoWay}" Grid.Column="3" Margin="0,2" GroupName="DirectorTools"  Content="清理画面"/>
-                                <RadioButton IsChecked="{Binding SelectedEmotion, Mode=TwoWay}" Grid.Column="4" Margin="0,2" GroupName="DirectorTools"  Content="情绪修改"/>
-                                <RadioButton IsChecked="{Binding SelectedColorize, Mode=TwoWay}" Grid.Column="5" Margin="0,2" GroupName="DirectorTools"  Content="着色" IsEnabled="False" ToolTip="当前页面无法上传自定义黑白图像，该功能不可用，请在图生图功能使用"/>
-                            </Grid>
-                        </Border>
-                        <!-- 在点击按钮时显示动态控件 -->
-                        <Grid Grid.Row="1" Visibility="{Binding IsEmotionVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="6,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60*"/>
-                                <ColumnDefinition Width="150*"/>
-                                <ColumnDefinition Width="30*"/>
-                                <ColumnDefinition Width="30*"/>
-                                <ColumnDefinition Width="60*"/>
-                                <ColumnDefinition Width="60*"/>
-                                <ColumnDefinition Width="300*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Emotion:" Margin="2,0,2,0"/>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding Emotions}" SelectedItem="{Binding Emotion,Mode=TwoWay}"  Margin="1,4,1,4"/>
-                            <Button x:Name="EmotionDefryReduce" Click="EmotionDefryReduce_Click" Grid.Column="2" Content="-" Background="#51829B" Foreground="#EADFB4"/>
-                            <Button x:Name="EmotionDefryPlus" Click="EmotionDefryPlus_Click" Grid.Column="3" Content="+" Background="#F6995C" Foreground="#EADFB4"/>
-                            <TextBlock x:Name="defryGrade" Grid.Column="4" Text="Normal" FontSize="10" Margin="2,0,2,0"/>
-                            <TextBlock Grid.Column="5" Text="Prompt:" Margin="2,0,2,0"/>
-                            <TextBox Grid.Column="6" Text="{Binding Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
-                        </Grid>
-                        <Border Grid.Row="2" Margin="6,8" CornerRadius="10,10,4,4" Background="#ccdcd4">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="10*"/>
-                                    <RowDefinition Height="10"/>
-                                </Grid.RowDefinitions>
-                                <hc:ImageViewer x:Name="ImageViewerControl" Background="Transparent" BorderBrush="Transparent" Width="auto" Height="auto" Margin="4"/>
-                                <ProgressBar Grid.Row="1" Value="{Binding ProgressValue}" Height="auto" Background="#C9DABF" Foreground="#86AB89"/>
-                            </Grid>
-                        </Border>
-                    </Grid>
-                    <Border Grid.Column="1" Background="#ccdcd4" Margin="0,0,6,8" CornerRadius="5">
-                        <Grid>
-                            <ScrollViewer x:Name="ImgPreviewArea" VerticalScrollBarVisibility="Auto" Background="Transparent">
-                                <StackPanel x:Name="ImageStackPanel"/>
-                            </ScrollViewer>
-                        </Grid>
-                    </Border>
-                </Grid>
-            </Grid>
-            <GridSplitter Grid.Column="1" Width="1" Background="#597445" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,4"/>
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="3*"/>
-                    <RowDefinition Height="12*"/>
-                </Grid.RowDefinitions>
-                <Border Grid.Row="0" Background="#ccdcd4" Margin="10" CornerRadius="5,5,5,5">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="15*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="15*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="15*"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Margin="6,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="22*"/>
-                                <ColumnDefinition Width="60*"/>
-                                <ColumnDefinition Width="10*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="连续绘制(次):"/>
-                            <Slider Grid.Column="1" Value="{Binding DrawingFrequency, Mode=TwoWay}" TickPlacement="Both" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
-                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding DrawingFrequency, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </Grid>
-                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-                        <Grid Grid.Row="2" Margin="6,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60*"/>
-                                <ColumnDefinition Width="120*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="使用NovelAI模型:" />
-                            <ComboBox  Grid.Column="1" ItemsSource="{Binding Models}" SelectedItem="{Binding Model,Mode=TwoWay}"/>
-                        </Grid>
-                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-                        <Button Content="Generate Image" Grid.Row="4" Margin="6,2,6,2"
-                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                Click="GenerateButton_Click"/>
-                    </Grid>
-                </Border>
-                <Border Grid.Row="1" Background="#ccdcd4" Margin="10" CornerRadius="5,5,5,5">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="10*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="10*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="10*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="10*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="10*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="10*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="10*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="10*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="45*"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Guidance Scale Slider -->
-                        <Grid Grid.Row="0" Margin="6,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="50*"/>
-                                <ColumnDefinition Width="100*"/>
-                                <ColumnDefinition Width="15*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Guidance Scale:" Grid.Column="0"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="0.1" Maximum="10" Value="{Binding GuidanceScale, Mode=TwoWay}"  TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
-                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding GuidanceScale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </Grid>
-                        <!-- Horizontal Divider -->
-                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-                        <!-- 采样 (Sampling) ComboBox -->
-                        <Grid Grid.Row="2" Margin="6,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="25*"/>
-                                <ColumnDefinition Width="80*"/>
-                                <ColumnDefinition Width="25*"/>
-                                <ColumnDefinition Width="90*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.Resources>
-                                <common:NullableLongConverter x:Key="NullableLongConverter"/>
-                            </Grid.Resources>
-                            <!-- Sampling Method ComboBox -->
-                            <TextBlock Text="采样:" Grid.Column="0"/>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding SamplingMethods}" SelectedItem="{Binding SamplingMethod,Mode=TwoWay}"/>
-                            <TextBlock Text="Seed:" Grid.Column="2"/>
-                            <ui:TextBox  PlaceholderText="Enter Seed" Text="{Binding Seed, Mode=TwoWay,Converter={StaticResource NullableLongConverter}}"  Grid.Column="3"/>
-                        </Grid>
-                        <!-- Horizontal Divider -->
-                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
-                        <!-- Steps Slider -->
-                        <Grid Grid.Row="4" Margin="6,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="16*"/>
-                                <ColumnDefinition Width="90*"/>
-                                <ColumnDefinition Width="14*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Steps:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="{Binding Steps, Mode=TwoWay}"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
-                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding Steps, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </Grid>
-
-                        <!-- Horizontal Divider -->
-                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="5" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-
-                        <!-- Width and Height Sliders -->
-                        <Grid Grid.Row="6" Margin="6,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="20*"/>
-                                <ColumnDefinition Width="100*"/>
-                                <ColumnDefinition Width="25*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Width:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048"  Value="{Binding Width, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True"  HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" ValueChanged="WidthSlider_ValueChanged"/>
-                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding Width, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </Grid>
-
-                        <!-- Horizontal Divider -->
-                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" 
-                Grid.Row="7" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
-
-                        <Grid Grid.Row="8" Margin="6,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="20*"/>
-                                <ColumnDefinition Width="100*"/>
-                                <ColumnDefinition Width="25*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Height:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="{Binding Height, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" x:Name="HeightSlider"/>
-                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding Height, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </Grid>
-                        <!-- Horizontal Divider -->
-                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="9" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
-                        <!-- 便捷分辨率 (Convenient Resolution) ComboBox -->
-                        <Grid Grid.Row="10" Margin="6,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60*"/>
-                                <ColumnDefinition Width="130*"/>
-                                <ColumnDefinition Width="80*"/>
-                            </Grid.ColumnDefinitions>
-                            <!-- Resolution ComboBox -->
-                            <TextBlock Text="便捷分辨率:"/>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding Resolution,Mode=TwoWay}"/>
-                            <ui:ToggleSwitch OffContent="禁用中" OnContent="已开启" IsChecked="{Binding IsConvenientResolution, Mode=TwoWay}" Grid.Column="2" FontSize="12" HorizontalAlignment="Right" Foreground="DarkSlateGray"/>
-                        </Grid>
-                        <!-- Horizontal Divider -->
-                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="11" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
-                        <!-- Prompt Guidance Rescale Slider -->
-                        <Grid Grid.Row="12" Margin="6,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="100*"/>
-                                <ColumnDefinition Width="75*"/>
-                                <ColumnDefinition Width="25*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Prompt Guidance Rescale:"/>
-                            <Slider Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="{Binding GuidanceRescale, Mode=TwoWay}" IsSnapToTickEnabled="True" TickFrequency="0.01" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
-                            <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                <TextBlock Text="{Binding GuidanceRescale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </Grid>
-                        <!-- Horizontal Divider -->
-                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="13" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-                        <!-- Noise Schedule ComboBox -->
-                        <Grid Grid.Row="14" Margin="6,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="110*"/>
-                                <ColumnDefinition Width="100*"/>
-                                <ColumnDefinition Width="140*"/>
-                            </Grid.ColumnDefinitions>
-                            <!-- Noise Schedule ComboBox -->
-                            <TextBlock Text="Noise Schedule:"/>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding NoiseSchedules}" SelectedItem="{Binding NoiseSchedule,Mode=TwoWay}"/>
-                            <Grid Grid.Column="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="1*"/>
-                                </Grid.ColumnDefinitions>
-                                <CheckBox Grid.Column="0" Margin="2"  Content="SMEA" FontSize="10" IsChecked="{Binding IsSMEA,Mode=TwoWay}"/>
-                                <CheckBox Grid.Column="1" Margin="2" IsEnabled="{Binding IsDYNEnabled,Mode=TwoWay}"  Content="DYN" FontSize="10" IsChecked="{Binding IsDYN,Mode=TwoWay}"/>
-                            </Grid>
-                        </Grid>
-                        <!-- Horizontal Divider -->
-                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="15" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-                        <!-- Vibe Transfer Button -->
-                        <Grid Grid.Row="16" Margin="6,4">
-                            <Border BorderBrush="#FFC0C0C0" BorderThickness="1" CornerRadius="8" Background="#F7F9F2"
-                                    VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                                    AllowDrop="True"
-                                    DragEnter="Border_DragEnter"
-                                    DragOver="Border_DragOver"
-                                    Drop="Border_Drop"
-                                    MouseLeftButtonUp="Border_MouseLeftButtonUp">
-                                <Grid>
-                                    <ScrollViewer x:Name="ImageScrollViewer" Grid.Row="0">
-                                        <WrapPanel x:Name="ImageWrapPanel" HorizontalAlignment="Center" VerticalAlignment="Top" />
-                                    </ScrollViewer>
-                                    <StackPanel x:Name="UploadStackPanel" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Visible">
-                                        <!-- Icon -->
-                                        <Button FontFamily="../Assets/Fonts/#iconfont" FontSize="64" Foreground="#708871" Content="&#xe6b7;" Background="Transparent" BorderThickness="0" HorizontalAlignment="Center"/>
-                                        <!-- Text -->
-                                        <TextBlock FontSize="16" Foreground="#FF808080" Text="上传图像到Vibe Transfer" Margin="0,10,0,0" HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </Grid>
-                    </Grid>
                 </Border>
             </Grid>
-            <Border Grid.Column="2" Background="#a2bfab" Width="335" CornerRadius="0,20,20,0" HorizontalAlignment="Right">
-                <Border.RenderTransform>
-                    <TranslateTransform X="380" Y="0" x:Name="Ttransform"/>
-                </Border.RenderTransform>
-                <TabControl Margin="0,2">
-                    <TabItem>
-                        <TabItem.Header>
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Margin="0,0,6,0" Symbol="XboxConsole24" />
-                                <TextBlock Text="词条笔记本" />
-                            </StackPanel>
-                        </TabItem.Header>
-                        <Grid>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="2*"/>
-                                    <RowDefinition Height="10*"/>
-                                </Grid.RowDefinitions>
-                                <Border Background="#ccdcd4" Margin="1,2">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition/>
-                                            <RowDefinition/>
-                                        </Grid.RowDefinitions>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition/>
-                                                <ColumnDefinition/>
-                                            </Grid.ColumnDefinitions>
-                                            <Button Content="保存词条为笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="3" Click="SaveNote_Click"/>
-                                            <Button Grid.Column="1" Content="删除当前选中笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="#F7DED0" Margin="3" Click="DeleteNote_Click"/>
-                                        </Grid>
-                                        <Button Grid.Row="1" Content="使用当前笔记" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="3" Background="#C5EBAA" Click="UseNote_Click"/>
-                                    </Grid>
-                                </Border>
-                                <Grid Grid.Row="1">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3*"/>
-                                        <ColumnDefinition Width="2*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Background="#ccdcd4" Margin="1,2,2,2">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="1*"/>
-                                                <RowDefinition Height="1*"/>
-                                                <RowDefinition Height="1*"/>
-                                            </Grid.RowDefinitions>
-                                            <ui:TextBox Grid.Row="0" PlaceholderText="正面词条" x:Name="PositiveTextBox" Margin="4,4" AcceptsReturn="True" TextWrapping="Wrap"/>
-                                            <ui:TextBox Grid.Row="1" PlaceholderText="负面词条" x:Name="NegativeTextBox" Margin="4,4" AcceptsReturn="True" TextWrapping="Wrap"/>
-                                            <Grid Background="Transparent" Grid.Row="2">
-                                                <TextBlock Text="图像预览" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="24" Foreground="#B0C5A4"/>
-                                                <Border>
-                                                    <Image x:Name="NoteImgPreview" Height="auto"/>
-                                                </Border>
-                                            </Grid>
-                                        </Grid>
-                                    </Border>
-                                    <Border Grid.Column="1" Background="#ccdcd4" Margin="1,2,2,2" CornerRadius="0,0,20,0">
-                                        <ListBox x:Name="NoteBookListBox" Height="auto" Margin="0,0,4,8" ItemsSource="{Binding Notes}" DisplayMemberPath="Name" SelectionChanged="ListBox_SelectionChanged"/>
-                                    </Border>
-                                </Grid>
-                            </Grid>
-                        </Grid>
-                    </TabItem>
-                    <TabItem IsSelected="True">
-                        <TabItem.Header>
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Margin="0,0,6,0" Symbol="StoreMicrosoft16" />
-                                <TextBlock Text="词条选择库" />
-                            </StackPanel>
-                        </TabItem.Header>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*"/>
-                                <ColumnDefinition Width="3*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid Grid.Column="0">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="1*"/>
-                                    <RowDefinition Height="14*"/>
-                                </Grid.RowDefinitions>
-                                <ui:AutoSuggestBox PlaceholderText="Search..." Margin="4,4" IsSuggestionListOpen="False" KeyDown="AutoSuggestBox_KeyDown" LostFocus="AutoSuggestBox_LostFocus"/>
-                                <Border Grid.Row="1" Background="#ccdcd4" Margin="4,2">
-                                    <ListBox x:Name="TagListBox" MouseDoubleClick="TagListBox_MouseDoubleClick" />
-                                </Border>
-                            </Grid>
-                            <Grid Grid.Column="1">
-                                <Border Background="#ccdcd4" Margin="0,4,4,2" CornerRadius="0,0,20,0">
-                                    <TreeView x:Name="TagTreeView" SelectedItemChanged="TagTreeView_SelectedItemChanged" />
-                                </Border>
-                            </Grid>
-                        </Grid>
-                    </TabItem>
-                </TabControl>
-            </Border>
-        </Grid>
-    </Border>
+        </Border>
+    </Grid>
 </Page>

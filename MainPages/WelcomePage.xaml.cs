@@ -242,7 +242,7 @@ namespace xianyun.MainPages
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "https://nai3.xianyun.cool/ordinance",
+                FileName = "https://nai3.idlecloud.cc/ordinance",
                 UseShellExecute = true
             });
         }

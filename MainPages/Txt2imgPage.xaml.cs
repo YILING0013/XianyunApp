@@ -501,7 +501,7 @@ namespace xianyun.MainPages
         {
             try
             {
-                var apiClient = new XianyunApiClient("https://nai3.xianyun.cool", SessionManager.Session);
+                var apiClient = new XianyunApiClient("https://nai3.idlecloud.cc", SessionManager.Session);
                 Console.WriteLine(SessionManager.Session);
 
                 // 获取 VibeTransfer 的数据
@@ -597,6 +597,7 @@ namespace xianyun.MainPages
                         }
                     }
                     var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
+                    HandyControl.Controls.Growl.Success($"任务已提交，任务ID: {jobId}", "ImageGeneration");
                     Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
 
                     int currentQueuePosition = initialQueuePosition;
@@ -625,6 +626,7 @@ namespace xianyun.MainPages
                         if (status == "completed")
                         {
                             _viewModel.ProgressValue = 100;
+                            HandyControl.Controls.Growl.Success("图像生成成功！", "ImageGeneration");
                             Console.WriteLine("图像生成成功！");
 
                             var bitmapFrame = _viewModel.ConvertBase64ToBitmapFrame(imageBase64);
@@ -667,6 +669,7 @@ namespace xianyun.MainPages
             }
             catch (Exception ex)
             {
+                HandyControl.Controls.Growl.Error($"错误: {ex.Message}", "ImageGeneration");
                 Console.WriteLine("错误: " + ex.Message);
             }
         }
@@ -685,7 +688,7 @@ namespace xianyun.MainPages
             }
             InputTextBox.Text = viewModel.PositivePrompt;
             UpdateTagsContainer();
-            string folderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "E:\\Visual_Studio_project\\xianyun\\json_files");
+            string folderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "json_files");
             LoadJsonFilesToTreeView(folderPath);
         }
         private void Txt2imgPage_Unloaded(object sender, RoutedEventArgs e)

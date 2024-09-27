@@ -173,7 +173,7 @@ namespace xianyun.ViewModel
                 {
                     try
                     {
-                        string url = "https://nai3.xianyun.cool/auth/login";
+                        string url = "https://nai3.idlecloud.cc/auth/login";
                         var loginData = new
                         {
                             username = UserName,
