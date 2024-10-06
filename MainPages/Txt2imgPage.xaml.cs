@@ -597,7 +597,6 @@ namespace xianyun.MainPages
                         }
                     }
                     var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
-                    HandyControl.Controls.Growl.Success($"任务已提交，任务ID: {jobId}", "ImageGeneration");
                     Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
 
                     int currentQueuePosition = initialQueuePosition;
@@ -626,7 +625,6 @@ namespace xianyun.MainPages
                         if (status == "completed")
                         {
                             _viewModel.ProgressValue = 100;
-                            HandyControl.Controls.Growl.Success("图像生成成功！", "ImageGeneration");
                             Console.WriteLine("图像生成成功！");
 
                             var bitmapFrame = _viewModel.ConvertBase64ToBitmapFrame(imageBase64);
@@ -669,8 +667,7 @@ namespace xianyun.MainPages
             }
             catch (Exception ex)
             {
-                HandyControl.Controls.Growl.Error($"错误: {ex.Message}", "ImageGeneration");
-                Console.WriteLine("错误: " + ex.Message);
+                MessageBox.Show($"生成错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
