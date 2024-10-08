@@ -539,6 +539,8 @@ namespace xianyun.MainPages
                         NoiseSchedule = _viewModel.NoiseSchedule,
                         Seed = seedValue,
                         Sampler = _viewModel.ActualSamplingMethod,
+                        Decrisp = _viewModel.IsDecrisp,
+                        Variety = _viewModel.IsVariety,
                         Sm = _viewModel.IsSMEA,
                         SmDyn = _viewModel.IsDYN,
                         PictureId = TotpGenerator.GenerateTotp(_viewModel._secretKey)

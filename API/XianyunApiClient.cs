@@ -124,6 +124,12 @@ namespace xianyun.API
         [JsonProperty("sampler")]
         public string Sampler { get; set; }
 
+        [JsonProperty("decrisp")]
+        public bool Decrisp { get; set; }
+
+        [JsonProperty("variety")]
+        public bool Variety { get; set; }
+
         [JsonProperty("sm")]
         public bool Sm { get; set; }
 

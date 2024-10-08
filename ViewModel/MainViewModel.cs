@@ -33,6 +33,8 @@ namespace xianyun.ViewModel
         private int _width = 1024;
         private int _height = 1024;
         private bool _isConvenientResolution = false;
+        private bool _isVariety= false;
+        private bool _isDecrisp = false;
         private bool _isSMEA = false;
         private bool _isDYN = false;
         private bool _isDYNEnabled = false;
@@ -448,6 +450,24 @@ namespace xianyun.ViewModel
             set
             {
                 _isConvenientResolution = value;
+                DoNotify();
+            }
+        }
+        public bool IsVariety
+        {
+            get => _isVariety;
+            set
+            {
+                _isVariety = value;
+                DoNotify();
+            }
+        }
+        public bool IsDecrisp
+        {
+            get => _isDecrisp;
+            set
+            {
+                _isDecrisp = value;
                 DoNotify();
             }
         }
