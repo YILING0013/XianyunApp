@@ -7,6 +7,7 @@
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:hc="https://handyorg.github.io/handycontrol"
       xmlns:common="clr-namespace:xianyun.Common"
+      xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
       mc:Ignorable="d" 
       d:DesignHeight="758" d:DesignWidth="1129"
       FontSize="12" 
@@ -14,22 +15,38 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!-- 已经存在的资源字典 -->
                 <ui:ThemesDictionary Theme="Light" />
                 <ui:ControlsDictionary />
+
+                <!-- 引入外部资源字典 -->
+                <ResourceDictionary Source="../Assets/Src/TooltipResources.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
             <!-- 定义 BooleanToVisibilityConverter -->
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+            <!-- 定义 TextBlock 的样式 -->
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="DarkSlateGray"/>
                 <Setter Property="FontSize" Value="12"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
+
+            <!-- 定义动画 -->
             <Storyboard x:Key="RightTagMenu">
-                <DoubleAnimation Storyboard.TargetName="Ttransform" Storyboard.TargetProperty="X" From="380" To="0" Duration="0:0:0.0" />
+                <DoubleAnimation Storyboard.TargetName="Ttransform" 
+                             Storyboard.TargetProperty="X" 
+                             From="380" To="0" 
+                             Duration="0:0:0.0" />
             </Storyboard>
+
             <Storyboard x:Key="RightTagMenuClose">
-                <DoubleAnimation Storyboard.TargetName="Ttransform" Storyboard.TargetProperty="X" Duration="0:0:0.0" />
+                <DoubleAnimation Storyboard.TargetName="Ttransform" 
+                             Storyboard.TargetProperty="X" 
+                             Duration="0:0:0.0" />
             </Storyboard>
+
         </ResourceDictionary>
     </Page.Resources>
     <Grid>
@@ -243,7 +260,13 @@
                                     <ColumnDefinition Width="100*"/>
                                     <ColumnDefinition Width="15*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Guidance Scale:" Grid.Column="0"/>
+                                <TextBlock Text="Guidance Scale:" Grid.Column="0">
+                                    <TextBlock.ToolTip>
+                                        <ToolTip>
+                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource GuidanceScaleExplanation}"/>
+                                        </ToolTip>
+                                    </TextBlock.ToolTip>
+                                </TextBlock>
                                 <Slider Grid.Column="1" TickPlacement="Both" Minimum="0.1" Maximum="10" Value="{Binding GuidanceScale, Mode=TwoWay}"  TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                                 <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                     <TextBlock Text="{Binding GuidanceScale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>

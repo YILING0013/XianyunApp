@@ -102,16 +102,5 @@ namespace xianyun.View
         {
             Application.Current.Shutdown(); // 关闭应用程序
         }
-
-        // 当窗口状态改变时的处理逻辑
-        protected override void OnStateChanged(EventArgs e)
-        {
-            base.OnStateChanged(e);
-            if (WindowState == WindowState.Minimized)
-            {
-                this.Hide(); // 隐藏窗口
-                notifyIcon.ShowBalloonTip("提示", "Xianyun App最小化到了系统托盘", NotifyIconInfoType.Info);
-            }
-        }
     }
 }

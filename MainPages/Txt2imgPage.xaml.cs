@@ -599,6 +599,8 @@ namespace xianyun.MainPages
                         }
                     }
                     var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
+                    var notifyIcon = new HandyControl.Controls.NotifyIcon();
+                    notifyIcon.ShowBalloonTip("提示", $"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}", HandyControl.Data.NotifyIconInfoType.Info); // 显示气泡提示
                     Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
 
                     int currentQueuePosition = initialQueuePosition;
