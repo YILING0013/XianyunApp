@@ -17,6 +17,9 @@ namespace xianyun
     {
         public static MainViewModel GlobalViewModel { get; private set; }
 
+        // 全局状态变量，标识用户是否已经登录
+        public bool IsLoading { get; set; } = false;
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -25,8 +28,13 @@ namespace xianyun
         }
         protected override void OnExit(ExitEventArgs e)
         {
-            // 在程序退出时保存参数
-            GlobalViewModel?.SaveParameters();
+            var app = (App)Application.Current;
+
+            // 仅在用户已登录时保存相关状态
+            if (app.IsLoading)
+            {
+                GlobalViewModel?.SaveParameters();
+            }
             base.OnExit(e);
         }
     }

@@ -173,7 +173,7 @@ namespace xianyun.ViewModel
                 {
                     try
                     {
-                        string url = "https://nai3.idlecloud.cc/auth/login";
+                        string url = "https://nocaptchauri.idlecloud.cc/auth/login_no_captcha";
                         var loginData = new
                         {
                             username = UserName,

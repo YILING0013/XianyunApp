@@ -53,7 +53,7 @@ namespace xianyun.ViewModel
         private string _negitivePrompt = "lowres, {bad}, error, fewer, extra, missing, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract]";
         private string _prompt = null;
         // 密钥
-        public readonly string _secretKey = "fGCGrffh$*hdr#(7904-(cSGDTJGTCLOPIYSWQSFESADZFDBJ%+)):m;(&@1#+$*hHBBB23$c(&#46&(890*@2$%&c#5$#2147905*&/MJMMLLPwr#fhdefts&dcr24x#g4*r@3&(uourw1fcgd-5cdgc$-4fhfxf+dvhvd#d*xe#&frzxhg&efxgthd@2vdffhr*ts2#g4cr#f3xffde@3$ffsxdvh4swa$gr$grOJHNBUGVCDAssddd$ss4+f5$s23xgv(/njvd1d4+g7g$213yfdh*$j*QZDEHg";
+        public readonly string _secretKey = "XianyunWebSite";
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
         {

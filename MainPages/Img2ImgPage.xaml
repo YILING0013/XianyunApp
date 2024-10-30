@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:xianyun.MainPages"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
+      d:DesignHeight="758" d:DesignWidth="1129"
       Title="Img2ImgPage">
 
     <Border CornerRadius="20" Margin="0,20,10,20" BorderBrush="#7b9d91"

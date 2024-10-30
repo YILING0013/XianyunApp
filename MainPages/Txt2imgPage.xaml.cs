@@ -30,7 +30,7 @@ namespace xianyun.MainPages
     public partial class Txt2imgPage : Page
     {
         private bool dragInProgress = false;
-        private bool isDrawerOpen = false;
+        private bool isTagMenuOpen = false;
         private DragAdorner currentAdorner;
         private MainViewModel _viewModel;
         public Txt2imgPage()
@@ -345,6 +345,8 @@ namespace xianyun.MainPages
 
                 // 更新ListBoxItem
                 UpdateListBoxItems();
+                // 保存当前配置
+                _viewModel.SaveParameters();
             }
         }
 
@@ -411,6 +413,8 @@ namespace xianyun.MainPages
 
                 // 从集合中移除
                 _viewModel.Notes.Remove(selectedNote);
+                // 保存当前配置
+                _viewModel.SaveParameters();
             }
             else
             {
@@ -501,7 +505,7 @@ namespace xianyun.MainPages
         {
             try
             {
-                var apiClient = new XianyunApiClient("https://nai3.idlecloud.cc", SessionManager.Session);
+                var apiClient = new XianyunApiClient("https://nocaptchauri.idlecloud.cc", SessionManager.Session);
                 Console.WriteLine(SessionManager.Session);
 
                 // 获取 VibeTransfer 的数据
@@ -680,6 +684,9 @@ namespace xianyun.MainPages
             if (ConfigurationService.ConfigurationExists())
             {
                 _viewModel.LoadParameters();
+                // 设置全局登录状态为已登录
+                var app = (App)Application.Current;
+                app.IsLoading = true;
             }
             if (viewModel != null)
             {
@@ -699,7 +706,7 @@ namespace xianyun.MainPages
         }
         private void TagMenuBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (isDrawerOpen)
+            if (isTagMenuOpen)
             {
                 Storyboard storyboard = (Storyboard)FindResource("RightTagMenuClose");
                 storyboard.Begin();
@@ -710,7 +717,17 @@ namespace xianyun.MainPages
                 storyboard.Begin();
             }
 
-            isDrawerOpen = !isDrawerOpen;
+            isTagMenuOpen = !isTagMenuOpen;
+        }
+        private void I2IMenuBtn_Open(object sender, RoutedEventArgs e)
+        {
+            Storyboard storyboard = (Storyboard)FindResource("Left_i2iMenu");
+            storyboard.Begin();
+        }
+        private void I2IMenuBtn_Close(object sender, RoutedEventArgs e)
+        {
+            Storyboard storyboard = (Storyboard)FindResource("Left_i2iMenuClose");
+            storyboard.Begin();
         }
         private void TagsContainer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
