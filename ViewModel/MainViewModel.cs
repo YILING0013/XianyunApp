@@ -22,11 +22,13 @@ namespace xianyun.ViewModel
     public class MainViewModel : NotifyBase
     {
         private bool _isEmotionVisible=false;
+        private bool _isColorizeVisible=false;
         // 从 Txt2imgPageModel 导入的字段
         private double _progressValue = 0;
         private string _model;
         private string _reqType=null;
-        private int _defry = 0;
+        private int _emotionDefry = 0;
+        private int _colorizeDefry = 0;
         private int _drawingFrequency = 1;
         private int _steps = 28;
         private long? _seed = null;
@@ -51,7 +53,8 @@ namespace xianyun.ViewModel
         private bool _selectedColorize;
         private string _positivePrompt;
         private string _negitivePrompt = "lowres, {bad}, error, fewer, extra, missing, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract]";
-        private string _prompt = null;
+        private string _emotionPrompt = null;
+        private string _colorizePrompt = null;
         // 密钥
         public readonly string _secretKey = "XianyunWebSite";
 
@@ -237,10 +240,20 @@ namespace xianyun.ViewModel
                 DoNotify();
             }
         }
+        public bool IsColorizeVisible
+        {
+            get => _isColorizeVisible;
+            set
+            {
+                _isColorizeVisible = value;
+                DoNotify();
+            }
+        }
         private void UpdateDynamicRowVisibility()
         {
             // 仅当SelectedEmotion或SelectedColorize为true时，才显示控件
             IsEmotionVisible = SelectedEmotion;
+            IsColorizeVisible = SelectedColorize;
         }
         public double ProgressValue
         {
@@ -275,14 +288,26 @@ namespace xianyun.ViewModel
                 }
             }
         }
-        public string Prompt
+        public string Emotion_Prompt
         {
-            get => _prompt;
+            get => _emotionPrompt;
             set
             {
-                if (_prompt != value)
+                if (_emotionPrompt != value)
                 {
-                    _prompt = value;
+                    _emotionPrompt = value;
+                    DoNotify();
+                }
+            }
+        }
+        public string Colorize_Prompt
+        {
+            get => _colorizePrompt;
+            set
+            {
+                if (_colorizePrompt != value)
+                {
+                    _colorizePrompt = value;
                     DoNotify();
                 }
             }
@@ -398,12 +423,21 @@ namespace xianyun.ViewModel
                 DoNotify();
             }
         }
-        public int Defry
+        public int Emotion_Defry
         {
-            get => _defry;
+            get => _emotionDefry;
             set
             {
-                _defry = value;
+                _emotionDefry = value;
+                DoNotify();
+            }
+        }
+        public int Colorize_Defry
+        {
+            get => _colorizeDefry;
+            set
+            {
+                _colorizeDefry = value;
                 DoNotify();
             }
         }

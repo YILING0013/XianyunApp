@@ -126,8 +126,6 @@
                         <Grid Grid.Column="0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="1*"/>
-                                <!-- 新增一行用于动态展示额外控件 -->
-                                <RowDefinition Height="Auto" x:Name="DynamicRow" />
                                 <RowDefinition Height="10*"/>
                             </Grid.RowDefinitions>
                             <Border Grid.Row="0" Background="#ccdcd4" Margin="6,0" CornerRadius="5">
@@ -141,11 +139,9 @@
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
                                     <Button Grid.Column="0" Margin="0,2" Content="打开图生图" Click="I2IMenuBtn_Open"/>
-                                    
                                 </Grid>
                             </Border>
-                            
-                            <Border Grid.Row="2" Margin="6,8" CornerRadius="10,10,4,4" Background="#ccdcd4">
+                            <Border Grid.Row="1" Margin="6,8" CornerRadius="10,10,4,4" Background="#ccdcd4">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="10*"/>
@@ -505,38 +501,51 @@
                         <TranslateTransform X="-1000" Y="0" x:Name="Ttransform2"/>
                     </Border.RenderTransform>
                     <Grid>
-                        
+
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="2*"/>
                                 <ColumnDefinition Width="10*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="#ccdcd4" Margin="4" CornerRadius="10">
+                            <Border Grid.Column="0" Background="#ccdcd4" Margin="4" CornerRadius="4,4,10,10">
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="46*"/>
                                     </Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Margin="1">
+                                        <ToggleButton Content="常规处理" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                                    </Border>
+                                    <Border Grid.Row="1" Margin="1">
+                                        <ToggleButton Content="裁剪重绘" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                                    </Border>
+                                    <Border Grid.Row="2" Margin="1">
+                                        <ToggleButton Content="边缘扩展" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                                    </Border>
+                                    <Border Grid.Row="12" Margin="1">
+                                        <ToggleButton Content="上传图像" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Click="UploadImage_Click"/>
+                                    </Border>
                                 </Grid>
                             </Border>
                             <Border Grid.Column="1" Background="Transparent" Margin="4" CornerRadius="10">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="1*"/>
-                                        <RowDefinition Height="Auto" x:Name="DynamicRow1" />
+                                        <RowDefinition Height="Auto" x:Name="DynamicRow" />
+                                        <RowDefinition Height="Auto" x:Name="DynamicRow2" />
                                         <RowDefinition Height="10*"/>
                                     </Grid.RowDefinitions>
                                     <Border Grid.Row="0" Background="#ccdcd4" Margin="1" CornerRadius="5">
@@ -582,7 +591,24 @@
                                         <Button x:Name="EmotionDefryPlus" Click="EmotionDefryPlus_Click" Grid.Column="3" Content="+" Background="#F6995C" Foreground="#EADFB4"/>
                                         <TextBlock x:Name="defryGrade" Grid.Column="4" Text="Normal" FontSize="10" Margin="2,0,2,0"/>
                                         <TextBlock Grid.Column="5" Text="Prompt:" Margin="2,0,2,0"/>
-                                        <TextBox Grid.Column="6" Text="{Binding Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
+                                        <TextBox Grid.Column="6" Text="{Binding Emotion_Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
+                                    </Grid>
+                                    <Grid Grid.Row="2" Visibility="{Binding IsColorizeVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="6,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="30*"/>
+                                            <ColumnDefinition Width="100*"/>
+                                            <ColumnDefinition Width="40*"/>
+                                            <ColumnDefinition Width="200*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Defry:" Margin="2,0,2,0"/>
+                                        <ui:NumberBox Grid.Column="1" Value="{Binding Colorize_Defry}" Maximum="5" Minimum="0" SmallChange="1"/>
+                                        <TextBlock Grid.Column="2" Text="Prompt:" Margin="8,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <TextBox Grid.Column="3" Text="{Binding Colorize_Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
+                                    </Grid>
+                                    <Grid Grid.Row="3">
+                                        <Border Margin="5" CornerRadius="4" Background="#AFC8AD">
+
+                                        </Border>
                                     </Grid>
                                 </Grid>
                             </Border>
