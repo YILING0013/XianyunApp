@@ -536,7 +536,7 @@
                                         <ToggleButton Content="边缘扩展" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                                     </Border>
                                     <Border Grid.Row="12" Margin="1">
-                                        <ToggleButton Content="上传图像" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Click="UploadImage_Click"/>
+                                        <ToggleButton Content="上传图像" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                                     </Border>
                                 </Grid>
                             </Border>
