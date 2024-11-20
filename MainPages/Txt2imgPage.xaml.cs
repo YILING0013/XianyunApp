@@ -566,8 +566,12 @@ namespace xianyun.MainPages
                     }
                     if (_viewModel.ReqType != null)
                     {
+<<<<<<< Updated upstream
                         // 检查 ImageViewerControl.ImageSource 是否存在图像
                         if (ImageViewerControl.ImageSource != null)
+=======
+                        if (originalImage is BitmapImage image)
+>>>>>>> Stashed changes
                         {
                             // 获取图像的长和宽
                             var image = ImageViewerControl.ImageSource as BitmapSource;
@@ -575,6 +579,7 @@ namespace xianyun.MainPages
                             {
                                 int width = image.PixelWidth;
                                 int height = image.PixelHeight;
+<<<<<<< Updated upstream
 
                                 // 将图像转换为 Base64
                                 byte[] imageBytes;
@@ -586,6 +591,10 @@ namespace xianyun.MainPages
                                     imageBytes = memoryStream.ToArray();
                                 }
                                 string base64Image = Convert.ToBase64String(imageBytes);
+=======
+                                Common.tools.ValidateResolution(ref width, ref height);
+                                string base64Image = Common.tools.ConvertImageToBase64(image, new PngBitmapEncoder());
+>>>>>>> Stashed changes
 
                                 imageRequest.Width = width;
                                 imageRequest.Height = height;
@@ -1325,5 +1334,75 @@ namespace xianyun.MainPages
         {
             dragInProgress = true;
         }
+<<<<<<< Updated upstream
+=======
+
+        private void UploadButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 打开文件对话框选择图像
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "图像文件|*.jpg;*.jpeg;*.png;*.bmp;*.gif";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                // 加载图像
+                BitmapImage image = new BitmapImage(new Uri(openFileDialog.FileName));
+                int imageWidth = image.PixelWidth;
+                int imageHeight = image.PixelHeight;
+                Common.tools.ValidateResolution(ref imageWidth, ref imageHeight);
+                BitmapImage resizedImage = Common.tools.ResizeImage(image, imageWidth, imageHeight);
+                originalImage = resizedImage;
+                // 使用原始图像渲染
+                RenderImage(originalImage);
+            }
+        }
+
+        private void RenderImage(BitmapImage bitmap)
+        {
+            // 创建Image控件
+            Image image = new Image();
+            image.Source = bitmap;
+
+            // 清空Canvas的子元素
+            imageCanvas.Children.Clear();
+
+            // 将图像添加到Canvas
+            imageCanvas.Children.Add(image);
+
+            // 获取Border的尺寸
+            double borderWidth = imageBorder.ActualWidth;
+            double borderHeight = imageBorder.ActualHeight;
+
+            // 获取图像的尺寸
+            double imageWidth = bitmap.PixelWidth;
+            double imageHeight = bitmap.PixelHeight;
+
+            // 计算缩放比例
+            double scaleX = borderWidth / imageWidth;
+            double scaleY = borderHeight / imageHeight;
+            double scale = Math.Min(scaleX, scaleY);
+
+            // 应用缩放
+            image.Width = imageWidth * scale;
+            image.Height = imageHeight * scale;
+
+            // 将图像居中
+            Canvas.SetLeft(image, (borderWidth - image.Width) / 2);
+            Canvas.SetTop(image, (borderHeight - image.Height) / 2);
+        }
+
+        // 获取原始图像的方法
+        private BitmapImage GetOriginalImage()
+        {
+            if (originalImage != null)
+            {
+                return originalImage;
+            }
+            else
+            {
+                MessageBox.Show("尚未加载任何图像！");
+                return null;
+            }
+        }
+>>>>>>> Stashed changes
     }
 }
