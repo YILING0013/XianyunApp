@@ -546,7 +546,7 @@
                                         <RowDefinition Height="1*"/>
                                         <RowDefinition Height="Auto" x:Name="DynamicRow" />
                                         <RowDefinition Height="Auto" x:Name="DynamicRow2" />
-                                        <RowDefinition Height="9*"/>
+                                        <RowDefinition Height="15*"/>
                                         <RowDefinition Height="1*"/>
                                     </Grid.RowDefinitions>
                                     <Border Grid.Row="0" Background="#ccdcd4" Margin="1" CornerRadius="5">
@@ -607,7 +607,7 @@
                                         <TextBox Grid.Column="3" Text="{Binding Colorize_Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
                                     </Grid>
                                     <Grid Grid.Row="3">
-                                        <Border Name="imageBorder" Margin="5" CornerRadius="4" Background="#AFC8AD">
+                                        <Border Name="imageBorder" Margin="2" CornerRadius="4" Background="#AFC8AD">
                                             <Canvas Name="imageCanvas"/>
                                         </Border>
                                     </Grid>
@@ -616,7 +616,26 @@
                                             <ColumnDefinition Width="1*"/>
                                             <ColumnDefinition Width="1*"/>
                                         </Grid.ColumnDefinitions>
-                                        <Border Background="#C9DABF"></Border>
+                                        <Border Background="#ccdcd4" CornerRadius="4" Margin="1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="1*"/>
+                                                    <ColumnDefinition Width="3*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Strength:" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                <Slider Grid.Column="1" Value="{Binding Strength, Mode=TwoWay}" Margin="0,0,2,0" TickPlacement="Both" Minimum="0" Maximum="1" TickFrequency="0.01" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                            </Grid>
+                                        </Border>
+                                        <Border Grid.Column="1" Background="#ccdcd4" CornerRadius="4" Margin="1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="1*"/>
+                                                    <ColumnDefinition Width="3*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Noise:" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                <Slider Grid.Column="1" Value="{Binding Strength, Mode=TwoWay}" Margin="0,0,2,0" TickPlacement="Both" Minimum="0" Maximum="1" TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                            </Grid>
+                                        </Border>
                                     </Grid>
                                 </Grid>
                             </Border>
