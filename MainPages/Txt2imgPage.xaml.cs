@@ -567,7 +567,7 @@ namespace xianyun.MainPages
                     }
                     if (originalImage != null)
                     {
-                        if (originalImage is BitmapSource image)
+                        if (originalImage is BitmapImage image)
                         {
                             // 获取图像的长和宽
                             if (_viewModel.ReqType != null)
@@ -578,7 +578,6 @@ namespace xianyun.MainPages
                                 Console.WriteLine($"Width: {width}, Height: {height}");
                                 BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
                                 string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
-
                                 imageRequest.Width = width;
                                 imageRequest.Height = height;
                                 Console.WriteLine($"Width: {imageRequest.Width}, Height: {imageRequest.Height}");
@@ -1325,8 +1324,12 @@ namespace xianyun.MainPages
             if (openFileDialog.ShowDialog() == true)
             {
                 // 加载图像
-                originalImage = new BitmapImage(new Uri(openFileDialog.FileName));
-
+                BitmapImage image = new BitmapImage(new Uri(openFileDialog.FileName));
+                int imageWidth = image.PixelWidth;
+                int imageHeight = image.PixelHeight;
+                Common.tools.ValidateResolution(ref imageWidth, ref imageHeight);
+                BitmapImage resizedImage = Common.tools.ResizeImage(image, imageWidth, imageHeight);
+                originalImage = resizedImage;
                 // 使用原始图像渲染
                 RenderImage(originalImage);
             }
