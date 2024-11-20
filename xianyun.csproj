@@ -116,6 +116,7 @@
     <Compile Include="Common\NotifyBase.cs" />
     <Compile Include="Common\ConfigurationService.cs" />
     <Compile Include="Common\PasswordBoxHelper.cs" />
+    <Compile Include="Common\tools.cs" />
     <Compile Include="Common\Variable.cs" />
     <Compile Include="MainPages\Img2ImgPage.xaml.cs">
       <DependentUpon>Img2ImgPage.xaml</DependentUpon>

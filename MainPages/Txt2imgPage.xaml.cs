@@ -31,6 +31,7 @@ namespace xianyun.MainPages
     {
         private bool dragInProgress = false;
         private bool isTagMenuOpen = false;
+        private BitmapImage originalImage;
         private DragAdorner currentAdorner;
         private MainViewModel _viewModel;
         public Txt2imgPage()
@@ -564,40 +565,22 @@ namespace xianyun.MainPages
                         imageRequest.InformationExtracted = null;
                         imageRequest.ReferenceStrength = null;
                     }
-                    if (_viewModel.ReqType != null)
+                    if (originalImage != null)
                     {
-<<<<<<< Updated upstream
-                        // 检查 ImageViewerControl.ImageSource 是否存在图像
-                        if (ImageViewerControl.ImageSource != null)
-=======
                         if (originalImage is BitmapImage image)
->>>>>>> Stashed changes
                         {
                             // 获取图像的长和宽
-                            var image = ImageViewerControl.ImageSource as BitmapSource;
-                            if (image != null)
+                            if (_viewModel.ReqType != null)
                             {
                                 int width = image.PixelWidth;
                                 int height = image.PixelHeight;
-<<<<<<< Updated upstream
-
-                                // 将图像转换为 Base64
-                                byte[] imageBytes;
-                                using (MemoryStream memoryStream = new MemoryStream())
-                                {
-                                    BitmapEncoder encoder = new PngBitmapEncoder(); // 使用PNG编码
-                                    encoder.Frames.Add(BitmapFrame.Create(image));
-                                    encoder.Save(memoryStream);
-                                    imageBytes = memoryStream.ToArray();
-                                }
-                                string base64Image = Convert.ToBase64String(imageBytes);
-=======
                                 Common.tools.ValidateResolution(ref width, ref height);
-                                string base64Image = Common.tools.ConvertImageToBase64(image, new PngBitmapEncoder());
->>>>>>> Stashed changes
-
+                                Console.WriteLine($"Width: {width}, Height: {height}");
+                                BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
+                                string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
                                 imageRequest.Width = width;
                                 imageRequest.Height = height;
+                                Console.WriteLine($"Width: {imageRequest.Width}, Height: {imageRequest.Height}");
                                 imageRequest.Image = base64Image;
                                 imageRequest.ReqType = _viewModel.ReqType;
 
@@ -608,7 +591,7 @@ namespace xianyun.MainPages
                                     imageRequest.Prompt = _viewModel.ActualEmotion + ";;" + _viewModel.Emotion_Prompt;
                                     imageRequest.Defry = _viewModel.Emotion_Defry;
                                 }
-                                if (_viewModel.ReqType== "colorize")
+                                if (_viewModel.ReqType == "colorize")
                                 {
                                     // 设置 Prompt 和 Defry
                                     imageRequest.Prompt = _viewModel.Colorize_Prompt;
@@ -618,8 +601,6 @@ namespace xianyun.MainPages
                         }
                     }
                     var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
-                    var notifyIcon = new HandyControl.Controls.NotifyIcon();
-                    notifyIcon.ShowBalloonTip("提示", $"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}", HandyControl.Data.NotifyIconInfoType.Info); // 显示气泡提示
                     Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
 
                     int currentQueuePosition = initialQueuePosition;
@@ -638,7 +619,7 @@ namespace xianyun.MainPages
                             _viewModel.ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
                             currentQueuePosition = queuePosition;
                         }
-                        await Task.Delay(2000); // 轮询延迟
+                        await Task.Delay(5000); // 轮询延迟
                     }
 
                     // 继续更新进度并处理图像生成
@@ -1334,8 +1315,6 @@ namespace xianyun.MainPages
         {
             dragInProgress = true;
         }
-<<<<<<< Updated upstream
-=======
 
         private void UploadButton_Click(object sender, RoutedEventArgs e)
         {
@@ -1403,6 +1382,5 @@ namespace xianyun.MainPages
                 return null;
             }
         }
->>>>>>> Stashed changes
     }
 }
