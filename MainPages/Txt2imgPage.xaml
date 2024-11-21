@@ -536,7 +536,7 @@
                                         <ToggleButton Content="边缘扩展" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                                     </Border>
                                     <Border Grid.Row="12" Margin="1">
-                                        <ToggleButton Content="上传图像" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                                        <Button Content="上传图像" Click="UploadButton_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                                     </Border>
                                 </Grid>
                             </Border>
@@ -546,7 +546,8 @@
                                         <RowDefinition Height="1*"/>
                                         <RowDefinition Height="Auto" x:Name="DynamicRow" />
                                         <RowDefinition Height="Auto" x:Name="DynamicRow2" />
-                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="9*"/>
+                                        <RowDefinition Height="1*"/>
                                     </Grid.RowDefinitions>
                                     <Border Grid.Row="0" Background="#ccdcd4" Margin="1" CornerRadius="5">
                                         <Grid>
@@ -606,9 +607,16 @@
                                         <TextBox Grid.Column="3" Text="{Binding Colorize_Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
                                     </Grid>
                                     <Grid Grid.Row="3">
-                                        <Border Margin="5" CornerRadius="4" Background="#AFC8AD">
-
+                                        <Border Name="imageBorder" Margin="5" CornerRadius="4" Background="#AFC8AD">
+                                            <Canvas Name="imageCanvas"/>
                                         </Border>
+                                    </Grid>
+                                    <Grid Grid.Row="4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1*"/>
+                                            <ColumnDefinition Width="1*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Background="#C9DABF"></Border>
                                     </Grid>
                                 </Grid>
                             </Border>

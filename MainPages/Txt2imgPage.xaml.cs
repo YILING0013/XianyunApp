@@ -31,6 +31,7 @@ namespace xianyun.MainPages
     {
         private bool dragInProgress = false;
         private bool isTagMenuOpen = false;
+        private BitmapImage originalImage;
         private DragAdorner currentAdorner;
         private MainViewModel _viewModel;
         public Txt2imgPage()
@@ -564,31 +565,22 @@ namespace xianyun.MainPages
                         imageRequest.InformationExtracted = null;
                         imageRequest.ReferenceStrength = null;
                     }
-                    if (_viewModel.ReqType != null)
+                    if (originalImage != null)
                     {
-                        // 检查 ImageViewerControl.ImageSource 是否存在图像
-                        if (ImageViewerControl.ImageSource != null)
+                        if (originalImage is BitmapImage image)
                         {
                             // 获取图像的长和宽
-                            var image = ImageViewerControl.ImageSource as BitmapSource;
-                            if (image != null)
+                            if (_viewModel.ReqType != null)
                             {
                                 int width = image.PixelWidth;
                                 int height = image.PixelHeight;
-
-                                // 将图像转换为 Base64
-                                byte[] imageBytes;
-                                using (MemoryStream memoryStream = new MemoryStream())
-                                {
-                                    BitmapEncoder encoder = new PngBitmapEncoder(); // 使用PNG编码
-                                    encoder.Frames.Add(BitmapFrame.Create(image));
-                                    encoder.Save(memoryStream);
-                                    imageBytes = memoryStream.ToArray();
-                                }
-                                string base64Image = Convert.ToBase64String(imageBytes);
-
+                                Common.tools.ValidateResolution(ref width, ref height);
+                                Console.WriteLine($"Width: {width}, Height: {height}");
+                                BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
+                                string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
                                 imageRequest.Width = width;
                                 imageRequest.Height = height;
+                                Console.WriteLine($"Width: {imageRequest.Width}, Height: {imageRequest.Height}");
                                 imageRequest.Image = base64Image;
                                 imageRequest.ReqType = _viewModel.ReqType;
 
@@ -599,7 +591,7 @@ namespace xianyun.MainPages
                                     imageRequest.Prompt = _viewModel.ActualEmotion + ";;" + _viewModel.Emotion_Prompt;
                                     imageRequest.Defry = _viewModel.Emotion_Defry;
                                 }
-                                if (_viewModel.ReqType== "colorize")
+                                if (_viewModel.ReqType == "colorize")
                                 {
                                     // 设置 Prompt 和 Defry
                                     imageRequest.Prompt = _viewModel.Colorize_Prompt;
@@ -609,8 +601,6 @@ namespace xianyun.MainPages
                         }
                     }
                     var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
-                    var notifyIcon = new HandyControl.Controls.NotifyIcon();
-                    notifyIcon.ShowBalloonTip("提示", $"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}", HandyControl.Data.NotifyIconInfoType.Info); // 显示气泡提示
                     Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
 
                     int currentQueuePosition = initialQueuePosition;
@@ -629,7 +619,7 @@ namespace xianyun.MainPages
                             _viewModel.ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
                             currentQueuePosition = queuePosition;
                         }
-                        await Task.Delay(2000); // 轮询延迟
+                        await Task.Delay(5000); // 轮询延迟
                     }
 
                     // 继续更新进度并处理图像生成
@@ -1324,6 +1314,73 @@ namespace xianyun.MainPages
         private void TagsContainer_DragEnter(object sender, DragEventArgs e)
         {
             dragInProgress = true;
+        }
+
+        private void UploadButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 打开文件对话框选择图像
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "图像文件|*.jpg;*.jpeg;*.png;*.bmp;*.gif";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                // 加载图像
+                BitmapImage image = new BitmapImage(new Uri(openFileDialog.FileName));
+                int imageWidth = image.PixelWidth;
+                int imageHeight = image.PixelHeight;
+                Common.tools.ValidateResolution(ref imageWidth, ref imageHeight);
+                BitmapImage resizedImage = Common.tools.ResizeImage(image, imageWidth, imageHeight);
+                originalImage = resizedImage;
+                // 使用原始图像渲染
+                RenderImage(originalImage);
+            }
+        }
+
+        private void RenderImage(BitmapImage bitmap)
+        {
+            // 创建Image控件
+            Image image = new Image();
+            image.Source = bitmap;
+
+            // 清空Canvas的子元素
+            imageCanvas.Children.Clear();
+
+            // 将图像添加到Canvas
+            imageCanvas.Children.Add(image);
+
+            // 获取Border的尺寸
+            double borderWidth = imageBorder.ActualWidth;
+            double borderHeight = imageBorder.ActualHeight;
+
+            // 获取图像的尺寸
+            double imageWidth = bitmap.PixelWidth;
+            double imageHeight = bitmap.PixelHeight;
+
+            // 计算缩放比例
+            double scaleX = borderWidth / imageWidth;
+            double scaleY = borderHeight / imageHeight;
+            double scale = Math.Min(scaleX, scaleY);
+
+            // 应用缩放
+            image.Width = imageWidth * scale;
+            image.Height = imageHeight * scale;
+
+            // 将图像居中
+            Canvas.SetLeft(image, (borderWidth - image.Width) / 2);
+            Canvas.SetTop(image, (borderHeight - image.Height) / 2);
+        }
+
+        // 获取原始图像的方法
+        private BitmapImage GetOriginalImage()
+        {
+            if (originalImage != null)
+            {
+                return originalImage;
+            }
+            else
+            {
+                MessageBox.Show("尚未加载任何图像！");
+                return null;
+            }
         }
     }
 }
