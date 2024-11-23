@@ -91,52 +91,61 @@ namespace xianyun.API
     // 请求结构体
     public class ImageGenerationRequest
     {
-        [JsonProperty("model")]
+        [JsonProperty("action", NullValueHandling = NullValueHandling.Ignore)]
+        public bool Action { get; set; }
+
+        [JsonProperty("model", NullValueHandling = NullValueHandling.Ignore)]
         public string Model { get; set; }
 
-        [JsonProperty("positivePrompt")]
+        [JsonProperty("positivePrompt", NullValueHandling = NullValueHandling.Ignore)]
         public string PositivePrompt { get; set; }
 
-        [JsonProperty("negativePrompt")]
+        [JsonProperty("negativePrompt", NullValueHandling = NullValueHandling.Ignore)]
         public string NegativePrompt { get; set; }
 
-        [JsonProperty("scale")]
+        [JsonProperty("scale", NullValueHandling = NullValueHandling.Ignore)]
         public double Scale { get; set; }
 
-        [JsonProperty("steps")]
+        [JsonProperty("steps", NullValueHandling = NullValueHandling.Ignore)]
         public int Steps { get; set; }
 
-        [JsonProperty("width")]
+        [JsonProperty("width", NullValueHandling = NullValueHandling.Ignore)]
         public int Width { get; set; }
 
-        [JsonProperty("height")]
+        [JsonProperty("height", NullValueHandling = NullValueHandling.Ignore)]
         public int Height { get; set; }
 
-        [JsonProperty("promptGuidanceRescale")]
+        [JsonProperty("promptGuidanceRescale", NullValueHandling = NullValueHandling.Ignore)]
         public double PromptGuidanceRescale { get; set; }
 
-        [JsonProperty("noise_schedule")]
+        [JsonProperty("noise_schedule", NullValueHandling = NullValueHandling.Ignore)]
         public string NoiseSchedule { get; set; }
 
-        [JsonProperty("seed")]
+        [JsonProperty("strength", NullValueHandling = NullValueHandling.Ignore)]
+        public double Strength { get; set; }
+
+        [JsonProperty("noise", NullValueHandling = NullValueHandling.Ignore)]
+        public float Noise { get; set; }
+
+        [JsonProperty("seed", NullValueHandling = NullValueHandling.Ignore)]
         public string Seed { get; set; }
 
-        [JsonProperty("sampler")]
+        [JsonProperty("sampler", NullValueHandling = NullValueHandling.Ignore)]
         public string Sampler { get; set; }
 
-        [JsonProperty("decrisp")]
+        [JsonProperty("decrisp", NullValueHandling = NullValueHandling.Ignore)]
         public bool Decrisp { get; set; }
 
-        [JsonProperty("variety")]
+        [JsonProperty("variety", NullValueHandling = NullValueHandling.Ignore)]
         public bool Variety { get; set; }
 
-        [JsonProperty("sm")]
+        [JsonProperty("sm", NullValueHandling = NullValueHandling.Ignore)]
         public bool Sm { get; set; }
 
-        [JsonProperty("sm_dyn")]
+        [JsonProperty("sm_dyn", NullValueHandling = NullValueHandling.Ignore)]
         public bool SmDyn { get; set; }
 
-        [JsonProperty("pictureid")]
+        [JsonProperty("pictureid", NullValueHandling = NullValueHandling.Ignore)]
         public string PictureId { get; set; }
 
         [JsonProperty("reference_image_multiple", NullValueHandling = NullValueHandling.Ignore)]
@@ -153,6 +162,7 @@ namespace xianyun.API
 
         [JsonProperty("image",NullValueHandling = NullValueHandling.Ignore)]
         public string Image { get; set; }
+
         [JsonProperty("prompt", NullValueHandling = NullValueHandling.Ignore)]
         public string Prompt { get; set; }
 

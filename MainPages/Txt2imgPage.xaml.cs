@@ -17,6 +17,7 @@ using System.Windows.Shapes;
 using xianyun.UserControl;
 using xianyun.ViewModel;
 using System.IO;
+using System.IO.Compression;
 using System.Windows.Media.Animation;
 using xianyun.Common;
 using xianyun.API;
@@ -569,18 +570,16 @@ namespace xianyun.MainPages
                     {
                         if (originalImage is BitmapImage image)
                         {
+                            int width = image.PixelWidth;
+                            int height = image.PixelHeight;
+                            Common.tools.ValidateResolution(ref width, ref height);
+                            BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
+                            string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
                             // 获取图像的长和宽
                             if (_viewModel.ReqType != null)
                             {
-                                int width = image.PixelWidth;
-                                int height = image.PixelHeight;
-                                Common.tools.ValidateResolution(ref width, ref height);
-                                Console.WriteLine($"Width: {width}, Height: {height}");
-                                BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
-                                string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
                                 imageRequest.Width = width;
                                 imageRequest.Height = height;
-                                Console.WriteLine($"Width: {imageRequest.Width}, Height: {imageRequest.Height}");
                                 imageRequest.Image = base64Image;
                                 imageRequest.ReqType = _viewModel.ReqType;
 
@@ -597,6 +596,15 @@ namespace xianyun.MainPages
                                     imageRequest.Prompt = _viewModel.Colorize_Prompt;
                                     imageRequest.Defry = _viewModel.Colorize_Defry;
                                 }
+                            }
+                            else
+                            {
+                                imageRequest.Width = width;
+                                imageRequest.Height = height;
+                                imageRequest.Image = base64Image;
+                                imageRequest.Action = true;
+                                imageRequest.Noise = _viewModel.Noise;
+                                imageRequest.Strength = _viewModel.Strength;
                             }
                         }
                     }
@@ -631,7 +639,7 @@ namespace xianyun.MainPages
                             _viewModel.ProgressValue = 100;
                             Console.WriteLine("图像生成成功！");
 
-                            var bitmapFrame = _viewModel.ConvertBase64ToBitmapFrame(imageBase64);
+                            var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
                             Application.Current.Dispatcher.Invoke(() =>
                             {
                                 var imgPreview = new ImgPreview(imageBase64);
@@ -654,7 +662,7 @@ namespace xianyun.MainPages
                         if (status == "completed")
                         {
                             _viewModel.ProgressValue = 100;
-                            var bitmapFrame = _viewModel.ConvertBase64ToBitmapFrame(imageBase64);
+                            var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
                             Application.Current.Dispatcher.Invoke(() =>
                             {
                                 var imgPreview = new ImgPreview(imageBase64);
@@ -1281,6 +1289,101 @@ namespace xianyun.MainPages
             }
         }
 
+        private async void ExportImagesButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 打开保存对话框，让用户选择保存路径
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    Title = "选择保存路径",
+                    Filter = "ZIP 压缩包 (*.zip)|*.zip",
+                    FileName = "ExportedImages.zip"
+                };
+
+                if (saveFileDialog.ShowDialog() != true)
+                {
+                    return; // 用户取消操作
+                }
+
+                // 获取用户选择的保存路径
+                string zipFilePath = saveFileDialog.FileName;
+
+                // 创建临时目录存放图像
+                string tempDirectory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ExportedImages");
+                if (Directory.Exists(tempDirectory))
+                {
+                    Directory.Delete(tempDirectory, true); // 清理旧数据
+                }
+                Directory.CreateDirectory(tempDirectory);
+
+                // 显示进度条
+                _viewModel.IsCreatingZipVisible = true;
+                _viewModel.CreateZipProgressValue = 0;
+
+                // 获取控件数量
+                int totalControls = ImageStackPanel.Children.OfType<ImgPreview>().Count();
+                if (totalControls == 0)
+                {
+                    MessageBox.Show("没有图像可导出。", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    _viewModel.IsCreatingZipVisible = false;
+                    return;
+                }
+
+                double progressIncrement = 100.0 / totalControls;
+                double currentProgress = 0;
+
+                // 遍历 StackPanel 中的 ImgPreview 控件
+                foreach (var child in ImageStackPanel.Children)
+                {
+                    if (child is ImgPreview imgPreview)
+                    {
+                        // 获取图像的 BitmapImage 对象
+                        BitmapImage bitmapImage = imgPreview.GetBitmapImage();
+                        if (bitmapImage != null)
+                        {
+                            // 将 BitmapImage 保存为 PNG 文件
+                            string fileName = $"{Guid.NewGuid()}.png"; // 随机文件名
+                            string filePath = System.IO.Path.Combine(tempDirectory, fileName);
+
+                            using (FileStream fileStream = new FileStream(filePath, FileMode.Create))
+                            {
+                                BitmapEncoder encoder = new PngBitmapEncoder();
+                                encoder.Frames.Add(BitmapFrame.Create(bitmapImage));
+                                encoder.Save(fileStream);
+                            }
+                        }
+
+                        // 更新进度条
+                        currentProgress += progressIncrement;
+                        _viewModel.CreateZipProgressValue = Math.Min(currentProgress, 100); // 确保进度不超过 100
+                        await Task.Delay(10); // 模拟延迟以便可视化进度
+                    }
+                }
+
+                // 创建压缩包
+                if (File.Exists(zipFilePath))
+                {
+                    File.Delete(zipFilePath); // 删除旧的压缩包
+                }
+                ZipFile.CreateFromDirectory(tempDirectory, zipFilePath);
+
+                // 提示用户成功
+                MessageBox.Show($"图像已成功导出为压缩包：{zipFilePath}", "导出成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                // 捕获异常并提示用户
+                MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                // 隐藏进度条
+                _viewModel.IsCreatingZipVisible = false;
+            }
+        }
+
+
         private void TagsContainer_OnRealTargetDragLeave(object sender, DragEventArgs e)
         {
             if (!(sender is WrapPanel panel))
@@ -1335,6 +1438,13 @@ namespace xianyun.MainPages
             }
         }
 
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 清空图像
+            originalImage = null;
+            imageCanvas.Children.Clear();
+        }
+
         private void RenderImage(BitmapImage bitmap)
         {
             // 创建Image控件
@@ -1369,6 +1479,21 @@ namespace xianyun.MainPages
             Canvas.SetTop(image, (borderHeight - image.Height) / 2);
         }
 
+        private void Upload_To_I2I_Click(object sender, RoutedEventArgs e)
+        {
+            // 获取ImageViewerControl.ImageSource的BitmapFrame对象
+            BitmapFrame bitmapFrame = ImageViewerControl.ImageSource as BitmapFrame;
+            BitmapImage bitmapImage = Common.tools.ConvertBitmapFrameToBitmapImage(bitmapFrame);
+            //渲染到RenderImage
+            originalImage = bitmapImage;
+            if (originalImage != null) RenderImage(originalImage);
+        }
+
+        // Border 尺寸变化事件
+        private void ImageBorder_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (originalImage != null) RenderImage(originalImage);
+        }
         // 获取原始图像的方法
         private BitmapImage GetOriginalImage()
         {

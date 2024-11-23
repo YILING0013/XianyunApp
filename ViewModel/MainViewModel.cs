@@ -21,10 +21,12 @@ namespace xianyun.ViewModel
 {
     public class MainViewModel : NotifyBase
     {
+        private bool _isCreatingZipVisible = false;
         private bool _isEmotionVisible=false;
         private bool _isColorizeVisible=false;
         // 从 Txt2imgPageModel 导入的字段
         private double _progressValue = 0;
+        private double _createZipProgressValue = 0;
         private string _model;
         private string _reqType=null;
         private int _emotionDefry = 0;
@@ -42,6 +44,8 @@ namespace xianyun.ViewModel
         private bool _isDYNEnabled = false;
         private float _guidanceScale = 5.0f;
         private float _guidanceRescale = 0.0f;
+        private float _strength = 0.70f;
+        private float _noise = 0.00f;
         private string _samplingMethod;
         private string _emotion;
         private string _resolution;
@@ -231,6 +235,15 @@ namespace xianyun.ViewModel
                 ReqType = null; // 当没有选中的控件时，设置 ReqType 为 null
             }
         }
+        public bool IsCreatingZipVisible
+        {
+            get => _isCreatingZipVisible;
+            set
+            {
+                _isCreatingZipVisible = value;
+                DoNotify();
+            }
+        }
         public bool IsEmotionVisible
         {
             get => _isEmotionVisible;
@@ -261,6 +274,15 @@ namespace xianyun.ViewModel
             set
             {
                 _progressValue = value;
+                DoNotify();
+            }
+        }
+        public double CreateZipProgressValue
+        {
+            get => _createZipProgressValue;
+            set
+            {
+                _createZipProgressValue = value;
                 DoNotify();
             }
         }
@@ -555,6 +577,24 @@ namespace xianyun.ViewModel
                 DoNotify();
             }
         }
+        public float Strength
+        {
+            get => _strength;
+            set
+            {
+                _strength = (float)Math.Round(value, 2); // 保留两位小数
+                DoNotify();
+            }
+        }
+        public float Noise
+        {
+            get => _noise;
+            set
+            {
+                _noise = (float)Math.Round(value, 2); // 保留两位小数
+                DoNotify();
+            }
+        }
         public string Model
         {
             get => _model;
@@ -651,30 +691,16 @@ namespace xianyun.ViewModel
             this.Notes = loadedConfig.Notes;
         }
 
-        // 保存参数的方法，来自 Txt2imgPageModel
+        // 保存参数的方法
         public void SaveParameters()
         {
             ConfigurationService.SaveConfiguration(this);
-        }
-        // 将 Base64 字符串转换为 BitmapFrame 的方法
-        public BitmapFrame ConvertBase64ToBitmapFrame(string base64String)
-        {
-            byte[] imageBytes = Convert.FromBase64String(base64String);
-            BitmapImage bitmapImage = new BitmapImage();
-            using (MemoryStream ms = new MemoryStream(imageBytes))
-            {
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = ms;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-            }
-            return BitmapFrame.Create(bitmapImage);
         }
 
         // 图像点击事件的处理方法
         public void OnImageClicked(object sender, string base64Image)
         {
-            var bitmapFrame = ConvertBase64ToBitmapFrame(base64Image);
+            var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(base64Image);
             ImageViewerControl.ImageSource = bitmapFrame;
         }
 

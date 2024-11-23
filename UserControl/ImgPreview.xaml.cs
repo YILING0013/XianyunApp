@@ -60,5 +60,24 @@ namespace xianyun.UserControl
             // 使用存储的 Base64 字符串触发 ImageClicked 事件
             ImageClicked?.Invoke(this, _base64Image);
         }
+
+        // 获取图像的 BitmapImage 对象
+        public BitmapImage GetBitmapImage()
+        {
+            if (!string.IsNullOrEmpty(_base64Image))
+            {
+                var imageBytes = Convert.FromBase64String(_base64Image);
+                using (var ms = new MemoryStream(imageBytes))
+                {
+                    var bitmapImage = new BitmapImage();
+                    bitmapImage.BeginInit();
+                    bitmapImage.StreamSource = ms;
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapImage.EndInit();
+                    return bitmapImage;
+                }
+            }
+            return null;
+        }
     }
 }

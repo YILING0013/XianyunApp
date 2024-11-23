@@ -139,16 +139,19 @@
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
                                     <Button Grid.Column="0" Margin="0,2" Content="打开图生图" Click="I2IMenuBtn_Open"/>
+                                    <Button Grid.Column="1" Margin="0,2" Content="发送到图生图" Click="Upload_To_I2I_Click"/>
                                 </Grid>
                             </Border>
                             <Border Grid.Row="1" Margin="6,8" CornerRadius="10,10,4,4" Background="#ccdcd4">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="10*"/>
-                                        <RowDefinition Height="10"/>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
                                     </Grid.RowDefinitions>
                                     <hc:ImageViewer x:Name="ImageViewerControl" Background="Transparent" BorderBrush="Transparent" Width="auto" Height="auto" Margin="4"/>
                                     <ProgressBar Grid.Row="1" Value="{Binding ProgressValue}" Height="auto" Background="#C9DABF" Foreground="#86AB89"/>
+                                    <ProgressBar Grid.Row="2" Visibility="{Binding IsCreatingZipVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding CreateZipProgressValue}" Height="auto" Background="#C9DABF" Foreground="#86AB89"/>
                                 </Grid>
                             </Border>
                         </Grid>
@@ -163,7 +166,7 @@
                                     <StackPanel x:Name="ImageStackPanel"/>
                                 </ScrollViewer>
                                 <Border BorderBrush="#739072" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0"/>
-                                <Button Grid.Row="2" Margin="2,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#789DBC" Foreground="#1E3E62" FontFamily="../Assets/Fonts/#iconfont" FontSize="18" Content="&#xe6cf;"/>
+                                <Button Click="ExportImagesButton_Click" Grid.Row="2" Margin="2,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#789DBC" Foreground="#1E3E62" FontFamily="../Assets/Fonts/#iconfont" FontSize="18" Content="&#xe6cf;"/>
                             </Grid>
                         </Border>
                     </Grid>
@@ -267,7 +270,13 @@
                                     <common:NullableLongConverter x:Key="NullableLongConverter"/>
                                 </Grid.Resources>
                                 <!-- Sampling Method ComboBox -->
-                                <TextBlock Text="采样:" Grid.Column="0"/>
+                                <TextBlock Text="采样:" Grid.Column="0">
+                                    <TextBlock.ToolTip>
+                                        <ToolTip>
+                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource SamplingMethodsExplanation}"/>
+                                        </ToolTip>
+                                    </TextBlock.ToolTip>
+                                </TextBlock>
                                 <ComboBox Grid.Column="1" ItemsSource="{Binding SamplingMethods}" SelectedItem="{Binding SamplingMethod,Mode=TwoWay}"/>
                                 <TextBlock Text="Seed:" Grid.Column="2"/>
                                 <ui:TextBox  PlaceholderText="Enter Seed" Text="{Binding Seed, Mode=TwoWay,Converter={StaticResource NullableLongConverter}}"  Grid.Column="3"/>
@@ -507,36 +516,36 @@
                                 <ColumnDefinition Width="2*"/>
                                 <ColumnDefinition Width="10*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="#ccdcd4" Margin="4" CornerRadius="4,4,10,10">
+                            <Border Grid.Column="0" Background="#ccdcd4" Margin="4" CornerRadius="4,4,4,4">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="30*"/>
                                         <RowDefinition Height="30*"/>
                                         <RowDefinition Height="30*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
+                                        <RowDefinition Height="30*"/>
                                     </Grid.RowDefinitions>
                                     <Border Grid.Row="0" Margin="1">
-                                        <ToggleButton Content="常规处理" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
-                                    </Border>
-                                    <Border Grid.Row="1" Margin="1">
                                         <ToggleButton Content="裁剪重绘" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                                     </Border>
-                                    <Border Grid.Row="2" Margin="1">
+                                    <Border Grid.Row="1" Margin="1">
                                         <ToggleButton Content="边缘扩展" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                                     </Border>
-                                    <Border Grid.Row="12" Margin="1">
-                                        <Button Content="上传图像" Click="UploadButton_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                                    <Border Grid.Row="13" Margin="1">
+                                        <Button Content="上传图像" Click="UploadButton_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="#93C6E7" Foreground="#FEFCF3"/>
+                                    </Border>
+                                    <Border Grid.Row="14" Margin="1">
+                                        <Button Content="清除图像" Click="ClearButton_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="#FAAB78" Foreground="#FEFCF3"/>
                                     </Border>
                                 </Grid>
                             </Border>
@@ -607,7 +616,7 @@
                                         <TextBox Grid.Column="3" Text="{Binding Colorize_Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
                                     </Grid>
                                     <Grid Grid.Row="3">
-                                        <Border Name="imageBorder" Margin="2" CornerRadius="4" Background="#AFC8AD">
+                                        <Border Name="imageBorder" Margin="2" CornerRadius="4" Background="#AFC8AD" SizeChanged="ImageBorder_SizeChanged">
                                             <Canvas Name="imageCanvas"/>
                                         </Border>
                                     </Grid>
@@ -623,7 +632,7 @@
                                                     <ColumnDefinition Width="3*"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="Strength:" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                                <Slider Grid.Column="1" Value="{Binding Strength, Mode=TwoWay}" Margin="0,0,2,0" TickPlacement="Both" Minimum="0" Maximum="1" TickFrequency="0.01" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                                <Slider Grid.Column="1" Value="{Binding Strength, Mode=TwoWay}" Margin="0,0,2,0" TickPlacement="Both" Minimum="0" Maximum="1" TickFrequency="0.01" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
                                             </Grid>
                                         </Border>
                                         <Border Grid.Column="1" Background="#ccdcd4" CornerRadius="4" Margin="1">
@@ -633,7 +642,7 @@
                                                     <ColumnDefinition Width="3*"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="Noise:" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                                <Slider Grid.Column="1" Value="{Binding Strength, Mode=TwoWay}" Margin="0,0,2,0" TickPlacement="Both" Minimum="0" Maximum="1" TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                                <Slider Grid.Column="1" Value="{Binding Noise, Mode=TwoWay}" Margin="0,0,2,0" TickPlacement="Both" Minimum="0" Maximum="1" TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
                                             </Grid>
                                         </Border>
                                     </Grid>

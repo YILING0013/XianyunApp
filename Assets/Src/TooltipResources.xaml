@@ -16,5 +16,7 @@
 - **中等值**（如5-7）：保持了提示的可控性，同时允许一定的创造性，通常是较为平衡的选择。  
 - **高值**（如8-10）：AI会非常严格地依赖提示生成图像
     </sys:String>
-
+    <sys:String x:Key="SamplingMethodsExplanation" xml:space="preserve">
+**采样**（**SamplingMethods**）是XXXXXXXXXXXXXXX
+    </sys:String>
 </ResourceDictionary>
