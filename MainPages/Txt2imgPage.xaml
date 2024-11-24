@@ -541,6 +541,9 @@
                                     <Border Grid.Row="1" Margin="1">
                                         <ToggleButton Content="边缘扩展" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                                     </Border>
+                                    <Border Grid.Row="12" Margin="1">
+                                        <Button Content="重置位置" Click="ResetPositionButton_Click"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="#93C6E7" Foreground="#FEFCF3"/>
+                                    </Border>
                                     <Border Grid.Row="13" Margin="1">
                                         <Button Content="上传图像" Click="UploadButton_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="#93C6E7" Foreground="#FEFCF3"/>
                                     </Border>
@@ -616,8 +619,37 @@
                                         <TextBox Grid.Column="3" Text="{Binding Colorize_Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
                                     </Grid>
                                     <Grid Grid.Row="3">
-                                        <Border Name="imageBorder" Margin="2" CornerRadius="4" Background="#AFC8AD" SizeChanged="ImageBorder_SizeChanged">
-                                            <Canvas Name="imageCanvas"/>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto"/>
+                                            <ColumnDefinition Width="1*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Grid.Column="0">
+                                            <Border CornerRadius="4,0,0,4" Margin="2,2,0,2" Background="#AFC8AD">
+                                                <Grid>
+                                                    <Grid.Resources>
+                                                        <ResourceDictionary>
+                                                            <ResourceDictionary.MergedDictionaries>
+                                                                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+                                                                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
+                                                            </ResourceDictionary.MergedDictionaries>
+                                                        </ResourceDictionary>
+                                                    </Grid.Resources>
+                                                    <hc:ButtonGroup Margin="1" Orientation="Vertical" VerticalAlignment="Center">
+                                                        <Button Click="PanZoomButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe687;" Margin="1"/>
+                                                        <Button FontFamily="../Assets/Fonts/#iconfont" Content="&#xe71e;" Margin="1"/>
+                                                        <Button Name="UndoButton" Click="UndoButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe7f4;" Margin="1"/>
+                                                        <Button Name="RedoButton" Click="RedoButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe602;" Margin="1"/>
+                                                        <Button FontFamily="../Assets/Fonts/#iconfont" Content="&#xe747;" Margin="1"/>
+                                                        <Button Click="ExportMaskButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe63b;" Margin="1"/>
+                                                    </hc:ButtonGroup>
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                        <Border Grid.Column="1" Name="imageBorder" Margin="0,2,2,2" CornerRadius="0,4,4,0" Background="#AFC8AD" SizeChanged="ImageBorder_SizeChanged" ClipToBounds="True">
+                                            <Canvas Name="panZoomCanvas">
+                                                <Image Name="image" />
+                                                <InkCanvas Visibility="{Binding IsInkCanvasVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Name="inkCanvas" StrokeCollected="InkCanvas_StrokeCollected" Background="Transparent" />
+                                            </Canvas>
                                         </Border>
                                     </Grid>
                                     <Grid Grid.Row="4">

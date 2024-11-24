@@ -22,6 +22,7 @@ using System.Windows.Media.Animation;
 using xianyun.Common;
 using xianyun.API;
 using Newtonsoft.Json;
+using System.Windows.Ink;
 
 namespace xianyun.MainPages
 {
@@ -32,6 +33,20 @@ namespace xianyun.MainPages
     {
         private bool dragInProgress = false;
         private bool isTagMenuOpen = false;
+
+        private Stack<Stroke> UndoStack = new Stack<Stroke>();
+        private Stack<Stroke> RedoStack = new Stack<Stroke>();
+
+        // Transformations
+        private TransformGroup panZoomTransformGroup;
+        private ScaleTransform panZoomScaleTransform;
+        private TranslateTransform panZoomTranslateTransform;
+
+        // Mouse interaction
+        private Point lastMousePosition;
+        private bool isPanning = false;
+        private bool isPanZoomMode = false;
+
         private BitmapImage originalImage;
         private DragAdorner currentAdorner;
         private MainViewModel _viewModel;
@@ -551,6 +566,15 @@ namespace xianyun.MainPages
                         SmDyn = _viewModel.IsDYN,
                         PictureId = TotpGenerator.GenerateTotp(_viewModel._secretKey)
                     };
+
+                    if (_viewModel.IsConvenientResolution)
+                    {
+                        string Resolution = _viewModel.Resolution;
+                        // 解析分辨率字符串
+                        string[] resolution = Resolution.Split('*');
+                        imageRequest.Width = int.Parse(resolution[0]);
+                        imageRequest.Height = int.Parse(resolution[1]);
+                    }
 
                     // 检查是否有 VibeTransfer 数据
                     if (base64Images.Length > 0 && informationExtracted.Length > 0 && referenceStrength.Length > 0)
@@ -1435,6 +1459,7 @@ namespace xianyun.MainPages
                 originalImage = resizedImage;
                 // 使用原始图像渲染
                 RenderImage(originalImage);
+                _viewModel.IsInkCanvasVisible=true;
             }
         }
 
@@ -1442,20 +1467,89 @@ namespace xianyun.MainPages
         {
             // 清空图像
             originalImage = null;
-            imageCanvas.Children.Clear();
+            image.Source = null;
+            inkCanvas.Strokes.Clear();
+            _viewModel.IsInkCanvasVisible = false;
+        }
+
+        private void InkCanvas_StrokeCollected(object sender, InkCanvasStrokeCollectedEventArgs e)
+        {
+            // 将新笔画加入 UndoStack
+            UndoStack.Push(e.Stroke);
+
+            // 清空 RedoStack，因为新操作会使重做无效
+            RedoStack.Clear();
+        }
+
+        private void Undo()
+        {
+            if (UndoStack.Count > 0)
+            {
+                // 从 UndoStack 弹出最近的笔画
+                Stroke lastStroke = UndoStack.Pop();
+
+                // 从 InkCanvas.Strokes 移除该笔画
+                inkCanvas.Strokes.Remove(lastStroke);
+
+                // 将笔画压入 RedoStack
+                RedoStack.Push(lastStroke);
+            }
+            else
+            {
+                MessageBox.Show("没有可以撤回的操作！");
+            }
+        }
+
+        private void Redo()
+        {
+            if (RedoStack.Count > 0)
+            {
+                // 从 RedoStack 弹出最近的笔画
+                Stroke lastStroke = RedoStack.Pop();
+
+                // 添加回 InkCanvas.Strokes
+                inkCanvas.Strokes.Add(lastStroke);
+
+                // 将笔画压入 UndoStack
+                UndoStack.Push(lastStroke);
+            }
+            else
+            {
+                MessageBox.Show("没有可以重做的操作！");
+            }
+        }
+
+        private void UndoButton_Click(object sender, RoutedEventArgs e)
+        {
+            Undo();
+        }
+
+        private void RedoButton_Click(object sender, RoutedEventArgs e)
+        {
+            Redo();
         }
 
         private void RenderImage(BitmapImage bitmap)
         {
-            // 创建Image控件
-            Image image = new Image();
+            // Set the image source
             image.Source = bitmap;
 
-            // 清空Canvas的子元素
-            imageCanvas.Children.Clear();
+            // Initialize transformations if not already done
+            if (panZoomTransformGroup == null)
+            {
+                panZoomTransformGroup = new TransformGroup();
+                panZoomScaleTransform = new ScaleTransform();
+                panZoomTranslateTransform = new TranslateTransform();
+                panZoomTransformGroup.Children.Add(panZoomScaleTransform); // 先缩放
+                panZoomTransformGroup.Children.Add(panZoomTranslateTransform); // 后平移
+                panZoomCanvas.RenderTransform = panZoomTransformGroup;
+            }
 
-            // 将图像添加到Canvas
-            imageCanvas.Children.Add(image);
+            // Reset transformations when loading a new image
+            panZoomScaleTransform.ScaleX = 1.0;
+            panZoomScaleTransform.ScaleY = 1.0;
+            panZoomTranslateTransform.X = 0;
+            panZoomTranslateTransform.Y = 0;
 
             // 获取Border的尺寸
             double borderWidth = imageBorder.ActualWidth;
@@ -1471,12 +1565,156 @@ namespace xianyun.MainPages
             double scale = Math.Min(scaleX, scaleY);
 
             // 应用缩放
-            image.Width = imageWidth * scale;
-            image.Height = imageHeight * scale;
+            image.Width = imageWidth;
+            image.Height = imageHeight;
 
-            // 将图像居中
-            Canvas.SetLeft(image, (borderWidth - image.Width) / 2);
-            Canvas.SetTop(image, (borderHeight - image.Height) / 2);
+            // Set the size of the InkCanvas to match the image
+            inkCanvas.Width = imageWidth;
+            inkCanvas.Height = imageHeight;
+
+            // Position the Image and InkCanvas at (0, 0) within the panZoomCanvas
+            Canvas.SetLeft(image, 0);
+            Canvas.SetTop(image, 0);
+            Canvas.SetLeft(inkCanvas, 0);
+            Canvas.SetTop(inkCanvas, 0);
+
+            // Apply the initial scale to the panZoomCanvas
+            panZoomScaleTransform.ScaleX = scale;
+            panZoomScaleTransform.ScaleY = scale;
+
+            // Center the image within the Border
+            panZoomTranslateTransform.X = (borderWidth - imageWidth * scale) / 2;
+            panZoomTranslateTransform.Y = (borderHeight - imageHeight * scale) / 2;
+
+            inkCanvas.DefaultDrawingAttributes = new DrawingAttributes
+            {
+                Color = Color.FromArgb(128, 255, 255, 0), // 半透明亮黄色
+                Height = 10, // 画笔高度
+                Width = 10,  // 画笔宽度
+                IgnorePressure = true // 忽略笔压
+            };
+            inkCanvas.Background = Brushes.Transparent; // 背景透明
+
+        }
+
+        private void ResetPositionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (originalImage != null)
+            {
+                // 获取Border的尺寸
+                double borderWidth = imageBorder.ActualWidth;
+                double borderHeight = imageBorder.ActualHeight;
+
+                // 获取图像的尺寸
+                double imageWidth = originalImage.PixelWidth;
+                double imageHeight = originalImage.PixelHeight;
+
+                // 计算缩放比例
+                double scaleX = borderWidth / imageWidth;
+                double scaleY = borderHeight / imageHeight;
+                double scale = Math.Min(scaleX, scaleY);
+
+                // 重置变换
+                panZoomScaleTransform.ScaleX = scale;
+                panZoomScaleTransform.ScaleY = scale;
+                panZoomTranslateTransform.X = (borderWidth - imageWidth * scale) / 2;
+                panZoomTranslateTransform.Y = (borderHeight - imageHeight * scale) / 2;
+            }
+        }
+
+        private void PanZoomButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isPanZoomMode)
+            {
+                // Enter pan/zoom mode
+                isPanZoomMode = true;
+                inkCanvas.IsHitTestVisible = false; // Disable ink drawing
+                panZoomCanvas.MouseWheel += PanZoomCanvas_MouseWheel;
+                panZoomCanvas.MouseDown += PanZoomCanvas_MouseDown;
+                panZoomCanvas.MouseMove += PanZoomCanvas_MouseMove;
+                panZoomCanvas.MouseUp += PanZoomCanvas_MouseUp;
+            }
+            else
+            {
+                // Exit pan/zoom mode
+                ExitPanZoomMode();
+            }
+        }
+
+        private void ExitPanZoomMode()
+        {
+            isPanZoomMode = false;
+            inkCanvas.IsHitTestVisible = true; // Re-enable ink drawing
+            panZoomCanvas.MouseWheel -= PanZoomCanvas_MouseWheel;
+            panZoomCanvas.MouseDown -= PanZoomCanvas_MouseDown;
+            panZoomCanvas.MouseMove -= PanZoomCanvas_MouseMove;
+            panZoomCanvas.MouseUp -= PanZoomCanvas_MouseUp;
+        }
+
+        private void PanZoomCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (isPanZoomMode)
+            {
+                // 获取鼠标相对于 panZoomCanvas 的位置
+                Point mousePosition = e.GetPosition(panZoomCanvas);
+
+                // 缩放增量，根据需要调整系数以控制缩放速度
+                double deltaScale = e.Delta * 0.001;
+
+                // 定义最小和最大缩放比例
+                double minScale = 0.1;
+                double maxScale = 10.0;
+
+                // 计算新的缩放比例
+                double newScaleX = panZoomScaleTransform.ScaleX + deltaScale;
+                double newScaleY = panZoomScaleTransform.ScaleY + deltaScale;
+
+                // 限制缩放比例
+                if (newScaleX < minScale || newScaleX > maxScale)
+                    return;
+
+                // 计算平移调整，使得缩放以鼠标为中心
+                panZoomTranslateTransform.X -= mousePosition.X * deltaScale;
+                panZoomTranslateTransform.Y -= mousePosition.Y * deltaScale;
+
+                // 更新缩放
+                panZoomScaleTransform.ScaleX = newScaleX;
+                panZoomScaleTransform.ScaleY = newScaleY;
+
+                // 防止事件继续冒泡
+                e.Handled = true;
+            }
+        }
+
+        private void PanZoomCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (isPanZoomMode && e.LeftButton == MouseButtonState.Pressed)
+            {
+                isPanning = true;
+                lastMousePosition = e.GetPosition(imageBorder);
+                panZoomCanvas.CaptureMouse();
+            }
+        }
+
+        private void PanZoomCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isPanZoomMode && isPanning)
+            {
+                Point currentPosition = e.GetPosition(imageBorder);
+                Vector delta = currentPosition - lastMousePosition;
+                panZoomTranslateTransform.X += delta.X;
+                panZoomTranslateTransform.Y += delta.Y;
+                lastMousePosition = currentPosition;
+            }
+        }
+
+        private void PanZoomCanvas_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (isPanZoomMode && e.LeftButton == MouseButtonState.Released)
+            {
+                isPanning = false;
+                panZoomCanvas.ReleaseMouseCapture();
+            }
         }
 
         private void Upload_To_I2I_Click(object sender, RoutedEventArgs e)
@@ -1506,6 +1744,94 @@ namespace xianyun.MainPages
                 MessageBox.Show("尚未加载任何图像！");
                 return null;
             }
+        }
+        private void ExportMaskButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (originalImage == null)
+            {
+                MessageBox.Show("尚未加载任何图像！");
+                return;
+            }
+
+            // 保存当前的变换
+            double savedScaleX = panZoomScaleTransform.ScaleX;
+            double savedScaleY = panZoomScaleTransform.ScaleY;
+            double savedTranslateX = panZoomTranslateTransform.X;
+            double savedTranslateY = panZoomTranslateTransform.Y;
+
+            // 重置变换
+            panZoomScaleTransform.ScaleX = 1.0;
+            panZoomScaleTransform.ScaleY = 1.0;
+            panZoomTranslateTransform.X = 0;
+            panZoomTranslateTransform.Y = 0;
+
+            // 强制布局更新
+            panZoomCanvas.UpdateLayout();
+
+            // 创建与原始图像大小一致的 RenderTargetBitmap
+            int imageWidth = originalImage.PixelWidth;
+            int imageHeight = originalImage.PixelHeight;
+
+            RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
+                imageWidth, imageHeight, 96, 96, PixelFormats.Pbgra32);
+
+            // 创建一个DrawingVisual，用于绘制背景和笔画
+            DrawingVisual drawingVisual = new DrawingVisual();
+            using (DrawingContext dc = drawingVisual.RenderOpen())
+            {
+                // 绘制黑色背景
+                dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, imageWidth, imageHeight));
+
+                // 设置笔画的绘制属性为白色
+                foreach (Stroke stroke in inkCanvas.Strokes)
+                {
+                    // 创建白色的绘制属性
+                    DrawingAttributes whiteAttributes = new DrawingAttributes
+                    {
+                        Color = Colors.White,
+                        Width = stroke.DrawingAttributes.Width,
+                        Height = stroke.DrawingAttributes.Height,
+                        IgnorePressure = stroke.DrawingAttributes.IgnorePressure,
+                        StylusTip = stroke.DrawingAttributes.StylusTip,
+                        StylusTipTransform = stroke.DrawingAttributes.StylusTipTransform
+                    };
+
+                    // 创建新的笔画，应用白色属性
+                    Stroke whiteStroke = new Stroke(stroke.StylusPoints, whiteAttributes);
+
+                    // 绘制笔画
+                    whiteStroke.Draw(dc);
+                }
+            }
+
+            // 渲染到位图
+            renderBitmap.Render(drawingVisual);
+
+            // 保存为PNG
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "PNG文件|*.png",
+                FileName = "mask.png"
+            };
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                using (FileStream fs = new FileStream(saveFileDialog.FileName, FileMode.Create))
+                {
+                    PngBitmapEncoder encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+                    encoder.Save(fs);
+                }
+                MessageBox.Show("蒙版已成功导出！");
+            }
+
+            // 恢复变换
+            panZoomScaleTransform.ScaleX = savedScaleX;
+            panZoomScaleTransform.ScaleY = savedScaleY;
+            panZoomTranslateTransform.X = savedTranslateX;
+            panZoomTranslateTransform.Y = savedTranslateY;
+
+            // 强制布局更新
+            panZoomCanvas.UpdateLayout();
         }
     }
 }

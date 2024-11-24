@@ -24,6 +24,7 @@ namespace xianyun.ViewModel
         private bool _isCreatingZipVisible = false;
         private bool _isEmotionVisible=false;
         private bool _isColorizeVisible=false;
+        private bool _isInkCanvasVisible = false;
         // 从 Txt2imgPageModel 导入的字段
         private double _progressValue = 0;
         private double _createZipProgressValue = 0;
@@ -241,6 +242,15 @@ namespace xianyun.ViewModel
             set
             {
                 _isCreatingZipVisible = value;
+                DoNotify();
+            }
+        }
+        public bool IsInkCanvasVisible
+        {
+            get => _isInkCanvasVisible;
+            set
+            {
+                _isInkCanvasVisible = value;
                 DoNotify();
             }
         }
