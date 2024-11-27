@@ -5,12 +5,14 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using xianyun.API;
 using xianyun.Common;
@@ -25,7 +27,6 @@ namespace xianyun.ViewModel
         private bool _isEmotionVisible=false;
         private bool _isColorizeVisible=false;
         private bool _isInkCanvasVisible = false;
-        // 从 Txt2imgPageModel 导入的字段
         private double _progressValue = 0;
         private double _createZipProgressValue = 0;
         private string _model;
@@ -60,8 +61,8 @@ namespace xianyun.ViewModel
         private string _negitivePrompt = "lowres, {bad}, error, fewer, extra, missing, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract]";
         private string _emotionPrompt = null;
         private string _colorizePrompt = null;
-        // 密钥
         public readonly string _secretKey = "XianyunWebSite";
+        SolidColorBrush _SelectColor = Brushes.White;
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
         {
@@ -666,6 +667,16 @@ namespace xianyun.ViewModel
                     _noiseSchedule = value;
                     DoNotify();
                 }
+            }
+        }
+
+        public SolidColorBrush SelectColor
+        {
+            get { return _SelectColor; }
+            set
+            {
+                _SelectColor = value;
+                DoNotify();
             }
         }
 
