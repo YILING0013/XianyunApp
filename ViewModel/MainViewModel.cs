@@ -63,6 +63,9 @@ namespace xianyun.ViewModel
         private string _colorizePrompt = null;
         public readonly string _secretKey = "XianyunWebSite";
         SolidColorBrush _SelectColor = Brushes.White;
+        private int _brushHeight = 10;
+        private int _brushWidth = 10;
+        private bool _isIgnorePenPressure = true;
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
         {
@@ -672,10 +675,40 @@ namespace xianyun.ViewModel
 
         public SolidColorBrush SelectColor
         {
-            get { return _SelectColor; }
+            get => _SelectColor;
             set
             {
                 _SelectColor = value;
+                DoNotify();
+            }
+        }
+
+        public int BrushHeight
+        {
+            get => _brushHeight;
+            set
+            {
+                _brushHeight = value;
+                DoNotify();
+            }
+        }
+
+        public int BrushWidth
+        {
+            get => _brushWidth;
+            set
+            {
+                _brushWidth = value;
+                DoNotify();
+            }
+        }
+
+        public bool IsIgnorePenPressure
+        {
+            get => _isIgnorePenPressure;
+            set
+            {
+                _isIgnorePenPressure = value;
                 DoNotify();
             }
         }

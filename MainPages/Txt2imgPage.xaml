@@ -543,6 +543,8 @@
                                                             <RowDefinition Height="auto"/>
                                                             <RowDefinition Height="auto"/>
                                                             <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
                                                         </Grid.RowDefinitions>
                                                         <TextBlock Grid.Row="0" Text="画笔设置:" FontSize="16" FontFamily="Comic Sans MS"/>
                                                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
@@ -564,8 +566,8 @@
                                                                     <ColumnDefinition Width="1*"/>
                                                                     <ColumnDefinition Width="1*"/>
                                                                 </Grid.ColumnDefinitions>
-                                                                <Slider Grid.Column="0" TickPlacement="Both" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                                                <Slider Grid.Column="1" TickPlacement="Both" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                                <Slider Grid.Column="0" Value="{Binding BrushHeight,Mode=TwoWay}" ValueChanged="BrushHeightSlider_ValueChanged" TickPlacement="Both" Orientation="Vertical" Minimum="1" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="False" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                                <Slider Grid.Column="1" Value="{Binding BrushWidth,Mode=TwoWay}" ValueChanged="BrushWidthSlider_ValueChanged" TickPlacement="Both" Orientation="Vertical" Minimum="1" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="False" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                                             </Grid>
                                                         </Grid>
                                                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
@@ -575,7 +577,7 @@
                                                                 <ColumnDefinition Width="1*"/>
                                                             </Grid.ColumnDefinitions>
                                                             <TextBlock Text="忽略笔压:" FontSize="12" Grid.Column="0"/>
-                                                            <ui:ToggleSwitch Grid.Column="1" HorizontalAlignment="Center"/>
+                                                            <ui:ToggleSwitch IsChecked="{Binding IsIgnorePenPressure}" Grid.Column="1" HorizontalAlignment="Center"/>
                                                         </Grid>
                                                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="5" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
                                                         <Grid Grid.Row="6">
@@ -592,7 +594,6 @@
                                                                 <ColumnDefinition Width="1*"/>
                                                             </Grid.ColumnDefinitions>
                                                             <TextBlock Text="画笔颜色:" FontSize="12" Grid.Column="0"/>
-                                                            <!-- Border，点击后打开 ColorPicker -->
                                                             <Border x:Name="ColorBorder" Grid.Column="1" Background="{Binding SelectColor, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
                                                         </Grid>
                                                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="7" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
@@ -724,14 +725,15 @@
                                                                         <ColumnDefinition Width="1*"/>
                                                                         <ColumnDefinition Width="1*"/>
                                                                     </Grid.ColumnDefinitions>
-                                                                    <TextBox Grid.Column="0" Style="{x:Null}" x:Name="TextR" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center" Width="70" >255</TextBox>
-                                                                    <TextBox Grid.Column="1" Style="{x:Null}" x:Name="TextG" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center" Width="70">255</TextBox>
-                                                                    <TextBox Grid.Column="2" Style="{x:Null}" x:Name="TextB" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center" Width="70">255</TextBox>
-                                                                    <TextBox Grid.Column="3" Style="{x:Null}" x:Name="TextA" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" Width="70" VerticalAlignment="Center" >255</TextBox>
+                                                                    <TextBox Grid.Column="0" Style="{x:Null}" x:Name="TextR" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center">255</TextBox>
+                                                                    <TextBox Grid.Column="1" Style="{x:Null}" x:Name="TextG" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center">255</TextBox>
+                                                                    <TextBox Grid.Column="2" Style="{x:Null}" x:Name="TextB" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center">255</TextBox>
+                                                                    <TextBox Grid.Column="3" Style="{x:Null}" x:Name="TextA" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center">255</TextBox>
                                                                 </Grid>
-                                                                <TextBox Grid.Row="1" x:Name="TextHex" LostFocus="HexTextLostFocus" KeyDown="HexTextBox_KeyDown" Text="#FFFFFFFF" />
+                                                                <TextBox Grid.Row="1" x:Name="TextHex" LostFocus="HexTextLostFocus" KeyDown="HexTextBox_KeyDown" Text="#FFFFFFFF" TextChanged="TextHex_TextChanged"/>
                                                             </Grid>
                                                         </Grid>
+                                                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="9" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
                                                     </Grid>
                                                 </Border>
                                             </Grid>

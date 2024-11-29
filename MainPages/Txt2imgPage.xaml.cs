@@ -1615,13 +1615,37 @@ namespace xianyun.MainPages
 
             inkCanvas.DefaultDrawingAttributes = new DrawingAttributes
             {
-                Color = Color.FromArgb(128, 255, 255, 0), // 半透明亮黄色
-                Height = 10, // 画笔高度
-                Width = 10,  // 画笔宽度
-                IgnorePressure = true // 忽略笔压
+                Color = (Color)ColorConverter.ConvertFromString(TextHex.Text),
+                Height = _viewModel.BrushHeight, // 画笔高度
+                Width = _viewModel.BrushWidth,  // 画笔宽度
+                IgnorePressure = _viewModel.IsIgnorePenPressure // 忽略笔压
             };
             inkCanvas.Background = Brushes.Transparent; // 背景透明
             inkCanvas.IsHitTestVisible = false;
+        }
+
+        private void BrushWidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (inkCanvas != null)
+            {
+                inkCanvas.DefaultDrawingAttributes.Width = e.NewValue;
+            }
+        }
+
+        private void BrushHeightSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (inkCanvas != null)
+            {
+                inkCanvas.DefaultDrawingAttributes.Height = e.NewValue;
+            }
+        }
+
+        private void TextHex_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (inkCanvas != null)
+            {
+                inkCanvas.DefaultDrawingAttributes.Color = (Color)ColorConverter.ConvertFromString(TextHex.Text);
+            }
         }
 
         private void ResetPositionButton_Click(object sender, RoutedEventArgs e)
