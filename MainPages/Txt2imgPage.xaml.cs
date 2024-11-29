@@ -69,6 +69,36 @@ namespace xianyun.MainPages
             this.Loaded += Txt2imgPage_Loaded;
             this.Unloaded += Txt2imgPage_Unloaded;
         }
+        /// <summary>
+        /// HexTextBox的回车事件，触发LoseFocus使颜色值生效
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void HexTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            // 检查是否按下回车键
+            if (e.Key == Key.Enter)
+            {
+                HexTextLostFocus(sender, null);
+                (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+            }
+        }
+        /// <summary>
+        /// RGBA颜色值的文本框回车事件，触发LoseFocus使颜色值生效
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            // 检查是否按下回车键
+            if (e.Key == Key.Enter)
+            {
+                TextBox_LostFocus(sender, null);
+                (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+            }
+        }
+
+
         private void EmotionDefryReduce_Click(object sender, RoutedEventArgs e)
         {
             // 确保 Defry 值不能小于 0
@@ -511,7 +541,7 @@ namespace xianyun.MainPages
             {
                 _isCancelling = true;
                 button.Content = "正在取消...";
-                button.IsEnabled = false; // 锁定按钮，防止重复点击
+                button.IsEnabled = false; 
             }
             else
             {
@@ -525,8 +555,8 @@ namespace xianyun.MainPages
                 // 恢复按钮状态
                 button.Content = "Generate Image";
                 button.Background = new SolidColorBrush(Colors.White);
-                button.IsEnabled = true; // 恢复按钮为可点击状态
-                _isGenerating = false; // 标记为生成已完成
+                button.IsEnabled = true;
+                _isGenerating = false;
             }
         }
         private async Task GenerateImageRequest()
@@ -543,7 +573,7 @@ namespace xianyun.MainPages
                 long GenerateRandomSeed()
                 {
                     var random = new Random();
-                    int length = random.Next(9, 13); // 生成9到12位长度的随机数
+                    int length = random.Next(9, 13);
                     long seed = 0;
                     for (int i = 0; i < length; i++)
                     {
@@ -823,8 +853,6 @@ namespace xianyun.MainPages
                         ImageWrapPanel.Children.Add(vibeTransfer);
                     }
                 }
-
-                // 隐藏上传标志
                 UploadStackPanel.Visibility = Visibility.Collapsed;
             }
         }
@@ -850,8 +878,6 @@ namespace xianyun.MainPages
                         ImageWrapPanel.Children.Add(vibeTransfer);
                     }
                 }
-
-                // 隐藏上传标志
                 UploadStackPanel.Visibility = Visibility.Collapsed;
             }
         }
@@ -902,8 +928,8 @@ namespace xianyun.MainPages
                     {
                         // 如果不存在，则创建新的 TagControl 并添加到容器中
                         TagControl newTagControl = new TagControl(tag, tag);
-                        newTagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
-                        newTagControl.TagDeleted += TagControl_TagDeleted; // Subscribe to the delete event
+                        newTagControl.TextChanged += TagControl_TextChanged;
+                        newTagControl.TagDeleted += TagControl_TagDeleted;
                         TagsContainer.Children.Add(newTagControl);
                     }
                     else
@@ -943,9 +969,9 @@ namespace xianyun.MainPages
                 foreach (var tag in newTags)
                 {
                     TagControl newTagControl = new TagControl(tag, tag);
-                    newTagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
-                    newTagControl.TagDeleted += TagControl_TagDeleted;   // 监听删除事件
-                    TagsContainer.Children.Add(newTagControl);           // 将新的 TagControl 添加到容器中
+                    newTagControl.TextChanged += TagControl_TextChanged;
+                    newTagControl.TagDeleted += TagControl_TagDeleted;
+                    TagsContainer.Children.Add(newTagControl);
                 }
 
                 // 更新 ViewModel 中的 PositivePrompt 以保持一致性
@@ -960,7 +986,7 @@ namespace xianyun.MainPages
             if (sender is TagControl tagControl)
             {
                 TagsContainer.Children.Remove(tagControl);
-                UpdateViewModelTagsText();  // Update PositivePrompt after removal
+                UpdateViewModelTagsText();
             }
         }
         private void TagControl_TextChanged(object sender, EventArgs e)
@@ -1013,9 +1039,9 @@ namespace xianyun.MainPages
 
                         if (existingTagControl == null)
                         {
-                            // 如果不存在该标签，创建新的 TagControl 并添加到容器中
+                            // 如果不存在该标签
                             TagControl newTagControl = new TagControl(tag, tag);
-                            newTagControl.TextChanged += TagControl_TextChanged; // 监听文本内容变化事件
+                            newTagControl.TextChanged += TagControl_TextChanged;
                             TagsContainer.Children.Add(newTagControl);
                         }
                         else
@@ -1032,8 +1058,6 @@ namespace xianyun.MainPages
                     }
                     UpdateViewModelTagsText();
                 }
-
-                // 隐藏TextBox
                 InputTextBox.Visibility = Visibility.Collapsed;
             }
         }
@@ -1391,7 +1415,7 @@ namespace xianyun.MainPages
 
                         // 更新进度条
                         currentProgress += progressIncrement;
-                        _viewModel.CreateZipProgressValue = Math.Min(currentProgress, 100); // 确保进度不超过 100
+                        _viewModel.CreateZipProgressValue = Math.Min(currentProgress, 100);
                         await Task.Delay(10); // 模拟延迟以便可视化进度
                     }
                 }
@@ -1402,18 +1426,14 @@ namespace xianyun.MainPages
                     File.Delete(zipFilePath); // 删除旧的压缩包
                 }
                 ZipFile.CreateFromDirectory(tempDirectory, zipFilePath);
-
-                // 提示用户成功
                 MessageBox.Show($"图像已成功导出为压缩包：{zipFilePath}", "导出成功", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                // 捕获异常并提示用户
                 MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
-                // 隐藏进度条
                 _viewModel.IsCreatingZipVisible = false;
             }
         }
@@ -1579,21 +1599,17 @@ namespace xianyun.MainPages
             image.Width = imageWidth;
             image.Height = imageHeight;
 
-            // Set the size of the InkCanvas to match the image
             inkCanvas.Width = imageWidth;
             inkCanvas.Height = imageHeight;
 
-            // Position the Image and InkCanvas at (0, 0) within the panZoomCanvas
             Canvas.SetLeft(image, 0);
             Canvas.SetTop(image, 0);
             Canvas.SetLeft(inkCanvas, 0);
             Canvas.SetTop(inkCanvas, 0);
 
-            // Apply the initial scale to the panZoomCanvas
             panZoomScaleTransform.ScaleX = scale;
             panZoomScaleTransform.ScaleY = scale;
 
-            // Center the image within the Border
             panZoomTranslateTransform.X = (borderWidth - imageWidth * scale) / 2;
             panZoomTranslateTransform.Y = (borderHeight - imageHeight * scale) / 2;
 
@@ -1637,9 +1653,8 @@ namespace xianyun.MainPages
         {
             if (!isPanZoomMode)
             {
-                // Enter pan/zoom mode
                 isPanZoomMode = true;
-                inkCanvas.IsHitTestVisible = false; // Disable ink drawing
+                inkCanvas.IsHitTestVisible = false;
                 panZoomCanvas.MouseWheel += PanZoomCanvas_MouseWheel;
                 panZoomCanvas.MouseDown += PanZoomCanvas_MouseDown;
                 panZoomCanvas.MouseMove += PanZoomCanvas_MouseMove;
@@ -1694,7 +1709,6 @@ namespace xianyun.MainPages
             TextBox textBox = sender as TextBox;
             string text = textBox.Text;
 
-            // Validate and update the corresponding color components
             if (!int.TryParse(TextR.Text, out int Rvalue) || (Rvalue > 255 || Rvalue < 0))
             {
                 TextR.Text = R.ToString();
@@ -1724,23 +1738,53 @@ namespace xianyun.MainPages
             _viewModel.SelectColor = Hcolor.SolidColorBrush;
 
             TextHex.Text = Hcolor.HexString;
+
+            // 转换 RGBA 到 HSB
+            HsbaColor hsbaColor = Hcolor.ToHsbaColor();
+            H = hsbaColor.H;
+            S = hsbaColor.S;
+            B = hsbaColor.B;
+
+            // 更新滑块位置
+            // 更新 thumbH 滑块的位置（通过 Y 轴控制色相的选择）
+            thumbH.UpdatePositionByPercent(0.0, H / 360.0);
+
+            // 更新 thumbSB 滑块的位置（通过 X 轴控制饱和度，Y 轴控制亮度）
+            thumbSB.UpdatePositionByPercent(S, 1.0 - B);
         }
 
         private void HexTextLostFocus(object sender, RoutedEventArgs e)
         {
+            // 解析输入的十六进制颜色值
             RgbaColor Hcolor = new RgbaColor(TextHex.Text);
 
+            // 更新颜色显示
             _viewModel.SelectColor = Hcolor.SolidColorBrush;
+
+            // 更新文本框中的颜色值
             TextR.Text = Hcolor.R.ToString();
             TextG.Text = Hcolor.G.ToString();
             TextB.Text = Hcolor.B.ToString();
             TextA.Text = Hcolor.A.ToString();
+
+            // 转换 RGBA 到 HSB
+            HsbaColor hsbaColor = Hcolor.ToHsbaColor();
+            H = hsbaColor.H;
+            S = hsbaColor.S;
+            B = hsbaColor.B;
+
+            // 更新滑块位置
+            // 更新 thumbH 滑块的位置（通过 Y 轴控制色相的选择）
+            thumbH.UpdatePositionByPercent(0.0, H / 360.0);
+
+            // 更新 thumbSB 滑块的位置（通过 X 轴控制饱和度，Y 轴控制亮度）
+            thumbSB.UpdatePositionByPercent(S, 1.0 - B);
         }
 
         private void ExitPanZoomMode()
         {
             isPanZoomMode = false;
-            inkCanvas.IsHitTestVisible = true; // Re-enable ink drawing
+            inkCanvas.IsHitTestVisible = true;
             panZoomCanvas.MouseWheel -= PanZoomCanvas_MouseWheel;
             panZoomCanvas.MouseDown -= PanZoomCanvas_MouseDown;
             panZoomCanvas.MouseMove -= PanZoomCanvas_MouseMove;
@@ -1944,9 +1988,7 @@ namespace xianyun.MainPages
         }
 
         // Using a DependencyProperty as the backing store for Top.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty TopProperty =
-            DependencyProperty.Register("Top", typeof(double), typeof(ThumbPro), new PropertyMetadata(0.0));
-
+        public static readonly DependencyProperty TopProperty = DependencyProperty.Register("Top", typeof(double), typeof(ThumbPro), new PropertyMetadata(0.0));
 
         //距离Canvas的Top,模板中需要Canvas.Left 绑定此Left
         public double Left
@@ -1956,42 +1998,32 @@ namespace xianyun.MainPages
         }
 
         // Using a DependencyProperty as the backing store for Left.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty LeftProperty =
-            DependencyProperty.Register("Left", typeof(double), typeof(ThumbPro), new PropertyMetadata(0.0));
-
-        double FirstTop;
-        double FirstLeft;
+        public static readonly DependencyProperty LeftProperty = DependencyProperty.Register("Left", typeof(double), typeof(ThumbPro), new PropertyMetadata(0.0));
+        private double FirstTop;
+        private double FirstLeft;
 
         //小圆点的半径
         public double Xoffset { get; set; }
         public double Yoffset { get; set; }
-
         public bool VerticalOnly { get; set; } = false;
 
         public double Xpercent { get { return (Left + Xoffset) / ActualWidth; } }
         public double Ypercent { get { return (Top + Yoffset) / ActualHeight; } }
 
-        public void SetTopLeftByPercent(double xpercent, double ypercent)
-        {
-            Top = ypercent * ActualHeight - Yoffset;
-            if (!VerticalOnly)
-                Left = xpercent * ActualWidth - Xoffset;
-        }
-
         public event Action<double, double> ValueChanged;
 
         public ThumbPro()
         {
-            Loaded += (object sender, RoutedEventArgs e) => {
+            Loaded += (object sender, RoutedEventArgs e) =>
+            {
                 if (!VerticalOnly)
                     Left = -Xoffset;
                 Top = -Yoffset;
-
-
             };
+
             DragStarted += (object sender, DragStartedEventArgs e) =>
             {
-                //当随便点击某点，把点移到当前位置
+                // 当开始拖动时，记录当前位置
                 if (!VerticalOnly)
                 {
                     Left = e.HorizontalOffset - Xoffset;
@@ -2000,31 +2032,81 @@ namespace xianyun.MainPages
                 Top = e.VerticalOffset - Yoffset;
                 FirstTop = Top;
 
+                // 触发事件
                 ValueChanged?.Invoke(Xpercent, Ypercent);
             };
 
             DragDelta += (object sender, DragDeltaEventArgs e) =>
             {
-                //按住拖拽时，点随着鼠标移动
+                // 按住拖拽时，点随着鼠标移动
                 if (!VerticalOnly)
                 {
                     double x = FirstLeft + e.HorizontalChange;
-
-                    if (x < -Xoffset) Left = -Xoffset;
-                    else if (x > ActualWidth - Xoffset) Left = ActualWidth - Xoffset;
-                    else Left = x;
+                    Left = Clamp(x, -Xoffset, ActualWidth - Xoffset);
                 }
 
-
-
-
                 double y = FirstTop + e.VerticalChange;
+                Top = Clamp(y, -Yoffset, ActualHeight - Yoffset);
 
-                if (y < -Yoffset) Top = -Yoffset;
-                else if (y > ActualHeight - Yoffset) Top = ActualHeight - Yoffset;
-                else Top = y;
+                // 触发事件
                 ValueChanged?.Invoke(Xpercent, Ypercent);
             };
+        }
+        private double Clamp(double value, double min, double max)
+        {
+            return Math.Max(min, Math.Min(max, value));
+        }
+
+        public void SetTopLeftByPercent(double xpercent, double ypercent)
+        {
+            Top = ypercent * ActualHeight - Yoffset;
+            if (!VerticalOnly)
+                Left = xpercent * ActualWidth - Xoffset;
+        }
+
+        public void UpdatePositionByPercent(double xpercent, double ypercent)
+        {
+            // 更新滑块位置
+            SetTopLeftByPercent(xpercent, ypercent);
+
+            // 更新拖动的初始位置
+            FirstLeft = Left;
+            FirstTop = Top;
+
+            // 手动触发 ValueChanged 事件
+            ValueChanged?.Invoke(Xpercent, Ypercent);
+        }
+
+        public void InitializePosition(double xpercent, double ypercent)
+        {
+            SetTopLeftByPercent(xpercent, ypercent);
+            ValueChanged?.Invoke(Xpercent, Ypercent);
+        }
+
+        public void AnimateToPercent(double xpercent, double ypercent, double durationSeconds)
+        {
+            var topAnimation = new DoubleAnimation
+            {
+                To = ypercent * ActualHeight - Yoffset,
+                Duration = TimeSpan.FromSeconds(durationSeconds),
+            };
+
+            var leftAnimation = new DoubleAnimation
+            {
+                To = xpercent * ActualWidth - Xoffset,
+                Duration = TimeSpan.FromSeconds(durationSeconds),
+            };
+
+            BeginAnimation(TopProperty, topAnimation);
+            if (!VerticalOnly)
+            {
+                BeginAnimation(LeftProperty, leftAnimation);
+            }
+
+            Dispatcher.InvokeAsync(() =>
+            {
+                ValueChanged?.Invoke(Xpercent, Ypercent);
+            });
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Windows.Media;
+﻿using System;
+using System.Windows.Media;
 
 namespace AduSkin.Utility.Media
 {
@@ -49,7 +50,6 @@ namespace AduSkin.Utility.Media
             G = rgba.G;
             B = rgba.B;
             A = rgba.A;
-
         }
         public RgbaColor(string hexColor)
         {
@@ -65,7 +65,8 @@ namespace AduSkin.Utility.Media
             }
             catch
             {
-
+                R = G = B = 255;
+                A = 255;
             }
         }
 
@@ -77,6 +78,38 @@ namespace AduSkin.Utility.Media
         public string HexString { get { return Color.ToString(); } }
         public string RgbaString { get { return R + "," + G + "," + B + "," + A; } }
 
-        public HsbaColor HsbaColor { get { return Utility.RgbaToHsba(this); } }
+        public HsbaColor HsbaColor { get { return ToHsbaColor(); } }
+
+        /// <summary>
+        /// Converts RGBA to HSBA.
+        /// </summary>
+        /// <returns>HsbaColor instance representing the HSBA color.</returns>
+        public HsbaColor ToHsbaColor()
+        {
+            double r = R / 255.0;
+            double g = G / 255.0;
+            double b = B / 255.0;
+
+            double max = Math.Max(r, Math.Max(g, b));
+            double min = Math.Min(r, Math.Min(g, b));
+            double delta = max - min;
+
+            double h = 0;
+            if (delta > 0)
+            {
+                if (max == r)
+                    h = (g - b) / delta + (g < b ? 6 : 0);
+                else if (max == g)
+                    h = (b - r) / delta + 2;
+                else
+                    h = (r - g) / delta + 4;
+                h *= 60;
+            }
+
+            double s = max == 0 ? 0 : delta / max;
+            double v = max;
+
+            return new HsbaColor(h, s, v, A / 255.0);
+        }
     }
 }
