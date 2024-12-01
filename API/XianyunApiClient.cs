@@ -163,6 +163,9 @@ namespace xianyun.API
         [JsonProperty("image",NullValueHandling = NullValueHandling.Ignore)]
         public string Image { get; set; }
 
+        [JsonProperty("mask", NullValueHandling = NullValueHandling.Ignore)]
+        public string Mask { get; set; }
+
         [JsonProperty("prompt", NullValueHandling = NullValueHandling.Ignore)]
         public string Prompt { get; set; }
 

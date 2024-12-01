@@ -63,8 +63,8 @@ namespace xianyun.ViewModel
         private string _colorizePrompt = null;
         public readonly string _secretKey = "XianyunWebSite";
         SolidColorBrush _SelectColor = Brushes.White;
-        private int _brushHeight = 10;
-        private int _brushWidth = 10;
+        private int _brushHeight = 20;
+        private int _brushWidth = 20;
         private bool _isIgnorePenPressure = true;
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
@@ -153,6 +153,7 @@ namespace xianyun.ViewModel
             NoiseSchedule = NoiseSchedules[0];
             CloseWindowCommand = new RelayCommand<System.Windows.Window>(async window =>
             {
+                SaveParameters();
                 if (window != null)
                 {
                     await Task.Run(() =>
@@ -743,6 +744,9 @@ namespace xianyun.ViewModel
             this.NegitivePrompt = loadedConfig.NegitivePrompt;
             this.PositivePrompt = loadedConfig.PositivePrompt;
             this.Notes = loadedConfig.Notes;
+            this.BrushWidth= loadedConfig.BrushWidth;
+            this.BrushHeight = loadedConfig.BrushHeight;
+            this.SelectColor = loadedConfig.SelectColor;
         }
 
         // 保存参数的方法

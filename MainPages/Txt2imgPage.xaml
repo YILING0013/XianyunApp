@@ -88,7 +88,7 @@
                                                 <WrapPanel MouseDown="TagsContainer_MouseDoubleClick" Name="TagsContainer" DragOver="TagsContainer_DragOver" Drop="TagsContainer_Drop" DragLeave="TagsContainer_DragLeave" DragEnter="TagsContainer_DragEnter" AllowDrop="True" Background="Transparent" >
                                                 </WrapPanel>
                                             </ScrollViewer>
-                                            <ui:TextBox FontSize="12" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
+                                            <TextBox Style="{x:Null}" FontSize="14" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
@@ -101,13 +101,13 @@
                                     </StackPanel>
                                 </TabItem.Header>
                                 <Grid>
-                                    <ui:TextBox PlaceholderText="Type something..." AcceptsReturn="True" Text="{Binding NegitivePrompt}" TextWrapping="Wrap"/>
+                                    <TextBox AcceptsReturn="True" Text="{Binding NegitivePrompt}" TextWrapping="Wrap"/>
                                 </Grid>
                             </TabItem>
                         </TabControl>
                         <!-- 右上角的圆角透明按钮 -->
                         <Border Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent">
-                            <Button Name="TagMenuBth" Click="TagMenuBtn_Click" FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Content="&#xe677;" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#F9F9F9" BorderThickness="0"/>
+                            <Button Name="TagMenuBth" Click="TagMenuBtn_Click" FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Content="&#xe677;" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#F9F9F9" BorderThickness="2"/>
                         </Border>
                     </Grid>
                     <Grid Grid.Row="1">
@@ -566,8 +566,8 @@
                                                                     <ColumnDefinition Width="1*"/>
                                                                     <ColumnDefinition Width="1*"/>
                                                                 </Grid.ColumnDefinitions>
-                                                                <Slider Grid.Column="0" Value="{Binding BrushHeight,Mode=TwoWay}" ValueChanged="BrushHeightSlider_ValueChanged" TickPlacement="Both" Orientation="Vertical" Minimum="1" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="False" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                                                <Slider Grid.Column="1" Value="{Binding BrushWidth,Mode=TwoWay}" ValueChanged="BrushWidthSlider_ValueChanged" TickPlacement="Both" Orientation="Vertical" Minimum="1" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="False" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                                <Slider Grid.Column="0" Value="{Binding BrushHeight,Mode=TwoWay}" ValueChanged="BrushHeightSlider_ValueChanged" TickPlacement="Both" Orientation="Vertical" Minimum="1" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="True" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                                <Slider Grid.Column="1" Value="{Binding BrushWidth,Mode=TwoWay}" ValueChanged="BrushWidthSlider_ValueChanged" TickPlacement="Both" Orientation="Vertical" Minimum="1" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="True" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                                             </Grid>
                                                         </Grid>
                                                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
@@ -738,6 +738,17 @@
                                                 </Border>
                                             </Grid>
                                         </ScrollViewer>
+                                    </Border>
+                                    <Border x:Name="MaskViewBorder" Grid.Row="1" Margin="4" BorderBrush="#FFC0C0C0" BorderThickness="1" CornerRadius="2" Background="#F7F9F2" Visibility="Collapsed">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="3*"/>
+                                                <RowDefinition Height="1*"/>
+                                            </Grid.RowDefinitions>
+                                            <TextBlock FontSize="16" Foreground="#FF808080" Text="Mask显示" Margin="0,10,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Image Margin="2" x:Name="MaskImageSource" Height="auto" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Button x:Name="DelMaskBth" Click="DelMaskBth_Click" Grid.Row="1" Content="Delete &#xe69b;" FontFamily="../Assets/Fonts/#iconfont" FontSize="12" Background="#EED3B1" HorizontalAlignment="Stretch" Margin="1" VerticalAlignment="Stretch"/>
+                                        </Grid>
                                     </Border>
                                     <Border Grid.Row="2" Margin="1,1,1,1">
                                         <Grid>

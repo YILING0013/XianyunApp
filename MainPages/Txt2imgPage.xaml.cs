@@ -59,6 +59,7 @@ namespace xianyun.MainPages
         private int A = 255;
 
         private BitmapImage originalImage;
+        RenderTargetBitmap maskImage;
         private DragAdorner currentAdorner;
         private MainViewModel _viewModel;
         public Txt2imgPage()
@@ -670,6 +671,10 @@ namespace xianyun.MainPages
                                 imageRequest.Action = true;
                                 imageRequest.Noise = _viewModel.Noise;
                                 imageRequest.Strength = _viewModel.Strength;
+                                if (MaskImageSource.Source != null)
+                                {
+                                    imageRequest.Mask = Common.tools.ConvertRenderTargetBitmapToBase64(maskImage);
+                                }
                             }
                         }
                     }
@@ -1972,22 +1977,26 @@ namespace xianyun.MainPages
             renderBitmap.Render(drawingVisual);
 
             // 保存为PNG
-            SaveFileDialog saveFileDialog = new SaveFileDialog
-            {
-                Filter = "PNG文件|*.png",
-                FileName = "mask.png"
-            };
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                using (FileStream fs = new FileStream(saveFileDialog.FileName, FileMode.Create))
-                {
-                    PngBitmapEncoder encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-                    encoder.Save(fs);
-                }
-                MessageBox.Show("蒙版已成功导出！");
-            }
+            //SaveFileDialog saveFileDialog = new SaveFileDialog
+            //{
+            //    Filter = "PNG文件|*.png",
+            //    FileName = "mask.png"
+            //};
+            //if (saveFileDialog.ShowDialog() == true)
+            //{
+            //    using (FileStream fs = new FileStream(saveFileDialog.FileName, FileMode.Create))
+            //    {
+            //        PngBitmapEncoder encoder = new PngBitmapEncoder();
+            //        encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+            //        encoder.Save(fs);
+            //    }
+            //    MessageBox.Show("蒙版已成功导出！");
+            //}
 
+            // 将位图设置为Image控件的Source
+            MaskImageSource.Source = renderBitmap;
+            MaskViewBorder.Visibility = Visibility.Visible;
+            maskImage = renderBitmap;
             // 恢复变换
             panZoomScaleTransform.ScaleX = savedScaleX;
             panZoomScaleTransform.ScaleY = savedScaleY;
@@ -1997,6 +2006,14 @@ namespace xianyun.MainPages
             // 强制布局更新
             panZoomCanvas.UpdateLayout();
         }
+
+        private void DelMaskBth_Click(object sender, RoutedEventArgs e)
+        {
+            MaskImageSource.Source = null;
+            MaskViewBorder.Visibility = Visibility.Collapsed;
+            maskImage = null;
+        }
+
     }
     /// <summary>
     /// 封装Canvas 到Thumb来简化 Thumb的使用，关注熟悉X,Y 表示 thumb在坐标中距离左，上的距离
