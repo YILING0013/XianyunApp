@@ -290,7 +290,13 @@
                                     <ColumnDefinition Width="90*"/>
                                     <ColumnDefinition Width="14*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Steps:"/>
+                                <TextBlock Text="Steps:">
+                                    <TextBlock.ToolTip>
+                                        <ToolTip>
+                                        <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource StepsSliderExpianation}"/>
+                                        </ToolTip>
+                                    </TextBlock.ToolTip>
+                                </TextBlock>
                                 <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="{Binding Steps, Mode=TwoWay}"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                                 <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                     <TextBlock Text="{Binding Steps, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -307,7 +313,13 @@
                                     <ColumnDefinition Width="100*"/>
                                     <ColumnDefinition Width="25*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Width:"/>
+                                <TextBlock Text="Width:">
+                                    <TextBlock.ToolTip>
+                                        <ToolTip>
+                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource WidthandHeightSlidersExpianation}"/>
+                                        </ToolTip>
+                                    </TextBlock.ToolTip>
+                                </TextBlock>  
                                 <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048"  Value="{Binding Width, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True"  HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" ValueChanged="WidthSlider_ValueChanged"/>
                                 <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                     <TextBlock Text="{Binding Width, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -339,7 +351,13 @@
                                     <ColumnDefinition Width="80*"/>
                                 </Grid.ColumnDefinitions>
                                 <!-- Resolution ComboBox -->
-                                <TextBlock Text="便捷分辨率:"/>
+                                <TextBlock Text="便捷分辨率:">
+                                    <TextBlock.ToolTip>
+                                        <ToolTip>
+                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource ConvenientResolutionComboBoxExpianation}"/>
+                                        </ToolTip>
+                                    </TextBlock.ToolTip>
+                                </TextBlock>
                                 <ComboBox Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding Resolution,Mode=TwoWay}"/>
                                 <ui:ToggleSwitch OffContent="禁用中" OnContent="已开启" IsChecked="{Binding IsConvenientResolution, Mode=TwoWay}" Grid.Column="2" FontSize="12" HorizontalAlignment="Right" Foreground="DarkSlateGray"/>
                             </Grid>
