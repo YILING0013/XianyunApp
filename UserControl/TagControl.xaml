@@ -19,8 +19,17 @@
         <Border.ContextMenu>
             <ContextMenu>
                 <MenuItem Header="Change Border Color">
-                    <hc:ColorPicker SelectedBrush="{Binding BorderBrush,Mode=TwoWay}"
-                                    SelectedColorChanged="ColorPicker_SelectedColorChanged"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Width="20" Height="20" Margin="2" Background="Red" Click="ColorButton_Click" Tag="Red"/>
+                        <Button Width="20" Height="20" Margin="2" Background="Green" Click="ColorButton_Click" Tag="Green"/>
+                        <Button Width="20" Height="20" Margin="2" Background="Blue" Click="ColorButton_Click" Tag="Blue"/>
+                        <Button Width="20" Height="20" Margin="2" Background="Yellow" Click="ColorButton_Click" Tag="Yellow"/>
+                        <Button Width="20" Height="20" Margin="2" Background="Purple" Click="ColorButton_Click" Tag="Purple"/>
+                        <Button Width="20" Height="20" Margin="2" Background="Orange" Click="ColorButton_Click" Tag="Orange"/>
+                        <Button Width="20" Height="20" Margin="2" Background="Pink" Click="ColorButton_Click" Tag="Pink"/>
+                        <Button Width="20" Height="20" Margin="2" Background="Cyan" Click="ColorButton_Click" Tag="Cyan"/>
+                        <Button Width="20" Height="20" Margin="2" Background="Gray" Click="ColorButton_Click" Tag="Gray"/>
+                    </StackPanel>
                 </MenuItem>
             </ContextMenu>
         </Border.ContextMenu>

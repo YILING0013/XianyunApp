@@ -59,11 +59,12 @@ namespace xianyun.View
         }
         private void Border_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (e.LeftButton == MouseButtonState.Pressed && e.OriginalSource == sender)
             {
                 this.DragMove();
             }
         }
+
         // 最小化按钮点击事件
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {

@@ -42,6 +42,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -130,6 +131,11 @@
     <Compile Include="MainPages\WelcomePage.xaml.cs">
       <DependentUpon>WelcomePage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Media\HsbaColor.cs" />
+    <Compile Include="Media\ResObj.cs" />
+    <Compile Include="Media\RgbaColor.cs" />
+    <Compile Include="Media\StreamObj.cs" />
+    <Compile Include="Media\Utility.cs" />
     <Compile Include="UserControl\ImgPreview.xaml.cs">
       <DependentUpon>ImgPreview.xaml</DependentUpon>
     </Compile>

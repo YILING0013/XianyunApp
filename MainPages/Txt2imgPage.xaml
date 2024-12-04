@@ -88,7 +88,7 @@
                                                 <WrapPanel MouseDown="TagsContainer_MouseDoubleClick" Name="TagsContainer" DragOver="TagsContainer_DragOver" Drop="TagsContainer_Drop" DragLeave="TagsContainer_DragLeave" DragEnter="TagsContainer_DragEnter" AllowDrop="True" Background="Transparent" >
                                                 </WrapPanel>
                                             </ScrollViewer>
-                                            <ui:TextBox FontSize="12" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
+                                            <TextBox Style="{x:Null}" FontSize="14" FontFamily="Consolas" TextOptions.TextRenderingMode="Aliased" Name="InputTextBox" Visibility="Collapsed" LostFocus="InputTextBox_LostFocus" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
@@ -101,13 +101,13 @@
                                     </StackPanel>
                                 </TabItem.Header>
                                 <Grid>
-                                    <ui:TextBox PlaceholderText="Type something..." AcceptsReturn="True" Text="{Binding NegitivePrompt}" TextWrapping="Wrap"/>
+                                    <TextBox AcceptsReturn="True" Text="{Binding NegitivePrompt}" TextWrapping="Wrap"/>
                                 </Grid>
                             </TabItem>
                         </TabControl>
                         <!-- 右上角的圆角透明按钮 -->
                         <Border Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent">
-                            <Button Name="TagMenuBth" Click="TagMenuBtn_Click" FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Content="&#xe677;" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#F9F9F9" BorderThickness="0"/>
+                            <Button Name="TagMenuBth" Click="TagMenuBtn_Click" FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Content="&#xe677;" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#F9F9F9" BorderThickness="2"/>
                         </Border>
                     </Grid>
                     <Grid Grid.Row="1">
@@ -139,16 +139,19 @@
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
                                     <Button Grid.Column="0" Margin="0,2" Content="打开图生图" Click="I2IMenuBtn_Open"/>
+                                    <Button Grid.Column="1" Margin="0,2" Content="发送到图生图" Click="Upload_To_I2I_Click"/>
                                 </Grid>
                             </Border>
                             <Border Grid.Row="1" Margin="6,8" CornerRadius="10,10,4,4" Background="#ccdcd4">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="10*"/>
-                                        <RowDefinition Height="10"/>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
                                     </Grid.RowDefinitions>
                                     <hc:ImageViewer x:Name="ImageViewerControl" Background="Transparent" BorderBrush="Transparent" Width="auto" Height="auto" Margin="4"/>
                                     <ProgressBar Grid.Row="1" Value="{Binding ProgressValue}" Height="auto" Background="#C9DABF" Foreground="#86AB89"/>
+                                    <ProgressBar Grid.Row="2" Visibility="{Binding IsCreatingZipVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding CreateZipProgressValue}" Height="auto" Background="#C9DABF" Foreground="#86AB89"/>
                                 </Grid>
                             </Border>
                         </Grid>
@@ -163,7 +166,7 @@
                                     <StackPanel x:Name="ImageStackPanel"/>
                                 </ScrollViewer>
                                 <Border BorderBrush="#739072" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0"/>
-                                <Button Grid.Row="2" Margin="2,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#789DBC" Foreground="#1E3E62" FontFamily="../Assets/Fonts/#iconfont" FontSize="18" Content="&#xe6cf;"/>
+                                <Button Click="ExportImagesButton_Click" Grid.Row="2" Margin="2,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#789DBC" Foreground="#1E3E62" FontFamily="../Assets/Fonts/#iconfont" FontSize="18" Content="&#xe6cf;"/>
                             </Grid>
                         </Border>
                     </Grid>
@@ -531,36 +534,247 @@
                                 <ColumnDefinition Width="2*"/>
                                 <ColumnDefinition Width="10*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="#ccdcd4" Margin="4" CornerRadius="4,4,10,10">
+                            <Border Grid.Column="0" Background="#ccdcd4" Margin="4" CornerRadius="4,4,4,4">
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="30*"/>
-                                        <RowDefinition Height="30*"/>
-                                        <RowDefinition Height="30*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
-                                        <RowDefinition Height="46*"/>
+                                        <RowDefinition Height="520*"/>
+                                        <RowDefinition Height="115*"/>
+                                        <RowDefinition Height="40*"/>
                                     </Grid.RowDefinitions>
-                                    <Border Grid.Row="0" Margin="1">
-                                        <ToggleButton Content="常规处理" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                                    <Border Grid.Row="0">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="auto"/>
+                                                    <RowDefinition Height="auto"/>
+                                                    <RowDefinition Height="auto"/>
+                                                </Grid.RowDefinitions>
+                                                <Border Grid.Row="0" Margin="4">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
+                                                        </Grid.RowDefinitions>
+                                                        <TextBlock Grid.Row="0" Text="画笔设置:" FontSize="16" FontFamily="Comic Sans MS"/>
+                                                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                                                        <Grid Grid.Row="2">
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="1*"/>
+                                                                <RowDefinition Height="1*"/>
+                                                            </Grid.RowDefinitions>
+                                                            <Grid Grid.Row="0">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="1*"/>
+                                                                    <ColumnDefinition Width="1*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="画笔高度" FontSize="12" FontFamily="Comic Sans MS" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="1" Text="画笔宽度" FontSize="12" FontFamily="Comic Sans MS" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                            </Grid>
+                                                            <Grid Grid.Row="1">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="1*"/>
+                                                                    <ColumnDefinition Width="1*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Slider Grid.Column="0" Value="{Binding BrushHeight,Mode=TwoWay}" ValueChanged="BrushHeightSlider_ValueChanged" TickPlacement="Both" Orientation="Vertical" Minimum="1" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="True" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                                <Slider Grid.Column="1" Value="{Binding BrushWidth,Mode=TwoWay}" ValueChanged="BrushWidthSlider_ValueChanged" TickPlacement="Both" Orientation="Vertical" Minimum="1" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="True" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Grid>
+                                                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
+                                                        <Grid Grid.Row="4">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="1*"/>
+                                                                <ColumnDefinition Width="1*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="忽略笔压:" FontSize="12" Grid.Column="0"/>
+                                                            <ui:ToggleSwitch IsChecked="{Binding IsIgnorePenPressure}" Grid.Column="1" HorizontalAlignment="Center"/>
+                                                        </Grid>
+                                                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="5" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
+                                                        <Grid Grid.Row="6">
+                                                            <Grid.Resources>
+                                                                <ResourceDictionary>
+                                                                    <ResourceDictionary.MergedDictionaries>
+                                                                        <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+                                                                        <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
+                                                                    </ResourceDictionary.MergedDictionaries>
+                                                                </ResourceDictionary>
+                                                            </Grid.Resources>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="1*"/>
+                                                                <ColumnDefinition Width="1*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="画笔颜色:" FontSize="12" Grid.Column="0"/>
+                                                            <Border x:Name="ColorBorder" Grid.Column="1" Background="{Binding SelectColor, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
+                                                        </Grid>
+                                                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="7" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
+                                                        <Grid Grid.Row="8" Margin="0,0,1,0">
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="120"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                            </Grid.RowDefinitions>
+                                                            <Grid.Resources>
+                                                                <Style x:Key="ThumbStyle1" TargetType="{x:Type local:ThumbPro}">
+                                                                    <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
+                                                                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="{x:Type local:ThumbPro}">
+                                                                                <Canvas Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Background="#00000000" >
+                                                                                    <Path  Fill="Gray"  Canvas.Left="{TemplateBinding Left}" Canvas.Top="{TemplateBinding Top}" Stretch="Fill" Width="{TemplateBinding ActualWidth}" Height="10" >
+                                                                                        <Path.Data>
+                                                                                            <PathGeometry>
+                                                                                                <PathGeometry.Figures>
+
+                                                                                                    <PathFigure StartPoint="0,0">
+                                                                                                        <PolyLineSegment Points="0,20 15,10 0,0 "></PolyLineSegment>
+                                                                                                    </PathFigure>
+                                                                                                    <PathFigure StartPoint="60,00">
+                                                                                                        <PolyLineSegment Points="60,20 45,10 60,0 "></PolyLineSegment>
+                                                                                                    </PathFigure>
+                                                                                                </PathGeometry.Figures>
+
+                                                                                            </PathGeometry>
+                                                                                        </Path.Data>
+                                                                                    </Path>
+                                                                                </Canvas>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                                <Style x:Key="ThumbStyle2" TargetType="{x:Type local:ThumbPro}">
+                                                                    <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
+                                                                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="{x:Type local:ThumbPro}">
+                                                                                <Canvas Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Background="#00000000"  >
+                                                                                    <Ellipse Height="20" Width="20" StrokeThickness="1" Stroke="Black"  Canvas.Left="{TemplateBinding Left}" Canvas.Top="{TemplateBinding Top}" ></Ellipse>
+                                                                                </Canvas>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                                <Style x:Key="FocusVisual2">
+                                                                    <Setter Property="Control.Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate>
+                                                                                <Rectangle Margin="2" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                                <Style x:Key="ButtonStyle1" TargetType="{x:Type Button}">
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="{x:Type Button}">
+                                                                                <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                                                                                    <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                                                                </Border>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                            </Grid.Resources>
+                                                            <Grid Grid.Row="0">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="4*"/>
+                                                                    <ColumnDefinition Width="1*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Grid Grid.Column="0">
+                                                                    <!-- Color Display -->
+                                                                    <Rectangle x:Name="viewSelectColor" RadiusX="2" Fill="Red" RadiusY="2"/>
+                                                                    <Rectangle x:Name="viewSelectColor1" RadiusX="2" RadiusY="2">
+                                                                        <Rectangle.Fill>
+                                                                            <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                                                                <GradientStop Offset="0" Color="#FFFFFFFF"/>
+                                                                                <GradientStop Offset="1" Color="#00FFFFFF"/>
+                                                                            </LinearGradientBrush>
+                                                                        </Rectangle.Fill>
+                                                                    </Rectangle>
+                                                                    <Rectangle x:Name="viewSelectColor2" RadiusX="2" RadiusY="2">
+                                                                        <Rectangle.Fill>
+                                                                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                                                <GradientStop Offset="0" Color="#00000000"/>
+                                                                                <GradientStop Offset="1" Color="#FF000000"/>
+                                                                            </LinearGradientBrush>
+                                                                        </Rectangle.Fill>
+                                                                    </Rectangle>
+                                                                    <!-- Saturation-Brightness Control -->
+                                                                    <local:ThumbPro x:Name="thumbSB" ValueChanged="ThumbPro_ValueChanged_1" Style="{StaticResource ThumbStyle2}" Xoffset="10" Yoffset="10"/>
+                                                                </Grid>
+                                                                <Grid Grid.Column="1" Margin="5,0,0,0">
+                                                                    <!-- Hue Selector -->
+                                                                    <Rectangle RadiusX="2" RadiusY="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+                                                                        <Rectangle.Fill >
+                                                                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                                                <GradientStop x:Name="viewLine1" Color="Red" Offset="0"/>
+                                                                                <GradientStop x:Name="viewLine2" Color="Yellow" Offset="0.1667"/>
+                                                                                <GradientStop x:Name="viewLine3" Color="Lime" Offset="0.3334"/>
+                                                                                <GradientStop x:Name="viewLine4" Color="Cyan" Offset="0.5001"/>
+                                                                                <GradientStop x:Name="viewLine5" Color="Blue" Offset="0.6668"/>
+                                                                                <GradientStop x:Name="viewLine6" Color="Magenta" Offset="0.8335"/>
+                                                                                <GradientStop x:Name="viewLine7" Color="Red" Offset="1"/>
+                                                                            </LinearGradientBrush>
+                                                                        </Rectangle.Fill>
+                                                                    </Rectangle>
+                                                                    <!-- Hue Control -->
+                                                                    <local:ThumbPro x:Name="thumbH" ValueChanged="ThumbPro_ValueChanged" Style="{StaticResource ThumbStyle1}" Xoffset="30" VerticalOnly="True" Yoffset="5"/>
+                                                                </Grid>
+                                                            </Grid>
+                                                            <Grid Grid.Row="1">
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition Height="1*"/>
+                                                                    <RowDefinition Height="1*"/>
+                                                                </Grid.RowDefinitions>
+                                                                <Grid Grid.Row="0">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="1*"/>
+                                                                        <ColumnDefinition Width="1*"/>
+                                                                        <ColumnDefinition Width="1*"/>
+                                                                        <ColumnDefinition Width="1*"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBox Grid.Column="0" Style="{x:Null}" x:Name="TextR" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center">255</TextBox>
+                                                                    <TextBox Grid.Column="1" Style="{x:Null}" x:Name="TextG" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center">255</TextBox>
+                                                                    <TextBox Grid.Column="2" Style="{x:Null}" x:Name="TextB" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center">255</TextBox>
+                                                                    <TextBox Grid.Column="3" Style="{x:Null}" x:Name="TextA" LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" VerticalAlignment="Center">255</TextBox>
+                                                                </Grid>
+                                                                <TextBox Grid.Row="1" x:Name="TextHex" LostFocus="HexTextLostFocus" KeyDown="HexTextBox_KeyDown" Text="#FFFFFFFF" TextChanged="TextHex_TextChanged"/>
+                                                            </Grid>
+                                                        </Grid>
+                                                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="9" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+                                        </ScrollViewer>
                                     </Border>
-                                    <Border Grid.Row="1" Margin="1">
-                                        <ToggleButton Content="裁剪重绘" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                                    <Border x:Name="MaskViewBorder" Grid.Row="1" Margin="4" BorderBrush="#FFC0C0C0" BorderThickness="1" CornerRadius="2" Background="#F7F9F2" Visibility="Collapsed">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="3*"/>
+                                                <RowDefinition Height="1*"/>
+                                            </Grid.RowDefinitions>
+                                            <TextBlock FontSize="16" Foreground="#FF808080" Text="Mask显示" Margin="0,10,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Image Margin="2" x:Name="MaskImageSource" Height="auto" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Button x:Name="DelMaskBth" Click="DelMaskBth_Click" Grid.Row="1" Content="Delete &#xe69b;" FontFamily="../Assets/Fonts/#iconfont" FontSize="12" Background="#EED3B1" HorizontalAlignment="Stretch" Margin="1" VerticalAlignment="Stretch"/>
+                                        </Grid>
                                     </Border>
-                                    <Border Grid.Row="2" Margin="1">
-                                        <ToggleButton Content="边缘扩展" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
-                                    </Border>
-                                    <Border Grid.Row="12" Margin="1">
-                                        <Button Content="上传图像" Click="UploadButton_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                                    <Border Grid.Row="2" Margin="1,1,1,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Button FontFamily="../Assets/Fonts/#iconfont" FontSize="20" Grid.Column="0" Content="&#xe6d6;" Click="UploadButton_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="#93C6E7" Foreground="#FEFCF3"/>
+                                        </Grid>
                                     </Border>
                                 </Grid>
                             </Border>
@@ -570,7 +784,7 @@
                                         <RowDefinition Height="1*"/>
                                         <RowDefinition Height="Auto" x:Name="DynamicRow" />
                                         <RowDefinition Height="Auto" x:Name="DynamicRow2" />
-                                        <RowDefinition Height="9*"/>
+                                        <RowDefinition Height="15*"/>
                                         <RowDefinition Height="1*"/>
                                     </Grid.RowDefinitions>
                                     <Border Grid.Row="0" Background="#ccdcd4" Margin="1" CornerRadius="5">
@@ -631,8 +845,40 @@
                                         <TextBox Grid.Column="3" Text="{Binding Colorize_Prompt}" Width="auto" Height="auto" Margin="2,6,2,6"/>
                                     </Grid>
                                     <Grid Grid.Row="3">
-                                        <Border Name="imageBorder" Margin="5" CornerRadius="4" Background="#AFC8AD">
-                                            <Canvas Name="imageCanvas"/>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto"/>
+                                            <ColumnDefinition Width="1*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Grid.Column="0">
+                                            <Border CornerRadius="4,0,0,4" Margin="2,2,0,2" Background="#AFC8AD">
+                                                <Grid>
+                                                    <Grid.Resources>
+                                                        <ResourceDictionary>
+                                                            <ResourceDictionary.MergedDictionaries>
+                                                                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+                                                                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
+                                                            </ResourceDictionary.MergedDictionaries>
+                                                        </ResourceDictionary>
+                                                    </Grid.Resources>
+                                                    <hc:ButtonGroup Margin="1" Orientation="Vertical" VerticalAlignment="Center">
+                                                        <RadioButton GroupName="EditingTools" Click="InkButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe687;" Margin="1"/>
+                                                        <RadioButton GroupName="EditingTools" Click="PanZoomButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe616;" Margin="1"/>
+                                                        <RadioButton GroupName="EditingTools" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe71e;" Margin="1"/>
+                                                        <Button Name="UndoButton" Click="UndoButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe7f4;" Margin="1"/>
+                                                        <Button Name="RedoButton" Click="RedoButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe602;" Margin="1"/>
+                                                        <Button FontFamily="../Assets/Fonts/#iconfont" Content="&#xe747;" Margin="1"/>
+                                                        <Button Click="ResetPositionButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe63a;" Margin="1"/>
+                                                        <Button Click="ExportMaskButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe63b;" Margin="1"/>
+                                                        <Button Click="ClearButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe64f;" Background="#FAAB78" Margin="1"/>
+                                                    </hc:ButtonGroup>
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                        <Border Grid.Column="1" Name="imageBorder" Margin="0,2,2,2" CornerRadius="0,4,4,0" Background="#AFC8AD" SizeChanged="ImageBorder_SizeChanged" ClipToBounds="True">
+                                            <Canvas Name="panZoomCanvas">
+                                                <Image Name="image" />
+                                                <InkCanvas Visibility="{Binding IsInkCanvasVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Name="inkCanvas" StrokeCollected="InkCanvas_StrokeCollected" Background="Transparent" />
+                                            </Canvas>
                                         </Border>
                                     </Grid>
                                     <Grid Grid.Row="4">
@@ -640,7 +886,26 @@
                                             <ColumnDefinition Width="1*"/>
                                             <ColumnDefinition Width="1*"/>
                                         </Grid.ColumnDefinitions>
-                                        <Border Background="#C9DABF"></Border>
+                                        <Border Background="#ccdcd4" CornerRadius="4" Margin="1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="1*"/>
+                                                    <ColumnDefinition Width="3*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Strength:" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                <Slider Grid.Column="1" Value="{Binding Strength, Mode=TwoWay}" Margin="0,0,2,0" TickPlacement="Both" Minimum="0" Maximum="1" TickFrequency="0.01" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
+                                            </Grid>
+                                        </Border>
+                                        <Border Grid.Column="1" Background="#ccdcd4" CornerRadius="4" Margin="1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="1*"/>
+                                                    <ColumnDefinition Width="3*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Noise:" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                <Slider Grid.Column="1" Value="{Binding Noise, Mode=TwoWay}" Margin="0,0,2,0" TickPlacement="Both" Minimum="0" Maximum="1" TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
+                                            </Grid>
+                                        </Border>
                                     </Grid>
                                 </Grid>
                             </Border>

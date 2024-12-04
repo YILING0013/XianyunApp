@@ -1,4 +1,4 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib">
     <!-- 定义解释性文本 -->
     <sys:String x:Key="GuidanceScaleExplanation" xml:space="preserve">
@@ -97,5 +97,4 @@
         **动态更新**：当用户选择不同的噪声调度策略时，应用会立即更新相关参数，并在视觉上（如图像预览、信号波形等）展示调整后的效果。
         **提示信息**：组合框可能会提供简单的提示信息，帮助用户理解每个选项的功能和适用场景。
     </sys:String>
-
 </ResourceDictionary>

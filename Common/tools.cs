@@ -130,5 +130,73 @@ namespace xianyun.Common
                 return Convert.ToBase64String(imageBytes);
             }
         }
+
+        public static BitmapFrame ConvertBase64ToBitmapFrame(string base64String)
+        {
+            byte[] imageBytes = Convert.FromBase64String(base64String);
+            BitmapImage bitmapImage = new BitmapImage();
+            using (MemoryStream ms = new MemoryStream(imageBytes))
+            {
+                bitmapImage.BeginInit();
+                bitmapImage.StreamSource = ms;
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.EndInit();
+            }
+            return BitmapFrame.Create(bitmapImage);
+        }
+
+        public static BitmapImage ConvertBase64ToBitmapImage(string base64String)
+        {
+            byte[] imageBytes = Convert.FromBase64String(base64String);
+            BitmapImage bitmapImage = new BitmapImage();
+            using (MemoryStream ms = new MemoryStream(imageBytes))
+            {
+                bitmapImage.BeginInit();
+                bitmapImage.StreamSource = ms;
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.EndInit();
+            }
+            return bitmapImage;
+        }
+
+        public static BitmapImage ConvertBitmapFrameToBitmapImage(BitmapFrame bitmapFrame)
+        {
+            BitmapImage bitmapImage = new BitmapImage();
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                BitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(bitmapFrame);
+                encoder.Save(memoryStream);
+
+                memoryStream.Position = 0;
+                bitmapImage.BeginInit();
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.StreamSource = memoryStream;
+                bitmapImage.EndInit();
+            }
+            return bitmapImage;
+        }
+
+        public static string ConvertRenderTargetBitmapToBase64(RenderTargetBitmap renderBitmap)
+        {
+            // 使用 MemoryStream 存储 PNG 数据
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                // 使用 PngBitmapEncoder 编码图像
+                PngBitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+
+                // 将编码后的图像保存到 MemoryStream
+                encoder.Save(memoryStream);
+
+                // 将 MemoryStream 转换为字节数组
+                byte[] imageBytes = memoryStream.ToArray();
+
+                // 将字节数组转换为 Base64 字符串
+                string base64String = Convert.ToBase64String(imageBytes);
+
+                return base64String;
+            }
+        }
     }
 }

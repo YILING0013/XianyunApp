@@ -61,15 +61,23 @@ namespace xianyun.UserControl
             this.PreviewMouseMove += TagControl_PreviewMouseMove;
             this.PreviewMouseLeftButtonUp += TagControl_PreviewMouseLeftButtonUp;
         }
-        private void ColorPicker_SelectedColorChanged(object sender, RoutedEventArgs e)
+        private void ColorButton_Click(object sender, RoutedEventArgs e)
         {
-            // 在此事件中将选中的颜色应用到边框颜色
-            var colorPicker = sender as ColorPicker;
-            if (colorPicker != null)
+            if (sender is Button button && button.Tag is string colorName)
             {
-                BorderBg.BorderBrush = colorPicker.SelectedBrush;
+                try
+                {
+                    // 将边框颜色设置为按钮对应的颜色
+                    BorderBg.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorName));
+                }
+                catch
+                {
+                    // 处理可能的异常
+                    HandyControl.Controls.MessageBox.Show($"Failed to set color: {colorName}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
+
         public Brush GetCurrentBorderBrush()
         {
             return BorderBg.BorderBrush;

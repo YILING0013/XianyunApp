@@ -5,12 +5,14 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using xianyun.API;
 using xianyun.Common;
@@ -21,10 +23,12 @@ namespace xianyun.ViewModel
 {
     public class MainViewModel : NotifyBase
     {
+        private bool _isCreatingZipVisible = false;
         private bool _isEmotionVisible=false;
         private bool _isColorizeVisible=false;
-        // 从 Txt2imgPageModel 导入的字段
+        private bool _isInkCanvasVisible = false;
         private double _progressValue = 0;
+        private double _createZipProgressValue = 0;
         private string _model;
         private string _reqType=null;
         private int _emotionDefry = 0;
@@ -42,6 +46,8 @@ namespace xianyun.ViewModel
         private bool _isDYNEnabled = false;
         private float _guidanceScale = 5.0f;
         private float _guidanceRescale = 0.0f;
+        private float _strength = 0.70f;
+        private float _noise = 0.00f;
         private string _samplingMethod;
         private string _emotion;
         private string _resolution;
@@ -55,8 +61,11 @@ namespace xianyun.ViewModel
         private string _negitivePrompt = "lowres, {bad}, error, fewer, extra, missing, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract]";
         private string _emotionPrompt = null;
         private string _colorizePrompt = null;
-        // 密钥
         public readonly string _secretKey = "XianyunWebSite";
+        SolidColorBrush _SelectColor = Brushes.White;
+        private int _brushHeight = 20;
+        private int _brushWidth = 20;
+        private bool _isIgnorePenPressure = true;
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
         {
@@ -144,6 +153,7 @@ namespace xianyun.ViewModel
             NoiseSchedule = NoiseSchedules[0];
             CloseWindowCommand = new RelayCommand<System.Windows.Window>(async window =>
             {
+                SaveParameters();
                 if (window != null)
                 {
                     await Task.Run(() =>
@@ -231,6 +241,24 @@ namespace xianyun.ViewModel
                 ReqType = null; // 当没有选中的控件时，设置 ReqType 为 null
             }
         }
+        public bool IsCreatingZipVisible
+        {
+            get => _isCreatingZipVisible;
+            set
+            {
+                _isCreatingZipVisible = value;
+                DoNotify();
+            }
+        }
+        public bool IsInkCanvasVisible
+        {
+            get => _isInkCanvasVisible;
+            set
+            {
+                _isInkCanvasVisible = value;
+                DoNotify();
+            }
+        }
         public bool IsEmotionVisible
         {
             get => _isEmotionVisible;
@@ -261,6 +289,15 @@ namespace xianyun.ViewModel
             set
             {
                 _progressValue = value;
+                DoNotify();
+            }
+        }
+        public double CreateZipProgressValue
+        {
+            get => _createZipProgressValue;
+            set
+            {
+                _createZipProgressValue = value;
                 DoNotify();
             }
         }
@@ -555,6 +592,24 @@ namespace xianyun.ViewModel
                 DoNotify();
             }
         }
+        public float Strength
+        {
+            get => _strength;
+            set
+            {
+                _strength = (float)Math.Round(value, 2); // 保留两位小数
+                DoNotify();
+            }
+        }
+        public float Noise
+        {
+            get => _noise;
+            set
+            {
+                _noise = (float)Math.Round(value, 2); // 保留两位小数
+                DoNotify();
+            }
+        }
         public string Model
         {
             get => _model;
@@ -619,6 +674,46 @@ namespace xianyun.ViewModel
             }
         }
 
+        public SolidColorBrush SelectColor
+        {
+            get => _SelectColor;
+            set
+            {
+                _SelectColor = value;
+                DoNotify();
+            }
+        }
+
+        public int BrushHeight
+        {
+            get => _brushHeight;
+            set
+            {
+                _brushHeight = value;
+                DoNotify();
+            }
+        }
+
+        public int BrushWidth
+        {
+            get => _brushWidth;
+            set
+            {
+                _brushWidth = value;
+                DoNotify();
+            }
+        }
+
+        public bool IsIgnorePenPressure
+        {
+            get => _isIgnorePenPressure;
+            set
+            {
+                _isIgnorePenPressure = value;
+                DoNotify();
+            }
+        }
+
         // 加载参数的方法
         public void LoadParameters()
         {
@@ -649,32 +744,21 @@ namespace xianyun.ViewModel
             this.NegitivePrompt = loadedConfig.NegitivePrompt;
             this.PositivePrompt = loadedConfig.PositivePrompt;
             this.Notes = loadedConfig.Notes;
+            this.BrushWidth= loadedConfig.BrushWidth;
+            this.BrushHeight = loadedConfig.BrushHeight;
+            this.SelectColor = loadedConfig.SelectColor;
         }
 
-        // 保存参数的方法，来自 Txt2imgPageModel
+        // 保存参数的方法
         public void SaveParameters()
         {
             ConfigurationService.SaveConfiguration(this);
-        }
-        // 将 Base64 字符串转换为 BitmapFrame 的方法
-        public BitmapFrame ConvertBase64ToBitmapFrame(string base64String)
-        {
-            byte[] imageBytes = Convert.FromBase64String(base64String);
-            BitmapImage bitmapImage = new BitmapImage();
-            using (MemoryStream ms = new MemoryStream(imageBytes))
-            {
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = ms;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-            }
-            return BitmapFrame.Create(bitmapImage);
         }
 
         // 图像点击事件的处理方法
         public void OnImageClicked(object sender, string base64Image)
         {
-            var bitmapFrame = ConvertBase64ToBitmapFrame(base64Image);
+            var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(base64Image);
             ImageViewerControl.ImageSource = bitmapFrame;
         }
 
