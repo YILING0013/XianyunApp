@@ -26,11 +26,6 @@ namespace xianyun.View
             InitializeComponent();
             this.DataContext = new LoginViewModel();
         }
-
-        private void AccountTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-
-        }
         private void Win_MoveleftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if(e.LeftButton== MouseButtonState.Pressed)

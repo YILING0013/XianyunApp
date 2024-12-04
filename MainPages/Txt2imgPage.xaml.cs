@@ -1647,9 +1647,19 @@ namespace xianyun.MainPages
 
         private void TextHex_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (inkCanvas != null)
+            if (inkCanvas != null && !string.IsNullOrWhiteSpace(TextHex.Text))
             {
-                inkCanvas.DefaultDrawingAttributes.Color = (Color)ColorConverter.ConvertFromString(TextHex.Text);
+                try
+                {
+                    // 尝试将文本转换为颜色
+                    var color = (Color)ColorConverter.ConvertFromString(TextHex.Text);
+                    inkCanvas.DefaultDrawingAttributes.Color = color;
+                }
+                catch (FormatException)
+                {
+                    // 如果转换失败，设置一个默认颜色
+                    inkCanvas.DefaultDrawingAttributes.Color = Colors.White;
+                }
             }
         }
 

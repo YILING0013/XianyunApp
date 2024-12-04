@@ -312,7 +312,7 @@
                     <RowDefinition />
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <TextBox Text="{Binding UserName}" FontSize="16" Foreground="#555" Style="{DynamicResource UserBox}" Grid.Row="1" Margin="90,10,90,10" TextChanged="AccountTextBox_TextChanged" VerticalContentAlignment="Center"/>
+                <TextBox Text="{Binding UserName}" FontSize="16" Foreground="#555" Style="{DynamicResource UserBox}" Grid.Row="1" Margin="90,10,90,10" VerticalContentAlignment="Center"/>
                 <PasswordBox x:Name="MyPasswordBox" 
                              FontSize="16" 
                              Foreground="#555" 
@@ -326,7 +326,7 @@
                         Grid.Row="3" Margin="90,10,90,10" 
                         Command="{Binding LoginCommand}"
                         IsEnabled="{Binding IsLoginButtonEnabled}"/>
-                <TextBlock Foreground="#64887f" VerticalAlignment="Top" Grid.Row="4"  HorizontalAlignment="Center" FontSize="16" TextWrapping="Wrap" Margin="0,10,0,0"><Run Text="有自己的官方账号？"/></TextBlock>
+                <TextBlock Foreground="#64887f" VerticalAlignment="Top" Grid.Row="4"  HorizontalAlignment="Center" FontSize="16" TextWrapping="Wrap" Margin="0,10,0,0"><Run Text="不使用账号？"/></TextBlock>
                 <TextBlock Foreground="#64887f" VerticalAlignment="Top" Grid.Row="4"  HorizontalAlignment="Center" FontSize="16" TextWrapping="Wrap" Margin="0,36,0,0"><Run Text="在下方输入API Token进行登录"/></TextBlock>
                 <TextBox Text="{Binding AccessToken,UpdateSourceTrigger=PropertyChanged}" FontSize="16" Foreground="#555" Style="{DynamicResource VlidationCodeTextbox}" Grid.Row="5" Margin="60,10,60,10" VerticalContentAlignment="Center"/>
                 <TextBlock Foreground="#64887f" VerticalAlignment="Top" Grid.Row="6"  HorizontalAlignment="Center" FontSize="12" TextWrapping="Wrap" Margin="0,22,0,0"><Run Text="CREATED BY XIANYUN"/></TextBlock>
