@@ -69,6 +69,18 @@ namespace xianyun.MainPages
             this.DataContext = _viewModel;
             this.Loaded += Txt2imgPage_Loaded;
             this.Unloaded += Txt2imgPage_Unloaded;
+            inkCanvas.DefaultDrawingAttributes = new DrawingAttributes
+            {
+                Color = (Color)ColorConverter.ConvertFromString(TextHex.Text),
+                Height = _viewModel.BrushHeight, // 画笔高度
+                Width = _viewModel.BrushWidth,  // 画笔宽度
+                IgnorePressure = _viewModel.IsIgnorePenPressure // 忽略笔压
+            };
+            inkCanvas.Background = Brushes.Transparent; // 背景透明
+            inkCanvas.EditingMode = InkCanvasEditingMode.Ink;  // 默认绘制模式
+            inkCanvas.UseCustomCursor = true;
+            inkCanvas.Cursor = Cursors.Cross;
+            inkCanvas.IsHitTestVisible = false;
         }
         /// <summary>
         /// HexTextBox的回车事件，触发LoseFocus使颜色值生效
@@ -99,7 +111,11 @@ namespace xianyun.MainPages
             }
         }
 
-
+        /// <summary>
+        /// EmotionDefry的点击事件，当点击时，将Emotion的Defry降低；低于0时，禁用减号按钮
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void EmotionDefryReduce_Click(object sender, RoutedEventArgs e)
         {
             // 确保 Defry 值不能小于 0
@@ -115,6 +131,12 @@ namespace xianyun.MainPages
             // 确保当 Defry 小于 5 时，EmotionDefryPlus 按钮始终启用
             EmotionDefryPlus.IsEnabled = _viewModel.Emotion_Defry < 5;
         }
+
+        /// <summary>
+        /// EmotionDefry的点击事件，当点击时，将Emotion的Defry增加；高于5时，禁用加号按钮
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void EmotionDefryPlus_Click(object sender, RoutedEventArgs e)
         {
             // 确保 Defry 值不能大于 5
@@ -130,12 +152,21 @@ namespace xianyun.MainPages
             // 确保当 Defry 大于 0 时，EmotionDefryReduce 按钮始终启用
             EmotionDefryReduce.IsEnabled = _viewModel.Emotion_Defry > 0;
         }
+
+        /// <summary>
+        /// EmotionDefry的文本更新事件，随defry值的变化更新defry等级对应文本
+        /// </summary>
         private void UpdateDefryGrade()
         {
             string[] grades = { "Normal", "Slightly Weak", "Weak", "Even Weaker", "Very Weak", "Weakest" };
             defryGrade.Text = grades[_viewModel.Emotion_Defry];
         }
 
+        /// <summary>
+        /// 宽度的调节滑块逻辑，当宽度值改变时，更新高度滑块的最大值
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void WidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (HeightSlider == null)
@@ -154,6 +185,12 @@ namespace xianyun.MainPages
                 _viewModel.Height = (int)maxHeight;
             }
         }
+
+        /// <summary>
+        /// 通过宽度值计算最大高度值
+        /// </summary>
+        /// <param name="widthValue"></param>
+        /// <returns></returns>
         private double CalculateMaxHeight(double widthValue)
         {
             // 定义最小和最大边界值
@@ -1617,18 +1654,13 @@ namespace xianyun.MainPages
 
             panZoomTranslateTransform.X = (borderWidth - imageWidth * scale) / 2;
             panZoomTranslateTransform.Y = (borderHeight - imageHeight * scale) / 2;
-
-            inkCanvas.DefaultDrawingAttributes = new DrawingAttributes
-            {
-                Color = (Color)ColorConverter.ConvertFromString(TextHex.Text),
-                Height = _viewModel.BrushHeight, // 画笔高度
-                Width = _viewModel.BrushWidth,  // 画笔宽度
-                IgnorePressure = _viewModel.IsIgnorePenPressure // 忽略笔压
-            };
-            inkCanvas.Background = Brushes.Transparent; // 背景透明
-            inkCanvas.IsHitTestVisible = false;
         }
 
+        /// <summary>
+        /// 对画笔的宽度进行调整
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BrushWidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (inkCanvas != null)
@@ -1637,6 +1669,11 @@ namespace xianyun.MainPages
             }
         }
 
+        /// <summary>
+        /// 对画笔的高度进行调整
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BrushHeightSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (inkCanvas != null)
@@ -1645,6 +1682,11 @@ namespace xianyun.MainPages
             }
         }
 
+        /// <summary>
+        /// 通过HEX文本框对画笔的颜色进行调整
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void TextHex_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (inkCanvas != null && !string.IsNullOrWhiteSpace(TextHex.Text))
@@ -1663,6 +1705,11 @@ namespace xianyun.MainPages
             }
         }
 
+        /// <summary>
+        /// 重置图像的尺寸
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ResetPositionButton_Click(object sender, RoutedEventArgs e)
         {
             if (originalImage != null)
@@ -1688,6 +1735,11 @@ namespace xianyun.MainPages
             }
         }
 
+        /// <summary>
+        /// 进入画布的平移缩放模式
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PanZoomButton_Click(object sender, RoutedEventArgs e)
         {
             if (!isPanZoomMode)
@@ -1701,9 +1753,38 @@ namespace xianyun.MainPages
             }
         }
 
-        //启用画笔
+        /// <summary>
+        /// 退出画布的平移缩放模式
+        /// </summary>
+        private void ExitPanZoomMode()
+        {
+            isPanZoomMode = false;
+            inkCanvas.IsHitTestVisible = true;
+            panZoomCanvas.MouseWheel -= PanZoomCanvas_MouseWheel;
+            panZoomCanvas.MouseDown -= PanZoomCanvas_MouseDown;
+            panZoomCanvas.MouseMove -= PanZoomCanvas_MouseMove;
+            panZoomCanvas.MouseUp -= PanZoomCanvas_MouseUp;
+        }
+
+        /// <summary>
+        /// 启用画笔
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void InkButton_Click(object sender, RoutedEventArgs e)
         {
+            inkCanvas.EditingMode = InkCanvasEditingMode.Ink;
+            ExitPanZoomMode();
+        }
+
+        /// <summary>
+        /// 启用橡皮擦
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void EraserButton_Click(object sender, RoutedEventArgs e)
+        {
+            inkCanvas.EditingMode = InkCanvasEditingMode.EraseByPoint;
             ExitPanZoomMode();
         }
 
@@ -1818,16 +1899,6 @@ namespace xianyun.MainPages
 
             // 更新 thumbSB 滑块的位置（通过 X 轴控制饱和度，Y 轴控制亮度）
             thumbSB.UpdatePositionByPercent(S, 1.0 - B);
-        }
-
-        private void ExitPanZoomMode()
-        {
-            isPanZoomMode = false;
-            inkCanvas.IsHitTestVisible = true;
-            panZoomCanvas.MouseWheel -= PanZoomCanvas_MouseWheel;
-            panZoomCanvas.MouseDown -= PanZoomCanvas_MouseDown;
-            panZoomCanvas.MouseMove -= PanZoomCanvas_MouseMove;
-            panZoomCanvas.MouseUp -= PanZoomCanvas_MouseUp;
         }
 
         private void PanZoomCanvas_MouseWheel(object sender, MouseWheelEventArgs e)

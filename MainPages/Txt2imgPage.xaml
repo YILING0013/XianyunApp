@@ -881,7 +881,7 @@
                                                     <hc:ButtonGroup Margin="1" Orientation="Vertical" VerticalAlignment="Center">
                                                         <RadioButton GroupName="EditingTools" Click="InkButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe687;" Margin="1"/>
                                                         <RadioButton GroupName="EditingTools" Click="PanZoomButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe616;" Margin="1"/>
-                                                        <RadioButton GroupName="EditingTools" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe71e;" Margin="1"/>
+                                                        <RadioButton GroupName="EditingTools" Click="EraserButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe71e;" Margin="1"/>
                                                         <Button Name="UndoButton" Click="UndoButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe7f4;" Margin="1"/>
                                                         <Button Name="RedoButton" Click="RedoButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe602;" Margin="1"/>
                                                         <Button FontFamily="../Assets/Fonts/#iconfont" Content="&#xe747;" Margin="1"/>
