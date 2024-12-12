@@ -57,6 +57,7 @@ namespace xianyun.MainPages
         private int G = 255;
         private int _B = 255;
         private int A = 255;
+        private float _A = 255;
 
         private BitmapImage originalImage;
         RenderTargetBitmap maskImage;
@@ -1807,7 +1808,7 @@ namespace xianyun.MainPages
             HsbaColor Hcolor = new HsbaColor(H, 1, 1, 1);
             viewSelectColor.Fill = Hcolor.SolidColorBrush;
 
-            Hcolor = new HsbaColor(H, S, B, 1);
+            Hcolor = new HsbaColor(H, S, B, A / 255.0);
             _viewModel.SelectColor = Hcolor.SolidColorBrush;
             _viewModel.SelectColor_A = Hcolor.Color;
 
@@ -1818,7 +1819,7 @@ namespace xianyun.MainPages
         {
             S = xpercent;
             B = 1 - ypercent;
-            HsbaColor Hcolor = new HsbaColor(H, S, B, 1);
+            HsbaColor Hcolor = new HsbaColor(H, S, B, A/255.0);
 
             _viewModel.SelectColor = Hcolor.SolidColorBrush;
             _viewModel.SelectColor_A = Hcolor.Color;
@@ -1866,8 +1867,8 @@ namespace xianyun.MainPages
                 return;
             }
 
-            R = Rvalue; G = Gvalue; _B = Bvalue; A = Avalue;
-            float _A = (float)(A / 255.0);
+            R = Rvalue; G = Gvalue; _B = Bvalue; A = Avalue; _A = (float)(A / 255.0);
+
             // 更新颜色
             RgbaColor rgbaColor = new RgbaColor(R, G, _B, A);
             _viewModel.SelectColor = rgbaColor.SolidColorBrush;
