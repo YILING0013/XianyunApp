@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Xml;
 using xianyun.API;
 using xianyun.Common;
 using xianyun.UserControl;
@@ -63,6 +64,7 @@ namespace xianyun.ViewModel
         private string _colorizePrompt = null;
         public readonly string _secretKey = "XianyunWebSite";
         SolidColorBrush _SelectColor = Brushes.White;
+        Color _SelectColor_A;
         private int _brushHeight = 20;
         private int _brushWidth = 20;
         private bool _isIgnorePenPressure = true;
@@ -684,6 +686,15 @@ namespace xianyun.ViewModel
             }
         }
 
+        public Color SelectColor_A
+        {
+            get => _SelectColor.Color;
+            set
+            {
+                _SelectColor.Color = value;
+                DoNotify();
+            }
+        }
         public int BrushHeight
         {
             get => _brushHeight;

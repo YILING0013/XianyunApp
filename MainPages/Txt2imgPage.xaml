@@ -636,6 +636,7 @@
                                                         <Grid Grid.Row="8" Margin="0,0,1,0">
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition Height="120"/>
+                                                                <RowDefinition Height="20"/>
                                                                 <RowDefinition Height="Auto"/>
                                                             </Grid.RowDefinitions>
                                                             <Grid.Resources>
@@ -651,7 +652,6 @@
                                                                                         <Path.Data>
                                                                                             <PathGeometry>
                                                                                                 <PathGeometry.Figures>
-
                                                                                                     <PathFigure StartPoint="0,0">
                                                                                                         <PolyLineSegment Points="0,20 15,10 0,0 "></PolyLineSegment>
                                                                                                     </PathFigure>
@@ -659,7 +659,6 @@
                                                                                                         <PolyLineSegment Points="60,20 45,10 60,0 "></PolyLineSegment>
                                                                                                     </PathFigure>
                                                                                                 </PathGeometry.Figures>
-
                                                                                             </PathGeometry>
                                                                                         </Path.Data>
                                                                                     </Path>
@@ -677,6 +676,37 @@
                                                                             <ControlTemplate TargetType="{x:Type local:ThumbPro}">
                                                                                 <Canvas Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Background="#00000000"  >
                                                                                     <Ellipse Height="20" Width="20" StrokeThickness="1" Stroke="Black"  Canvas.Left="{TemplateBinding Left}" Canvas.Top="{TemplateBinding Top}" ></Ellipse>
+                                                                                </Canvas>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                                <Style x:Key="ThumbStyleAlpha" TargetType="{x:Type local:ThumbPro}">
+                                                                    <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
+                                                                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="{x:Type local:ThumbPro}">
+                                                                                <Canvas Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Background="#00000000">
+
+                                                                                    <!-- 使用两个PathFigure，上箭头和下箭头，对称分布 -->
+                                                                                    <Path Fill="Gray" Canvas.Left="{TemplateBinding Left}" Canvas.Top="{TemplateBinding Top}" Stretch="Fill" Height="{TemplateBinding ActualHeight}" Width="8">
+                                                                                        <Path.Data>
+                                                                                            <PathGeometry>
+                                                                                                <PathGeometry.Figures>
+                                                                                                    <!-- 上部箭头指向下方  -->
+                                                                                                    <PathFigure StartPoint="0,0">
+                                                                                                        <PolyLineSegment Points="20,0 10,8 0,0"/>
+                                                                                                    </PathFigure>
+                                                                                                    <!-- 下部箭头指向上方 -->
+                                                                                                    <PathFigure StartPoint="0,20">
+                                                                                                        <PolyLineSegment Points="20,20 10,12 0,20"/>
+                                                                                                    </PathFigure>
+                                                                                                </PathGeometry.Figures>
+                                                                                            </PathGeometry>
+                                                                                        </Path.Data>
+                                                                                    </Path>
                                                                                 </Canvas>
                                                                             </ControlTemplate>
                                                                         </Setter.Value>
@@ -733,7 +763,7 @@
                                                                 <Grid Grid.Column="1" Margin="5,0,0,0">
                                                                     <!-- Hue Selector -->
                                                                     <Rectangle RadiusX="2" RadiusY="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
-                                                                        <Rectangle.Fill >
+                                                                        <Rectangle.Fill>
                                                                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                                                                                 <GradientStop x:Name="viewLine1" Color="Red" Offset="0"/>
                                                                                 <GradientStop x:Name="viewLine2" Color="Yellow" Offset="0.1667"/>
@@ -750,6 +780,19 @@
                                                                 </Grid>
                                                             </Grid>
                                                             <Grid Grid.Row="1">
+                                                                <!-- Alpha Control -->
+                                                                <Rectangle  Margin="0,2" RadiusX="2" RadiusY="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                                                    <Rectangle.Fill>
+                                                                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                                                            <GradientStop Color="{Binding SelectColor_A,Mode=TwoWay}" Offset="0"/>
+                                                                            <GradientStop Color="#00FFFFFF" Offset="1"/>
+                                                                        </LinearGradientBrush>
+                                                                    </Rectangle.Fill>
+                                                                </Rectangle>
+                                                                <!-- Alpha Selector -->
+                                                                <local:ThumbPro Margin="0,2" x:Name="thumbA" ValueChanged="ThumbPro_ValueChanged_A" Style="{StaticResource ThumbStyleAlpha}" Xoffset="4" HorizontalOnly="True" Yoffset="0"/>
+                                                            </Grid>
+                                                            <Grid Grid.Row="2">
                                                                 <Grid.RowDefinitions>
                                                                     <RowDefinition Height="1*"/>
                                                                     <RowDefinition Height="1*"/>

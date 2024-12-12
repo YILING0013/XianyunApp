@@ -92,7 +92,7 @@ namespace xianyun.MainPages
             // 检查是否按下回车键
             if (e.Key == Key.Enter)
             {
-                HexTextLostFocus(sender, null);
+                HexTextLostFocus(sender, e);
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
             }
         }
@@ -106,7 +106,7 @@ namespace xianyun.MainPages
             // 检查是否按下回车键
             if (e.Key == Key.Enter)
             {
-                TextBox_LostFocus(sender, null);
+                TextBox_LostFocus(sender, e);
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
             }
         }
@@ -1809,6 +1809,7 @@ namespace xianyun.MainPages
 
             Hcolor = new HsbaColor(H, S, B, 1);
             _viewModel.SelectColor = Hcolor.SolidColorBrush;
+            _viewModel.SelectColor_A = Hcolor.Color;
 
             ColorChange(Hcolor.RgbaColor);
         }
@@ -1820,15 +1821,27 @@ namespace xianyun.MainPages
             HsbaColor Hcolor = new HsbaColor(H, S, B, 1);
 
             _viewModel.SelectColor = Hcolor.SolidColorBrush;
+            _viewModel.SelectColor_A = Hcolor.Color;
 
             ColorChange(Hcolor.RgbaColor);
         }
+
+        private void ThumbPro_ValueChanged_A(double xpercent, double ypercent)
+        {
+            A = (int)((1 - xpercent) * 255);
+            RgbaColor rgbaColor = new RgbaColor(R, G, _B, (int)A);
+            _viewModel.SelectColor = rgbaColor.SolidColorBrush;
+            TextA.Text = A.ToString();
+            TextHex.Text = rgbaColor.HexString;
+        }
+
 
         private void TextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             TextBox textBox = sender as TextBox;
             string text = textBox.Text;
 
+            // 验证 RGBA 的值是否有效
             if (!int.TryParse(TextR.Text, out int Rvalue) || (Rvalue > 255 || Rvalue < 0))
             {
                 TextR.Text = R.ToString();
@@ -1846,6 +1859,7 @@ namespace xianyun.MainPages
                 TextB.Text = _B.ToString();
                 return;
             }
+
             if (!int.TryParse(TextA.Text, out int Avalue) || (Avalue > 255 || Avalue < 0))
             {
                 TextA.Text = A.ToString();
@@ -1853,52 +1867,50 @@ namespace xianyun.MainPages
             }
 
             R = Rvalue; G = Gvalue; _B = Bvalue; A = Avalue;
+            float _A = (float)(A / 255.0);
+            // 更新颜色
+            RgbaColor rgbaColor = new RgbaColor(R, G, _B, A);
+            _viewModel.SelectColor = rgbaColor.SolidColorBrush;
 
-            RgbaColor Hcolor = new RgbaColor(R, G, _B, A);
-            _viewModel.SelectColor = Hcolor.SolidColorBrush;
-
-            TextHex.Text = Hcolor.HexString;
+            // 更新十六进制颜色
+            TextHex.Text = rgbaColor.HexString;
 
             // 转换 RGBA 到 HSB
-            HsbaColor hsbaColor = Hcolor.ToHsbaColor();
+            HsbaColor hsbaColor = rgbaColor.ToHsbaColor();
             H = hsbaColor.H;
             S = hsbaColor.S;
             B = hsbaColor.B;
 
             // 更新滑块位置
-            // 更新 thumbH 滑块的位置（通过 Y 轴控制色相的选择）
             thumbH.UpdatePositionByPercent(0.0, H / 360.0);
-
-            // 更新 thumbSB 滑块的位置（通过 X 轴控制饱和度，Y 轴控制亮度）
             thumbSB.UpdatePositionByPercent(S, 1.0 - B);
+            thumbA.UpdatePositionByPercent(1-_A,0.0); // 更新透明度滑块
         }
 
         private void HexTextLostFocus(object sender, RoutedEventArgs e)
         {
-            // 解析输入的十六进制颜色值
-            RgbaColor Hcolor = new RgbaColor(TextHex.Text);
+            // 解析十六进制颜色
+            RgbaColor rgbaColor = new RgbaColor(TextHex.Text);
 
             // 更新颜色显示
-            _viewModel.SelectColor = Hcolor.SolidColorBrush;
+            _viewModel.SelectColor = rgbaColor.SolidColorBrush;
 
-            // 更新文本框中的颜色值
-            TextR.Text = Hcolor.R.ToString();
-            TextG.Text = Hcolor.G.ToString();
-            TextB.Text = Hcolor.B.ToString();
-            TextA.Text = Hcolor.A.ToString();
+            // 更新颜色文本框的值
+            TextR.Text = rgbaColor.R.ToString();
+            TextG.Text = rgbaColor.G.ToString();
+            TextB.Text = rgbaColor.B.ToString();
+            TextA.Text = rgbaColor.A.ToString();
 
             // 转换 RGBA 到 HSB
-            HsbaColor hsbaColor = Hcolor.ToHsbaColor();
+            HsbaColor hsbaColor = rgbaColor.ToHsbaColor();
             H = hsbaColor.H;
             S = hsbaColor.S;
             B = hsbaColor.B;
 
             // 更新滑块位置
-            // 更新 thumbH 滑块的位置（通过 Y 轴控制色相的选择）
             thumbH.UpdatePositionByPercent(0.0, H / 360.0);
-
-            // 更新 thumbSB 滑块的位置（通过 X 轴控制饱和度，Y 轴控制亮度）
             thumbSB.UpdatePositionByPercent(S, 1.0 - B);
+            thumbA.UpdatePositionByPercent(1-(rgbaColor.A / 255.0),0.0); // 更新透明度滑块
         }
 
         private void PanZoomCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -2128,7 +2140,7 @@ namespace xianyun.MainPages
         public double Xoffset { get; set; }
         public double Yoffset { get; set; }
         public bool VerticalOnly { get; set; } = false;
-
+        public bool HorizontalOnly { get; set; } = false;
         public double Xpercent { get { return (Left + Xoffset) / ActualWidth; } }
         public double Ypercent { get { return (Top + Yoffset) / ActualHeight; } }
 
@@ -2138,39 +2150,69 @@ namespace xianyun.MainPages
         {
             Loaded += (object sender, RoutedEventArgs e) =>
             {
-                if (!VerticalOnly)
+                // 如果是水平滑块，起始Top置为固定(-Yoffset), 保持居中
+                if (HorizontalOnly)
+                {
+                    Top = -Yoffset;
+                }
+                else if (!VerticalOnly)
+                {
                     Left = -Xoffset;
-                Top = -Yoffset;
+                    Top = -Yoffset;
+                }
+                else
+                {
+                    Top = -Yoffset;
+                }
             };
 
             DragStarted += (object sender, DragStartedEventArgs e) =>
             {
-                // 当开始拖动时，记录当前位置
-                if (!VerticalOnly)
+                if (HorizontalOnly)
                 {
                     Left = e.HorizontalOffset - Xoffset;
                     FirstLeft = Left;
+                    // Top 固定不变
                 }
-                Top = e.VerticalOffset - Yoffset;
-                FirstTop = Top;
+                else if (!VerticalOnly)
+                {
+                    Left = e.HorizontalOffset - Xoffset;
+                    FirstLeft = Left;
+                    Top = e.VerticalOffset - Yoffset;
+                    FirstTop = Top;
+                }
+                else
+                {
+                    Top = e.VerticalOffset - Yoffset;
+                    FirstTop = Top;
+                }
 
-                // 触发事件
                 ValueChanged?.Invoke(Xpercent, Ypercent);
             };
 
             DragDelta += (object sender, DragDeltaEventArgs e) =>
             {
-                // 按住拖拽时，点随着鼠标移动
-                if (!VerticalOnly)
+                if (HorizontalOnly)
                 {
                     double x = FirstLeft + e.HorizontalChange;
                     Left = Clamp(x, -Xoffset, ActualWidth - Xoffset);
+                    // 不允许垂直移动
+                    Top = -Yoffset;
+                }
+                else if (!VerticalOnly)
+                {
+                    double x = FirstLeft + e.HorizontalChange;
+                    Left = Clamp(x, -Xoffset, ActualWidth - Xoffset);
+
+                    double y = FirstTop + e.VerticalChange;
+                    Top = Clamp(y, -Yoffset, ActualHeight - Yoffset);
+                }
+                else
+                {
+                    double y = FirstTop + e.VerticalChange;
+                    Top = Clamp(y, -Yoffset, ActualHeight - Yoffset);
                 }
 
-                double y = FirstTop + e.VerticalChange;
-                Top = Clamp(y, -Yoffset, ActualHeight - Yoffset);
-
-                // 触发事件
                 ValueChanged?.Invoke(Xpercent, Ypercent);
             };
         }
