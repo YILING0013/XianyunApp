@@ -82,6 +82,7 @@ namespace xianyun.MainPages
             inkCanvas.UseCustomCursor = true;
             inkCanvas.Cursor = Cursors.Cross;
             inkCanvas.IsHitTestVisible = false;
+            LogPage.LogMessage(LogLevel.INFO, "绘图初始化成功");
         }
         /// <summary>
         /// HexTextBox的回车事件，触发LoseFocus使颜色值生效
@@ -504,6 +505,7 @@ namespace xianyun.MainPages
                     catch (IOException ex)
                     {
                         MessageBox.Show($"删除文件时发生错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        LogPage.LogMessage(LogLevel.ERROR, "删除文件时发生错误: " + ex.Message);
                         return;
                     }
                 }
@@ -718,6 +720,7 @@ namespace xianyun.MainPages
                     }
                     var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
                     Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
+                    LogPage.LogMessage(LogLevel.INFO, "任务已提交，任务ID: " + jobId + ", 初始队列位置: " + initialQueuePosition);
 
                     int currentQueuePosition = initialQueuePosition;
                     _viewModel.ProgressValue = 0;
@@ -746,6 +749,7 @@ namespace xianyun.MainPages
                         {
                             _viewModel.ProgressValue = 100;
                             Console.WriteLine("图像生成成功！");
+                            LogPage.LogMessage(LogLevel.INFO, "图像生成成功！");
 
                             var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
                             Application.Current.Dispatcher.Invoke(() =>
@@ -788,6 +792,7 @@ namespace xianyun.MainPages
             catch (Exception ex)
             {
                 MessageBox.Show($"生成错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogPage.LogMessage(LogLevel.ERROR, "生成错误: " + ex.Message);
             }
         }
         private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
@@ -1470,10 +1475,12 @@ namespace xianyun.MainPages
                 }
                 ZipFile.CreateFromDirectory(tempDirectory, zipFilePath);
                 MessageBox.Show($"图像已成功导出为压缩包：{zipFilePath}", "导出成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                LogPage.LogMessage(LogLevel.INFO, "图像已经成功导出为压缩包：" + zipFilePath);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogPage.LogMessage(LogLevel.ERROR, "导出失败" + ex.Message);
             }
             finally
             {
@@ -1836,7 +1843,11 @@ namespace xianyun.MainPages
             TextHex.Text = rgbaColor.HexString;
         }
 
-
+        /// <summary>
+        /// ARGB文本框的失去焦点事件，触发颜色更新
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void TextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             TextBox textBox = sender as TextBox;
@@ -1888,6 +1899,11 @@ namespace xianyun.MainPages
             thumbA.UpdatePositionByPercent(1-_A,0.0); // 更新透明度滑块
         }
 
+        /// <summary>
+        /// HSB文本框的失去焦点事件，触发颜色更新
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HexTextLostFocus(object sender, RoutedEventArgs e)
         {
             // 解析十六进制颜色
@@ -1914,6 +1930,11 @@ namespace xianyun.MainPages
             thumbA.UpdatePositionByPercent(1-(rgbaColor.A / 255.0),0.0); // 更新透明度滑块
         }
 
+        /// <summary>
+        /// 鼠标滚轮事件，处理图像缩放
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PanZoomCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (isPanZoomMode)
@@ -1949,6 +1970,11 @@ namespace xianyun.MainPages
             }
         }
 
+        /// <summary>
+        /// 鼠标左键按下事件，用于平移图像
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PanZoomCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (isPanZoomMode && e.LeftButton == MouseButtonState.Pressed)
@@ -1959,6 +1985,11 @@ namespace xianyun.MainPages
             }
         }
 
+        /// <summary>
+        /// 鼠标移动事件，用于平移图像
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PanZoomCanvas_MouseMove(object sender, MouseEventArgs e)
         {
             if (isPanZoomMode && isPanning)
@@ -1971,6 +2002,11 @@ namespace xianyun.MainPages
             }
         }
 
+        /// <summary>
+        /// 鼠标左键释放事件，用于停止平移图像
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PanZoomCanvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (isPanZoomMode && e.LeftButton == MouseButtonState.Released)

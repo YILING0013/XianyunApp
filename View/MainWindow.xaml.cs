@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using xianyun.MainPages;
 using xianyun.ViewModel;
 
 namespace xianyun.View
@@ -34,6 +35,7 @@ namespace xianyun.View
                     if (this.DataContext is MainViewModel viewModel)
                     {
                         viewModel.NavigateCommand.Execute("Welcome");
+                        LogPage.LogMessage("程序启动成功");
                     }
                 });
             };

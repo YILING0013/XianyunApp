@@ -784,7 +784,7 @@
                                                                 <Rectangle  Margin="0,2" RadiusX="2" RadiusY="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                                                     <Rectangle.Fill>
                                                                         <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                                                                            <GradientStop Color="{Binding SelectColor_A,Mode=TwoWay}" Offset="0"/>
+                                                                            <GradientStop Color="{Binding SelectColor_A}" Offset="0"/>
                                                                             <GradientStop Color="#00FFFFFF" Offset="1"/>
                                                                         </LinearGradientBrush>
                                                                     </Rectangle.Fill>

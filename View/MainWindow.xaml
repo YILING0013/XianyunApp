@@ -92,15 +92,18 @@
                         </Border>
                         <Border Grid.Row="4" Margin="5" CornerRadius="15" Background="Transparent">
                             <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
-                                         Content="&#xe6bf;" Foreground="#70677e" GroupName="LeftMenu"/>
+                                         Content="&#xe6bf;" Foreground="#70677e" GroupName="LeftMenu"
+                                         Command="{Binding NavigateCommand}" CommandParameter="Page4"/>
                         </Border>
                         <Border Grid.Row="5" Margin="5" CornerRadius="15" Background="Transparent">
                             <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
-                                         Content="&#xe699;" Foreground="#70677e" GroupName="LeftMenu"/>
+                                         Content="&#xe6a9;" Foreground="#70677e" GroupName="LeftMenu"
+                                         Command="{Binding NavigateCommand}" CommandParameter="Page5"/>
                         </Border>
                         <Border Grid.Row="6" Margin="5" CornerRadius="15" Background="Transparent">
                             <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
-                                         Content="&#xe669;" Foreground="#70677e" GroupName="LeftMenu"/>
+                                         Content="&#xe669;" Foreground="#70677e" GroupName="LeftMenu"
+                                         Command="{Binding NavigateCommand}" CommandParameter="Page6"/>
                         </Border>
                         <!-- 最小化按钮 -->
                         <Border Grid.Row="9" Margin="5" CornerRadius="15" Background="#7c9c84">

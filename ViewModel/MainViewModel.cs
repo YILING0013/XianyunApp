@@ -64,7 +64,6 @@ namespace xianyun.ViewModel
         private string _colorizePrompt = null;
         public readonly string _secretKey = "XianyunWebSite";
         SolidColorBrush _SelectColor = Brushes.White;
-        Color _SelectColor_A;
         private int _brushHeight = 20;
         private int _brushWidth = 20;
         private bool _isIgnorePenPressure = true;
@@ -194,6 +193,9 @@ namespace xianyun.ViewModel
                             break;
                         case "Page3":
                             page = new MainPages.superResolutionPage();
+                            break;
+                        case "Page5":
+                            page = MainPages.LogPage.Instance; // 使用单例实例
                             break;
                         default:
                             return;
