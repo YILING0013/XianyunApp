@@ -581,6 +581,7 @@
                                                             <RowDefinition Height="auto"/>
                                                             <RowDefinition Height="auto"/>
                                                             <RowDefinition Height="auto"/>
+                                                            <RowDefinition Height="auto"/>
                                                         </Grid.RowDefinitions>
                                                         <TextBlock Grid.Row="0" Text="画笔设置:" FontSize="16" FontFamily="Comic Sans MS"/>
                                                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
@@ -813,6 +814,10 @@
                                                             </Grid>
                                                         </Grid>
                                                         <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="9" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
+                                                        <Grid Grid.Row="10">
+                                                            <CheckBox Content="叠加原始图像" FontSize="12" IsChecked="{Binding AddOriginalImage}"/>
+                                                        </Grid>
+                                                        <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="11" Margin="1,8,1,8" Grid.ColumnSpan="2"/>
                                                     </Grid>
                                                 </Border>
                                             </Grid>

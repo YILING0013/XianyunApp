@@ -604,189 +604,281 @@ namespace xianyun.MainPages
         {
             try
             {
-                var apiClient = new XianyunApiClient("https://nocaptchauri.idlecloud.cc", SessionManager.Session);
-                Console.WriteLine(SessionManager.Session);
-
-                // 获取 VibeTransfer 的数据
-                var (base64Images, informationExtracted, referenceStrength) = ExtractImageData();
-
-                // 生成随机种子的方法
-                long GenerateRandomSeed()
+                // 判断是否使用 XianyunApiClient 或 NovelAiApiClient
+                if (string.IsNullOrEmpty(SessionManager.Session) && !string.IsNullOrEmpty(SessionManager.Token))
                 {
-                    var random = new Random();
-                    int length = random.Next(9, 13);
-                    long seed = 0;
-                    for (int i = 0; i < length; i++)
+                    // 使用 NovelAI 的逻辑
+                    var novelAiClient = new NovelAiApiClient("https://image.novelai.net", SessionManager.Token);
+                    Console.WriteLine("使用 NovelAI API");
+
+                    // 获取 VibeTransfer 的数据
+                    var (base64Images, informationExtracted, referenceStrength) = ExtractImageData();
+
+                    // 生成随机种子的方法
+                    long GenerateRandomSeed()
                     {
-                        seed = seed * 10 + random.Next(0, 10);
+                        var random = new Random();
+                        int length = random.Next(9, 13);
+                        long seed = 0;
+                        for (int i = 0; i < length; i++)
+                        {
+                            seed = seed * 10 + random.Next(0, 10);
+                        }
+                        return seed;
                     }
-                    return seed;
+
+                    for (int i = 0; i < _viewModel.DrawingFrequency; i++)
+                    {
+                        var seedValue = _viewModel.Seed ?? GenerateRandomSeed();
+                        // 创建 NovelAI 的请求对象
+                        var novelAiRequest = new NovelAiRequest
+                        {
+                            Action = "generate",
+                            Input = _viewModel.PositivePrompt,
+                            Model = _viewModel.Model,
+                            Parameters = new NovelAiParameters
+                            {
+                                AddOriginalImage = _viewModel.AddOriginalImage,
+                                Width = _viewModel.Width,
+                                Height = _viewModel.Height,
+                                Scale = _viewModel.GuidanceScale,
+                                Sampler = _viewModel.ActualSamplingMethod,
+                                Steps = _viewModel.Steps,
+                                Seed = (uint)seedValue,
+                                QualityToggle=false,
+                                Sm = _viewModel.IsSMEA,
+                                SmDyn = _viewModel.IsDYN,
+                                NegativePrompt = _viewModel.NegitivePrompt,
+                                CfgRescale = _viewModel.GuidanceRescale,
+                                Noise = (int)_viewModel.Noise,
+                                Strength = _viewModel.Strength,
+                                ReferenceImageMultiple = base64Images.Length > 0 ? base64Images : null,
+                                ReferenceInformationExtractedMultiple = informationExtracted.Length > 0 ? informationExtracted : null,
+                                ReferenceStrengthMultiple = referenceStrength.Length > 0 ? referenceStrength : null,
+                            }
+                        };
+
+                        if (_viewModel.IsConvenientResolution)
+                        {
+                            string Resolution = _viewModel.Resolution;
+                            // 解析分辨率字符串
+                            string[] resolution = Resolution.Split('*');
+                            novelAiRequest.Parameters.Width = int.Parse(resolution[0]);
+                            novelAiRequest.Parameters.Height = int.Parse(resolution[1]);
+                        }
+
+                        if (originalImage != null)
+                        {
+                            if (originalImage is BitmapImage image)
+                            {
+                                int width = image.PixelWidth;
+                                int height = image.PixelHeight;
+                                Common.tools.ValidateResolution(ref width, ref height);
+                                BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
+                                string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
+                                novelAiRequest.Parameters.Image = base64Image;
+                            }
+                        }
+                        _viewModel.ProgressValue = 90;
+                        // 发送请求
+                        string imageBase64 = await novelAiClient.GenerateImageAsync(novelAiRequest);
+                        var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            var imgPreview = new ImgPreview(imageBase64);
+                            imgPreview.ImageClicked += _viewModel.OnImageClicked;
+                            ImageStackPanel.Children.Add(imgPreview);
+                            ImageViewerControl.ImageSource = bitmapFrame;
+                        });
+                        LogPage.LogMessage(LogLevel.INFO, "图像生成成功" );
+                        _viewModel.ProgressValue = 100;
+                        await Task.Delay(3000); // 请求间隔3秒
+                    }  
                 }
+                else {
+                    var apiClient = new XianyunApiClient("https://nocaptchauri.idlecloud.cc", SessionManager.Session);
+                    Console.WriteLine(SessionManager.Session);
 
-                // 循环生成图像请求
-                for (int i = 0; i < _viewModel.DrawingFrequency; i++)
-                {
-                    var seedValue = _viewModel.Seed?.ToString() ?? GenerateRandomSeed().ToString();
+                    // 获取 VibeTransfer 的数据
+                    var (base64Images, informationExtracted, referenceStrength) = ExtractImageData();
 
-                    // 创建图像生成请求对象
-                    var imageRequest = new ImageGenerationRequest
+                    // 生成随机种子的方法
+                    long GenerateRandomSeed()
                     {
-                        Model = _viewModel.Model,
-                        PositivePrompt = _viewModel.PositivePrompt,
-                        NegativePrompt = _viewModel.NegitivePrompt,
-                        Scale = _viewModel.GuidanceScale,
-                        Steps = _viewModel.Steps,
-                        Width = _viewModel.Width,
-                        Height = _viewModel.Height,
-                        PromptGuidanceRescale = _viewModel.GuidanceRescale,
-                        NoiseSchedule = _viewModel.NoiseSchedule,
-                        Seed = seedValue,
-                        Sampler = _viewModel.ActualSamplingMethod,
-                        Decrisp = _viewModel.IsDecrisp,
-                        Variety = _viewModel.IsVariety,
-                        Sm = _viewModel.IsSMEA,
-                        SmDyn = _viewModel.IsDYN,
-                        PictureId = TotpGenerator.GenerateTotp(_viewModel._secretKey)
-                    };
-
-                    if (_viewModel.IsConvenientResolution)
-                    {
-                        string Resolution = _viewModel.Resolution;
-                        // 解析分辨率字符串
-                        string[] resolution = Resolution.Split('*');
-                        imageRequest.Width = int.Parse(resolution[0]);
-                        imageRequest.Height = int.Parse(resolution[1]);
-                    }
-
-                    // 检查是否有 VibeTransfer 数据
-                    if (base64Images.Length > 0 && informationExtracted.Length > 0 && referenceStrength.Length > 0)
-                    {
-                        imageRequest.ReferenceImage = base64Images;
-                        imageRequest.InformationExtracted = informationExtracted;
-                        imageRequest.ReferenceStrength = referenceStrength;
-                    }
-                    else
-                    {
-                        // 如果没有VibeTransfer数据，则将这些字段设置为null
-                        imageRequest.ReferenceImage = null;
-                        imageRequest.InformationExtracted = null;
-                        imageRequest.ReferenceStrength = null;
-                    }
-                    if (originalImage != null)
-                    {
-                        if (originalImage is BitmapImage image)
+                        var random = new Random();
+                        int length = random.Next(9, 13);
+                        long seed = 0;
+                        for (int i = 0; i < length; i++)
                         {
-                            int width = image.PixelWidth;
-                            int height = image.PixelHeight;
-                            Common.tools.ValidateResolution(ref width, ref height);
-                            BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
-                            string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
-                            // 获取图像的长和宽
-                            if (_viewModel.ReqType != null)
-                            {
-                                imageRequest.Width = width;
-                                imageRequest.Height = height;
-                                imageRequest.Image = base64Image;
-                                imageRequest.ReqType = _viewModel.ReqType;
+                            seed = seed * 10 + random.Next(0, 10);
+                        }
+                        return seed;
+                    }
 
-                                // 进一步检查 ReqType 是否为 "emotion" 或 "colorize"
-                                if (_viewModel.ReqType == "emotion")
+                    // 循环生成图像请求
+                    for (int i = 0; i < _viewModel.DrawingFrequency; i++)
+                    {
+                        var seedValue = _viewModel.Seed?.ToString() ?? GenerateRandomSeed().ToString();
+
+                        // 创建图像生成请求对象
+                        var imageRequest = new ImageGenerationRequest
+                        {
+                            Model = _viewModel.Model,
+                            PositivePrompt = _viewModel.PositivePrompt,
+                            NegativePrompt = _viewModel.NegitivePrompt,
+                            Scale = _viewModel.GuidanceScale,
+                            Steps = _viewModel.Steps,
+                            Width = _viewModel.Width,
+                            Height = _viewModel.Height,
+                            PromptGuidanceRescale = _viewModel.GuidanceRescale,
+                            NoiseSchedule = _viewModel.NoiseSchedule,
+                            Seed = seedValue,
+                            Sampler = _viewModel.ActualSamplingMethod,
+                            Decrisp = _viewModel.IsDecrisp,
+                            Variety = _viewModel.IsVariety,
+                            Sm = _viewModel.IsSMEA,
+                            SmDyn = _viewModel.IsDYN,
+                            PictureId = TotpGenerator.GenerateTotp(_viewModel._secretKey)
+                        };
+
+                        if (_viewModel.IsConvenientResolution)
+                        {
+                            string Resolution = _viewModel.Resolution;
+                            // 解析分辨率字符串
+                            string[] resolution = Resolution.Split('*');
+                            imageRequest.Width = int.Parse(resolution[0]);
+                            imageRequest.Height = int.Parse(resolution[1]);
+                        }
+
+                        // 检查是否有 VibeTransfer 数据
+                        if (base64Images.Length > 0 && informationExtracted.Length > 0 && referenceStrength.Length > 0)
+                        {
+                            imageRequest.ReferenceImage = base64Images;
+                            imageRequest.InformationExtracted = informationExtracted;
+                            imageRequest.ReferenceStrength = referenceStrength;
+                        }
+                        else
+                        {
+                            // 如果没有VibeTransfer数据，则将这些字段设置为null
+                            imageRequest.ReferenceImage = null;
+                            imageRequest.InformationExtracted = null;
+                            imageRequest.ReferenceStrength = null;
+                        }
+                        if (originalImage != null)
+                        {
+                            if (originalImage is BitmapImage image)
+                            {
+                                int width = image.PixelWidth;
+                                int height = image.PixelHeight;
+                                Common.tools.ValidateResolution(ref width, ref height);
+                                BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
+                                string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
+                                // 获取图像的长和宽
+                                if (_viewModel.ReqType != null)
                                 {
-                                    // 设置 Prompt 和 Defry
-                                    imageRequest.Prompt = _viewModel.ActualEmotion + ";;" + _viewModel.Emotion_Prompt;
-                                    imageRequest.Defry = _viewModel.Emotion_Defry;
+                                    imageRequest.Width = width;
+                                    imageRequest.Height = height;
+                                    imageRequest.Image = base64Image;
+                                    imageRequest.ReqType = _viewModel.ReqType;
+
+                                    // 进一步检查 ReqType 是否为 "emotion" 或 "colorize"
+                                    if (_viewModel.ReqType == "emotion")
+                                    {
+                                        // 设置 Prompt 和 Defry
+                                        imageRequest.Prompt = _viewModel.ActualEmotion + ";;" + _viewModel.Emotion_Prompt;
+                                        imageRequest.Defry = _viewModel.Emotion_Defry;
+                                    }
+                                    if (_viewModel.ReqType == "colorize")
+                                    {
+                                        // 设置 Prompt 和 Defry
+                                        imageRequest.Prompt = _viewModel.Colorize_Prompt;
+                                        imageRequest.Defry = _viewModel.Colorize_Defry;
+                                    }
                                 }
-                                if (_viewModel.ReqType == "colorize")
+                                else
                                 {
-                                    // 设置 Prompt 和 Defry
-                                    imageRequest.Prompt = _viewModel.Colorize_Prompt;
-                                    imageRequest.Defry = _viewModel.Colorize_Defry;
+                                    imageRequest.Width = width;
+                                    imageRequest.Height = height;
+                                    imageRequest.Image = base64Image;
+                                    imageRequest.Action = true;
+                                    imageRequest.Noise = _viewModel.Noise;
+                                    imageRequest.Strength = _viewModel.Strength;
+                                    if (MaskImageSource.Source != null)
+                                    {
+                                        imageRequest.Mask = Common.tools.ConvertRenderTargetBitmapToBase64(maskImage);
+                                    }
                                 }
                             }
-                            else
+                        }
+                        var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
+                        Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
+                        LogPage.LogMessage(LogLevel.INFO, "任务已提交，任务ID: " + jobId + ", 初始队列位置: " + initialQueuePosition);
+
+                        int currentQueuePosition = initialQueuePosition;
+                        _viewModel.ProgressValue = 0;
+
+                        while (currentQueuePosition > 0)
+                        {
+                            var (status, imageBase64, queuePosition) = await apiClient.CheckResultAsync(jobId);
+                            if (status == "processing")
                             {
-                                imageRequest.Width = width;
-                                imageRequest.Height = height;
-                                imageRequest.Image = base64Image;
-                                imageRequest.Action = true;
-                                imageRequest.Noise = _viewModel.Noise;
-                                imageRequest.Strength = _viewModel.Strength;
-                                if (MaskImageSource.Source != null)
+                                _viewModel.ProgressValue = 70;
+                                currentQueuePosition = queuePosition;
+                            }
+                            else if (status == "queued")
+                            {
+                                _viewModel.ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
+                                currentQueuePosition = queuePosition;
+                            }
+                            await Task.Delay(5000); // 轮询延迟
+                        }
+
+                        // 继续更新进度并处理图像生成
+                        while (_viewModel.ProgressValue < 96)
+                        {
+                            var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
+                            if (status == "completed")
+                            {
+                                _viewModel.ProgressValue = 100;
+                                Console.WriteLine("图像生成成功！");
+                                LogPage.LogMessage(LogLevel.INFO, "图像生成成功！");
+
+                                var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
+                                Application.Current.Dispatcher.Invoke(() =>
                                 {
-                                    imageRequest.Mask = Common.tools.ConvertRenderTargetBitmapToBase64(maskImage);
-                                }
+                                    var imgPreview = new ImgPreview(imageBase64);
+                                    imgPreview.ImageClicked += _viewModel.OnImageClicked;
+                                    ImageStackPanel.Children.Add(imgPreview);
+                                    ImageViewerControl.ImageSource = bitmapFrame;
+                                });
+                                break;
+                            }
+
+                            _viewModel.ProgressValue += new Random().Next(1, 4);
+                            await Task.Delay(1500);
+                        }
+
+                        // 最终检查生成完成
+                        while (_viewModel.ProgressValue < 100)
+                        {
+                            await Task.Delay(2000);
+                            var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
+                            if (status == "completed")
+                            {
+                                _viewModel.ProgressValue = 100;
+                                var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    var imgPreview = new ImgPreview(imageBase64);
+                                    imgPreview.ImageClicked += _viewModel.OnImageClicked;
+                                    ImageStackPanel.Children.Add(imgPreview);
+                                    ImageViewerControl.ImageSource = bitmapFrame;
+                                });
+                                break;
                             }
                         }
+                        await Task.Delay(3000); // 请求间隔3秒
                     }
-                    var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
-                    Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
-                    LogPage.LogMessage(LogLevel.INFO, "任务已提交，任务ID: " + jobId + ", 初始队列位置: " + initialQueuePosition);
-
-                    int currentQueuePosition = initialQueuePosition;
-                    _viewModel.ProgressValue = 0;
-
-                    while (currentQueuePosition > 0)
-                    {
-                        var (status, imageBase64, queuePosition) = await apiClient.CheckResultAsync(jobId);
-                        if (status == "processing")
-                        {
-                            _viewModel.ProgressValue = 70;
-                            currentQueuePosition = queuePosition;
-                        }
-                        else if (status == "queued")
-                        {
-                            _viewModel.ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
-                            currentQueuePosition = queuePosition;
-                        }
-                        await Task.Delay(5000); // 轮询延迟
-                    }
-
-                    // 继续更新进度并处理图像生成
-                    while (_viewModel.ProgressValue < 96)
-                    {
-                        var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
-                        if (status == "completed")
-                        {
-                            _viewModel.ProgressValue = 100;
-                            Console.WriteLine("图像生成成功！");
-                            LogPage.LogMessage(LogLevel.INFO, "图像生成成功！");
-
-                            var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                var imgPreview = new ImgPreview(imageBase64);
-                                imgPreview.ImageClicked += _viewModel.OnImageClicked;
-                                ImageStackPanel.Children.Add(imgPreview);
-                                ImageViewerControl.ImageSource = bitmapFrame;
-                            });
-                            break;
-                        }
-
-                        _viewModel.ProgressValue += new Random().Next(1, 4);
-                        await Task.Delay(1500);
-                    }
-
-                    // 最终检查生成完成
-                    while (_viewModel.ProgressValue < 100)
-                    {
-                        await Task.Delay(2000);
-                        var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
-                        if (status == "completed")
-                        {
-                            _viewModel.ProgressValue = 100;
-                            var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                var imgPreview = new ImgPreview(imageBase64);
-                                imgPreview.ImageClicked += _viewModel.OnImageClicked;
-                                ImageStackPanel.Children.Add(imgPreview);
-                                ImageViewerControl.ImageSource = bitmapFrame;
-                            });
-                            break;
-                        }
-                    }
-
-                    await Task.Delay(3000); // 请求间隔3秒
                 }
             }
             catch (Exception ex)

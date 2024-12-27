@@ -67,6 +67,7 @@ namespace xianyun.ViewModel
         private int _brushHeight = 20;
         private int _brushWidth = 20;
         private bool _isIgnorePenPressure = true;
+        private bool _addOriginalImage = true;
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
         {
@@ -723,6 +724,16 @@ namespace xianyun.ViewModel
             set
             {
                 _isIgnorePenPressure = value;
+                DoNotify();
+            }
+        }
+
+        public bool AddOriginalImage
+        {
+            get => _addOriginalImage;
+            set
+            {
+                _addOriginalImage = value;
                 DoNotify();
             }
         }

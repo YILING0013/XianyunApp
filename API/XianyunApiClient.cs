@@ -26,7 +26,12 @@ namespace xianyun.API
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0");
         }
 
-        // 生成图像请求
+        /// <summary>
+        /// 发送生成图像请求
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<(string jobId, int queuePosition)> GenerateImageAsync(ImageGenerationRequest request)
         {
             var json = JsonConvert.SerializeObject(request);
@@ -55,7 +60,12 @@ namespace xianyun.API
                 throw new Exception($"Request failed with status code {response.StatusCode}: {errorData}");
             }
         }
-        // 检查图像生成结果
+        /// <summary>
+        /// 检查图像生成结果
+        /// </summary>
+        /// <param name="jobId"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<(string status, string imageBase64, int queuePosition)> CheckResultAsync(string jobId)
         {
             var response = await _httpClient.GetAsync($"api/get_result/{jobId}");
@@ -88,7 +98,9 @@ namespace xianyun.API
             throw new Exception($"检查结果时发生错误: {response.StatusCode}");
         }
     }
-    // 请求结构体
+    /// <summary>
+    /// idlecloud API请求结构体
+    /// </summary>
     public class ImageGenerationRequest
     {
         [JsonProperty("action", NullValueHandling = NullValueHandling.Ignore)]
@@ -173,7 +185,9 @@ namespace xianyun.API
         public int Defry { get; set; }
     }
 
-    // 生成图像响应结构体
+    /// <summary>
+    /// idlecloud API生成中响应结构体
+    /// </summary>
     public class GenerateImageResponse
     {
         [JsonProperty("job_id")]
@@ -183,7 +197,9 @@ namespace xianyun.API
         public int QueuePosition { get; set; }
     }
 
-    // 获取结果响应结构体
+    /// <summary>
+    /// idlecloud API生成完成的响应结构体
+    /// </summary>
     public class GetResultResponse
     {
         [JsonProperty("status")]

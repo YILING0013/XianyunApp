@@ -100,7 +100,9 @@ namespace xianyun.ViewModel
             });
             LoginCommand = new RelayCommand(Login);
         }
-        // 保存用户名和密码到 ini 文件
+        /// <summary>
+        /// 保存用户名和密码到配置文件
+        /// </summary>
         private void SaveLoginInfo()
         {
             var parser = new FileIniDataParser();
@@ -120,7 +122,9 @@ namespace xianyun.ViewModel
             parser.WriteFile(ConfigFilePath, data);
         }
 
-        // 从 ini 文件加载用户名和密码
+        /// <summary>
+        /// 从配置文件中加载用户名和密码
+        /// </summary>
         private void LoadLoginInfo()
         {
             if (File.Exists(ConfigFilePath))
@@ -156,126 +160,212 @@ namespace xianyun.ViewModel
 
             if (string.IsNullOrEmpty(AccessToken))
             {
-                // 如果 AccessToken 为空，执行原来的登录逻辑
-                if (string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(Password))
+                // 检查用户名是否为邮箱格式
+                if (IsEmailFormat(UserName))
                 {
-                    this.Message = "用户名和密码不能为空";
-                    IsLoginButtonEnabled = true;
-                    return;
+                    // 账号为邮箱格式，使用 novelai 登录逻辑
+                    await LoginWithEmail(UserName, Password);
                 }
-
-                // 使用 HttpClientHandler 处理 cookies
-                var handler = new HttpClientHandler();
-                handler.CookieContainer = new System.Net.CookieContainer();
-
-                // 创建一个 HttpClient 实例
-                using (var client = new HttpClient(handler))
+                else
                 {
-                    try
-                    {
-                        string url = "https://nocaptchauri.idlecloud.cc/auth/login_no_captcha";
-                        var loginData = new
-                        {
-                            username = UserName,
-                            password = Password
-                        };
-
-                        string jsonData = JsonConvert.SerializeObject(loginData);
-                        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-
-                        HttpResponseMessage response = await client.PostAsync(url, content);
-
-                        if (response.IsSuccessStatusCode)
-                        {
-                            string result = await response.Content.ReadAsStringAsync();
-                            var responseData = JsonConvert.DeserializeObject<dynamic>(result);
-
-                            if (responseData.success == true)
-                            {
-                                var cookies = handler.CookieContainer.GetCookies(new Uri(url));
-                                var sessionCookie = cookies["session"];
-                                if (sessionCookie != null)
-                                {
-                                    Common.SessionManager.Session = sessionCookie.Value;
-                                    this.Message = "登录成功";
-                                    // 保存登录信息
-                                    SaveLoginInfo();
-                                    OpenMainWindowAndCloseLoginWindow();  // 登录成功后打开主窗口
-                                }
-                                IsLoginButtonEnabled = true;
-                            }
-                            else
-                            {
-                                this.Message = responseData.message.ToString();
-                                IsLoginButtonEnabled = true;
-                            }
-                        }
-                        else
-                        {
-                            this.Message = "服务器错误，请稍后再试。";
-                            IsLoginButtonEnabled = true;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        this.Message = $"登录失败：{ex.Message}";
-                        IsLoginButtonEnabled = true;
-                    }
+                    // 普通用户名和密码登录
+                    await LoginWithUsernamePassword(UserName, Password);
                 }
             }
             else
             {
                 // 如果 AccessToken 不为空，执行 API 请求
+                await GetUserDataWithToken(AccessToken);
+            }
+        }
+
+        /// <summary>
+        /// 判断是否为邮件格式账号
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private bool IsEmailFormat(string input)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(input);
+                return addr.Address == input;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 使用邮箱和密码登录
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        private async Task LoginWithEmail(string email, string password)
+        {
+            try
+            {
+                string key = Common.LoginHelper.GetAccessKey(email,password);
+
                 using (var client = new HttpClient())
                 {
-                    try
+                    string url = "https://api.novelai.net/user/login";
+                    var loginData = new { key = key };
+                    string jsonData = JsonConvert.SerializeObject(loginData);
+                    var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+
+                    if (response.IsSuccessStatusCode)
                     {
-                        string url = "https://api.novelai.net/user/data";
+                        string result = await response.Content.ReadAsStringAsync();
+                        var responseData = JsonConvert.DeserializeObject<dynamic>(result);
 
-                        // 检查并补全 Bearer 头
-                        string token = AccessToken;
-                        if (!token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                        if (responseData.accessToken != null)
                         {
-                            token = "Bearer " + token;
+                            AccessToken = responseData.accessToken.ToString();
+                            await GetUserDataWithToken(AccessToken);
+                            SaveLoginInfo();
                         }
-
-                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Substring("Bearer ".Length));
-
-                        HttpResponseMessage response = await client.GetAsync(url);
-
-                        if (response.IsSuccessStatusCode)
+                        else
                         {
-                            string result = await response.Content.ReadAsStringAsync();
-                            var responseData = JsonConvert.DeserializeObject<dynamic>(result);
+                            this.Message = "获取 AccessToken 失败";
+                        }
+                    }
+                    else
+                    {
+                        this.Message = "邮箱登录失败，请检查输入的邮箱和密码";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                this.Message = $"登录失败：{ex.Message}";
+            }
+            IsLoginButtonEnabled = true;
+        }
 
-                            // 处理响应
-                            if (responseData.information.banStatus == "not_banned" && responseData.information.banMessage == null)
+        /// <summary>
+        /// 使用idlecloud的用户名和密码登录
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        private async Task LoginWithUsernamePassword(string userName, string password)
+        {
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
+            {
+                this.Message = "用户名和密码不能为空";
+                IsLoginButtonEnabled = true;
+                return;
+            }
+
+            // 使用 HttpClientHandler 处理 cookies
+            var handler = new HttpClientHandler();
+            handler.CookieContainer = new System.Net.CookieContainer();
+
+            // 创建一个 HttpClient 实例
+            using (var client = new HttpClient(handler))
+            {
+                try
+                {
+                    string url = "https://nocaptchauri.idlecloud.cc/auth/login_no_captcha";
+                    var loginData = new
+                    {
+                        username = userName,
+                        password = password
+                    };
+
+                    string jsonData = JsonConvert.SerializeObject(loginData);
+                    var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string result = await response.Content.ReadAsStringAsync();
+                        var responseData = JsonConvert.DeserializeObject<dynamic>(result);
+
+                        if (responseData.success == true)
+                        {
+                            var cookies = handler.CookieContainer.GetCookies(new Uri(url));
+                            var sessionCookie = cookies["session"];
+                            if (sessionCookie != null)
                             {
-                                Common.SessionManager.Token = token;
-                                int fixedTrainingStepsLeft = responseData.subscription.trainingStepsLeft.fixedTrainingStepsLeft;
-                                bool active = responseData.subscription.active;
-                                this.Message = $"Training Steps Left: {fixedTrainingStepsLeft}, Active: {active}";
+                                Common.SessionManager.Session = sessionCookie.Value;
+                                this.Message = "登录成功";
+                                SaveLoginInfo();
                                 OpenMainWindowAndCloseLoginWindow();  // 登录成功后打开主窗口
-                                IsLoginButtonEnabled = true;
-                            }
-                            else if (responseData.information.banStatus == "banned")
-                            {
-                                this.Message = $"Account banned: {responseData.information.banMessage}";
-                                IsLoginButtonEnabled = true;
                             }
                         }
                         else
                         {
-                            this.Message = "无法获取用户数据，请检查 AccessToken。";
-                            IsLoginButtonEnabled = true;
+                            this.Message = responseData.message.ToString();
                         }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        this.Message = $"请求失败：{ex.Message}";
-                        IsLoginButtonEnabled = true;
+                        this.Message = "服务器错误，请稍后再试。";
                     }
                 }
+                catch (Exception ex)
+                {
+                    this.Message = $"登录失败：{ex.Message}";
+                }
+                IsLoginButtonEnabled = true;
+            }
+        }
+
+        // 使用 AccessToken 获取用户数据
+        private async Task GetUserDataWithToken(string token)
+        {
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    string url = "https://api.novelai.net/user/data";
+
+                    // 检查并补全 Bearer 头
+                    string finalToken = token;
+                    if (!finalToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        finalToken = "Bearer " + finalToken;
+                    }
+
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", finalToken.Substring("Bearer ".Length));
+
+                    HttpResponseMessage response = await client.GetAsync(url);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string result = await response.Content.ReadAsStringAsync();
+                        var responseData = JsonConvert.DeserializeObject<dynamic>(result);
+
+                        if (responseData.information.banStatus == "not_banned" && responseData.information.banMessage == null)
+                        {
+                            Common.SessionManager.Token = finalToken;
+                            int fixedTrainingStepsLeft = responseData.subscription.trainingStepsLeft.fixedTrainingStepsLeft;
+                            bool active = responseData.subscription.active;
+                            this.Message = $"Training Steps Left: {fixedTrainingStepsLeft}, Active: {active}";
+                            OpenMainWindowAndCloseLoginWindow();  // 登录成功后打开主窗口
+                        }
+                        else if (responseData.information.banStatus == "banned")
+                        {
+                            this.Message = $"Account banned: {responseData.information.banMessage}";
+                        }
+                    }
+                    else
+                    {
+                        this.Message = "无法获取用户数据，请检查 AccessToken。";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.Message = $"请求失败：{ex.Message}";
+                }
+                IsLoginButtonEnabled = true;
             }
         }
     }
