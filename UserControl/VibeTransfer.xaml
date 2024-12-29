@@ -5,8 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:xianyun.UserControl"
              mc:Ignorable="d" 
-             d:DesignHeight="120" d:DesignWidth="308">
-    <Border CornerRadius="3" Margin="3,3,3,0" Background="#FEF3E2" BorderBrush="#597445" BorderThickness="2">
+             d:DesignHeight="120" d:DesignWidth="310">
+    <Border CornerRadius="3" Margin="0,8,0,0" Background="#FEF3E2" BorderBrush="#597445" BorderThickness="2">
         <Border.ContextMenu>
             <ContextMenu>
                 <MenuItem Header="删除" Click="DeleteControl_Click"/>
@@ -31,7 +31,7 @@
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="3*"/>
                     </Grid.ColumnDefinitions>
-                    <Slider x:Name="InformationExtractedSlider" Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="1" TickFrequency="0.01" Margin="2" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
+                    <Slider x:Name="InformationExtractedSlider" Grid.Column="1" Minimum="0" Maximum="1" Value="1" TickFrequency="0.01" Margin="2" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
                     <TextBlock Grid.Column="0" Text="Info Extracted:" FontSize="12" Foreground="#597445" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                         <TextBlock.ToolTip>
                             <ToolTip Content="Information Extracted:"/>
@@ -43,7 +43,7 @@
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="3*"/>
                     </Grid.ColumnDefinitions>
-                    <Slider x:Name="ReferenceStrengthSlider" Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="0.6" TickFrequency="0.01" Margin="2" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
+                    <Slider x:Name="ReferenceStrengthSlider" Grid.Column="1" Minimum="0" Maximum="1" Value="0.6" TickFrequency="0.01" Margin="2" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
                     <TextBlock Grid.Column="0" Text="Ref Strength:" FontSize="12" Foreground="#597445" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                         <TextBlock.ToolTip>
                             <ToolTip Content="Reference Strength:"/>

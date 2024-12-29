@@ -57,7 +57,11 @@ namespace xianyun.View
         }
         private void SaveData()
         {
-            // 数据保存逻辑
+            if (MainWindowFrame.Content is Txt2imgPage txt2imgPage)
+            {
+                // 调用 Page 的备份逻辑
+                txt2imgPage.ExportCharacterPromptsData(txt2imgPage.CharacterPromptsWrapPanel, "characterPromptsBackup.json");
+            }
         }
         private void Border_MouseDown(object sender, MouseButtonEventArgs e)
         {

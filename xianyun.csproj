@@ -14,6 +14,7 @@
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <LangVersion>latest</LangVersion>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
@@ -91,6 +92,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UserControl\CharacterPrompts.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UserControl\ImgPreview.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -112,6 +117,7 @@
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="API\NovelAIApiClient.cs" />
+    <Compile Include="API\publicParameter.cs" />
     <Compile Include="API\XianyunApiClient.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
@@ -125,6 +131,7 @@
     <Compile Include="Common\PasswordBoxHelper.cs" />
     <Compile Include="Common\tools.cs" />
     <Compile Include="Common\Variable.cs" />
+    <Compile Include="Extensions\ExpanderGroupBehavior.cs" />
     <Compile Include="MainPages\Img2ImgPage.xaml.cs">
       <DependentUpon>Img2ImgPage.xaml</DependentUpon>
     </Compile>
@@ -145,6 +152,9 @@
     <Compile Include="Media\RgbaColor.cs" />
     <Compile Include="Media\StreamObj.cs" />
     <Compile Include="Media\Utility.cs" />
+    <Compile Include="UserControl\CharacterPrompts.xaml.cs">
+      <DependentUpon>CharacterPrompts.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControl\ImgPreview.xaml.cs">
       <DependentUpon>ImgPreview.xaml</DependentUpon>
     </Compile>
@@ -182,19 +192,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="python\build\novel_ai_client\Analysis-00.toc" />
-    <None Include="python\build\novel_ai_client\base_library.zip" />
-    <None Include="python\build\novel_ai_client\EXE-00.toc" />
-    <None Include="python\build\novel_ai_client\localpycs\pyimod01_archive.pyc" />
-    <None Include="python\build\novel_ai_client\localpycs\pyimod02_importers.pyc" />
-    <None Include="python\build\novel_ai_client\localpycs\pyimod03_ctypes.pyc" />
-    <None Include="python\build\novel_ai_client\localpycs\pyimod04_pywin32.pyc" />
-    <None Include="python\build\novel_ai_client\localpycs\struct.pyc" />
-    <None Include="python\build\novel_ai_client\novel_ai_client.pkg" />
-    <None Include="python\build\novel_ai_client\PKG-00.toc" />
-    <None Include="python\build\novel_ai_client\PYZ-00.pyz" />
-    <None Include="python\build\novel_ai_client\PYZ-00.toc" />
-    <None Include="python\novel_ai_client.spec" />
     <Resource Include="Assets\Fonts\iconfont.ttf" />
     <None Include="json_files\上衣.json" />
     <None Include="json_files\下装.json" />
@@ -298,12 +295,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Icon\favicon.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="python\build\novel_ai_client\warn-novel_ai_client.txt" />
-    <Content Include="python\build\novel_ai_client\xref-novel_ai_client.html" />
-    <Content Include="python\dist\novel_ai_client.exe" />
-    <Content Include="python\novel_ai_client.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

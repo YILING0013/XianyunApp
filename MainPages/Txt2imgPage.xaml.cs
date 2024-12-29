@@ -25,6 +25,7 @@ using Newtonsoft.Json;
 using System.Windows.Ink;
 using System.Windows.Controls.Primitives;
 using AduSkin.Utility.Media;
+using static xianyun.ViewModel.MainViewModel;
 
 namespace xianyun.MainPages
 {
@@ -63,13 +64,23 @@ namespace xianyun.MainPages
         RenderTargetBitmap maskImage;
         private DragAdorner currentAdorner;
         private MainViewModel _viewModel;
+
+        private string BackupFilePath = "characterPromptsBackup.json";
+
+        public class CharacterPromptBackup
+        {
+            public string Prompt { get; set; }
+            public string UndesiredContent { get; set; }
+            public string SelectedPosition { get; set; }
+            public string BorderColor { get; set; }
+        }
         public Txt2imgPage()
         {
             InitializeComponent();
             _viewModel = App.GlobalViewModel;
             this.DataContext = _viewModel;
             this.Loaded += Txt2imgPage_Loaded;
-            this.Unloaded += Txt2imgPage_Unloaded;
+
             inkCanvas.DefaultDrawingAttributes = new DrawingAttributes
             {
                 Color = (Color)ColorConverter.ConvertFromString(TextHex.Text),
@@ -84,6 +95,103 @@ namespace xianyun.MainPages
             inkCanvas.IsHitTestVisible = false;
             LogPage.LogMessage(LogLevel.INFO, "绘图初始化成功");
         }
+        private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            var viewModel = DataContext as MainViewModel;
+            if (ConfigurationService.ConfigurationExists())
+            {
+                _viewModel.LoadParameters();
+                // 设置全局登录状态为已登录
+                var app = (App)Application.Current;
+                app.IsLoading = true;
+            }
+            if (viewModel != null)
+            {
+                viewModel.ImgPreviewArea = ImgPreviewArea;
+                viewModel.ImageStackPanel = ImageStackPanel;
+                viewModel.ImageViewerControl = ImageViewerControl;
+            }
+            InputTextBox.Text = viewModel.PositivePrompt;
+            UpdateTagsContainer();
+            string folderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "json_files");
+            LoadJsonFilesToTreeView(folderPath);
+            // 还原控件数据
+            ImportCharacterPromptsData(CharacterPromptsWrapPanel, BackupFilePath);
+            LoadNotesFromFile();
+        }
+        public void ExportCharacterPromptsData(WrapPanel characterPromptsWrapPanel, string filePath)
+        {
+            var backupData = new List<CharacterPromptBackup>();
+
+            foreach (var child in characterPromptsWrapPanel.Children)
+            {
+                if (child is CharacterPrompts characterPrompt)
+                {
+                    dynamic state = characterPrompt.GetControlState();
+
+                    var border = characterPrompt.FindName("CharacterBorder") as Border;
+                    string borderColor = border?.BorderBrush.ToString();
+
+                    backupData.Add(new CharacterPromptBackup
+                    {
+                        Prompt = state.prompt,
+                        UndesiredContent = state.uc,
+                        SelectedPosition = state.selectedPosition,
+                        BorderColor = borderColor
+                    });
+                }
+            }
+
+            string json = JsonConvert.SerializeObject(backupData, Formatting.Indented);
+            File.WriteAllText(filePath, json);
+        }
+
+        public void ImportCharacterPromptsData(WrapPanel characterPromptsWrapPanel, string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                return;
+            }
+
+            string json = File.ReadAllText(filePath);
+            var backupData = JsonConvert.DeserializeObject<List<CharacterPromptBackup>>(json);
+
+            if (backupData == null)
+            {
+                return;
+            }
+
+            foreach (var data in backupData)
+            {
+                var newCharacterPrompt = new CharacterPrompts
+                {
+                    Prompt = { Text = data.Prompt },
+                    UndesiredContent = { Text = data.UndesiredContent },
+                    SelectedPositionText = { Text = data.SelectedPosition }
+                };
+
+                if (!string.IsNullOrEmpty(data.BorderColor))
+                {
+                    var border = newCharacterPrompt.FindName("CharacterBorder") as Border;
+                    if (border != null)
+                    {
+                        var colorConverter = new BrushConverter();
+                        try
+                        {
+                            border.BorderBrush = (Brush)colorConverter.ConvertFromString(data.BorderColor);
+                        }
+                        catch
+                        {
+                            // 忽略转换失败
+                        }
+                    }
+                }
+
+                characterPromptsWrapPanel.Children.Add(newCharacterPrompt);
+                CharacterPromptsStackPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+
         /// <summary>
         /// HexTextBox的回车事件，触发LoseFocus使颜色值生效
         /// </summary>
@@ -224,13 +332,7 @@ namespace xianyun.MainPages
             // 返回最大高度值
             return (maxHeight != 512) ? maxHeight : closestBelow;
         }
-        public class NoteModel
-        {
-            public string Name { get; set; }
-            public string PositivePrompt { get; set; }
-            public string NegativePrompt { get; set; }
-            public string ImagePath { get; set; }
-        }
+
         private void SearchInTreeView(string searchText)
         {
             // 清空 ListBox 中的现有项
@@ -384,6 +486,19 @@ namespace xianyun.MainPages
             // 添加完 TagControl 后，更新 PositivePrompt 和 InputTextBox
             UpdateViewModelTagsText();
         }
+
+
+        //----------------------------------------------------------------------------------------------//
+        //-----------------------------------  词条笔记本相关逻辑  -------------------------------------//
+        //----------------------------------------------------------------------------------------------//
+
+        public class NoteModel
+        {
+            public string Name { get; set; }
+            public string PositivePrompt { get; set; }
+            public string NegativePrompt { get; set; }
+            public string ImagePath { get; set; }
+        }
         private void SaveNote_Click(object sender, RoutedEventArgs e)
         {
             // 弹出输入框获取保存名称
@@ -431,7 +546,7 @@ namespace xianyun.MainPages
                     MessageBox.Show("没有图像可保存，保存的笔记将不包含图像。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
-                // 创建新的笔记对象并存储
+                // 创建新的笔记对象
                 var newNote = new NoteModel
                 {
                     Name = noteName,
@@ -439,12 +554,61 @@ namespace xianyun.MainPages
                     NegativePrompt = negativePrompt,
                     ImagePath = imagePath // 如果没有图像，ImagePath 将为 null
                 };
+
+                // 将笔记添加到内存集合
                 _viewModel.Notes.Add(newNote);
 
-                // 更新ListBoxItem
+                // 将笔记保存到本地文件
+                SaveNoteToFile(newNote);
+
+                // 更新 ListBox
                 UpdateListBoxItems();
-                // 保存当前配置
-                _viewModel.SaveParameters();
+            }
+        }
+
+        private void SaveNoteToFile(NoteModel note)
+        {
+            string filePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "notes.json");
+
+            // 读取现有笔记
+            List<NoteModel> notes = new List<NoteModel>();
+            if (File.Exists(filePath))
+            {
+                string json = File.ReadAllText(filePath);
+                notes = JsonConvert.DeserializeObject<List<NoteModel>>(json) ?? new List<NoteModel>();
+            }
+
+            // 添加新笔记
+            notes.Add(note);
+
+            // 保存到文件
+            string newJson = JsonConvert.SerializeObject(notes, Formatting.Indented);
+            File.WriteAllText(filePath, newJson);
+        }
+
+        private void LoadNotesFromFile()
+        {
+            string filePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "notes.json");
+
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    string json = File.ReadAllText(filePath);
+                    var notes = JsonConvert.DeserializeObject<List<NoteModel>>(json) ?? new List<NoteModel>();
+                    _viewModel.Notes.Clear();
+
+                    // 将笔记添加到 ViewModel
+                    foreach (var note in notes)
+                    {
+                        _viewModel.Notes.Add(note);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"加载笔记时发生错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    LogPage.LogMessage(LogLevel.ERROR, "加载笔记时发生错误: " + ex.Message);
+                }
             }
         }
 
@@ -510,16 +674,45 @@ namespace xianyun.MainPages
                     }
                 }
 
-                // 从集合中移除
+                // 从内存集合中移除
                 _viewModel.Notes.Remove(selectedNote);
-                // 保存当前配置
-                _viewModel.SaveParameters();
+
+                // 从本地文件中移除
+                RemoveNoteFromFile(selectedNote);
             }
             else
             {
                 MessageBox.Show("请先选择一个笔记。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
+
+        private void RemoveNoteFromFile(NoteModel note)
+        {
+            string filePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "notes.json");
+
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    // 读取现有笔记
+                    string json = File.ReadAllText(filePath);
+                    var notes = JsonConvert.DeserializeObject<List<NoteModel>>(json) ?? new List<NoteModel>();
+
+                    // 移除指定笔记
+                    notes.RemoveAll(n => n.Name == note.Name);
+
+                    // 保存到文件
+                    string newJson = JsonConvert.SerializeObject(notes, Formatting.Indented);
+                    File.WriteAllText(filePath, newJson);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"更新笔记文件时发生错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    LogPage.LogMessage(LogLevel.ERROR, "更新笔记文件时发生错误: " + ex.Message);
+                }
+            }
+        }
+
         private void UseNote_Click(object sender, RoutedEventArgs e)
         {
             if (NoteBookListBox.SelectedItem is NoteModel selectedNote)
@@ -570,6 +763,48 @@ namespace xianyun.MainPages
                 reference_strength_multiple.ToArray()
             );
         }
+
+        public (List<CharacterPrompt> characterPrompts, List<CharCaption> v4PromptCharCaptions, List<CharCaption> v4NegativePromptCharCaptions) GetCharacterPromptsData(WrapPanel characterPromptsWrapPanel)
+        {
+            var characterPrompts = new List<CharacterPrompt>();
+            var v4PromptCharCaptions = new List<CharCaption>();
+            var v4NegativePromptCharCaptions = new List<CharCaption>();
+
+            // 遍历 WrapPanel 中的每个 CharacterPrompts 控件
+            foreach (var child in characterPromptsWrapPanel.Children)
+            {
+                if (child is CharacterPrompts characterPrompt)
+                {
+                    // 获取控件状态
+                    dynamic state = characterPrompt.GetControlState();
+
+                    // 构建 characterPrompts 数据
+                    characterPrompts.Add(new CharacterPrompt
+                    {
+                        Prompt = state.prompt,
+                        Uc = state.uc,
+                        Center = new Center { X = state.center.x, Y = state.center.y }
+                    });
+
+                    // 构建 v4_prompt_char_captions 数据
+                    v4PromptCharCaptions.Add(new CharCaption
+                    {
+                        CharCaptionText = state.prompt,
+                        Centers = new List<Center> { new Center { X = state.center.x, Y = state.center.y } }
+                    });
+
+                    // 构建 v4_negative_prompt_char_captions 数据
+                    v4NegativePromptCharCaptions.Add(new CharCaption
+                    {
+                        CharCaptionText = state.uc,
+                        Centers = new List<Center> { new Center { X = state.center.x, Y = state.center.y } }
+                    });
+                }
+            }
+
+            return (characterPrompts, v4PromptCharCaptions, v4NegativePromptCharCaptions);
+        }
+
         private bool _isCancelling = false; // 用于标记是否取消
         private bool _isGenerating = false; // 用于标记是否正在生成
 
@@ -614,6 +849,18 @@ namespace xianyun.MainPages
                     // 获取 VibeTransfer 的数据
                     var (base64Images, informationExtracted, referenceStrength) = ExtractImageData();
 
+                    // 获取 CharacterPromptsWrapPanel
+                    var characterPromptsWrapPanel = CharacterPromptsWrapPanel;
+
+                    if (characterPromptsWrapPanel == null)
+                    {
+                        MessageBox.Show("未找到 CharacterPromptsWrapPanel。");
+                        return;
+                    }
+
+                    // 获取数据
+                    var (characterPrompts, v4PromptCharCaptions, v4NegativePromptCharCaptions) = GetCharacterPromptsData(characterPromptsWrapPanel);
+
                     // 生成随机种子的方法
                     long GenerateRandomSeed()
                     {
@@ -655,6 +902,27 @@ namespace xianyun.MainPages
                                 ReferenceImageMultiple = base64Images.Length > 0 ? base64Images : null,
                                 ReferenceInformationExtractedMultiple = informationExtracted.Length > 0 ? informationExtracted : null,
                                 ReferenceStrengthMultiple = referenceStrength.Length > 0 ? referenceStrength : null,
+                                // 填充 characterPrompts、v4_prompt 和 v4_negative_prompt
+                                UseCoords = !_viewModel.IsUseAIChoicePositions,
+                                CharacterPrompts = characterPrompts,
+                                V4Prompt = new V4Prompt
+                                {
+                                    Caption = new V4PromptCaption
+                                    {
+                                        BaseCaption = _viewModel.PositivePrompt,
+                                        CharCaptions = v4PromptCharCaptions
+                                    },
+                                    UseCoords = !_viewModel.IsUseAIChoicePositions,
+                                    UseOrder = true
+                                },
+                                V4NegativePrompt = new V4NegativePrompt
+                                {
+                                    Caption = new V4NegativePromptCaption
+                                    {
+                                        BaseCaption = _viewModel.NegitivePrompt,
+                                        CharCaptions = v4NegativePromptCharCaptions
+                                    }
+                                }
                             }
                         };
 
@@ -702,6 +970,18 @@ namespace xianyun.MainPages
                     // 获取 VibeTransfer 的数据
                     var (base64Images, informationExtracted, referenceStrength) = ExtractImageData();
 
+                    // 获取 CharacterPromptsWrapPanel
+                    var characterPromptsWrapPanel = CharacterPromptsWrapPanel;
+
+                    if (characterPromptsWrapPanel == null)
+                    {
+                        MessageBox.Show("未找到 CharacterPromptsWrapPanel。");
+                        return;
+                    }
+
+                    // 获取数据
+                    var (characterPrompts, v4PromptCharCaptions, v4NegativePromptCharCaptions) = GetCharacterPromptsData(characterPromptsWrapPanel);
+
                     // 生成随机种子的方法
                     long GenerateRandomSeed()
                     {
@@ -738,7 +1018,12 @@ namespace xianyun.MainPages
                             Variety = _viewModel.IsVariety,
                             Sm = _viewModel.IsSMEA,
                             SmDyn = _viewModel.IsDYN,
-                            PictureId = TotpGenerator.GenerateTotp(_viewModel._secretKey)
+                            PictureId = TotpGenerator.GenerateTotp(_viewModel._secretKey),
+                            // 填充 characterPrompts、v4PromptCharCaptions 和 v4NegativePromptCharCaptions
+                            CharacterPrompts = characterPrompts,
+                            V4PromptCharCaptions = v4PromptCharCaptions,
+                            V4NegativePromptCharCaptions = v4NegativePromptCharCaptions,
+                            UseCoords = !_viewModel.IsUseAIChoicePositions,
                         };
 
                         if (_viewModel.IsConvenientResolution)
@@ -887,32 +1172,7 @@ namespace xianyun.MainPages
                 LogPage.LogMessage(LogLevel.ERROR, "生成错误: " + ex.Message);
             }
         }
-        private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
-        {
-            var viewModel = DataContext as MainViewModel;
-            if (ConfigurationService.ConfigurationExists())
-            {
-                _viewModel.LoadParameters();
-                // 设置全局登录状态为已登录
-                var app = (App)Application.Current;
-                app.IsLoading = true;
-            }
-            if (viewModel != null)
-            {
-                viewModel.ImgPreviewArea = ImgPreviewArea;
-                viewModel.ImageStackPanel = ImageStackPanel;
-                viewModel.ImageViewerControl = ImageViewerControl;
-            }
-            InputTextBox.Text = viewModel.PositivePrompt;
-            UpdateTagsContainer();
-            string folderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "json_files");
-            LoadJsonFilesToTreeView(folderPath);
-        }
-        private void Txt2imgPage_Unloaded(object sender, RoutedEventArgs e)
-        {
-            // 保存当前配置
-            _viewModel.SaveParameters();
-        }
+        
         private void TagMenuBtn_Click(object sender, RoutedEventArgs e)
         {
             if (isTagMenuOpen)
@@ -1021,6 +1281,40 @@ namespace xianyun.MainPages
                 UploadStackPanel.Visibility = Visibility.Collapsed;
             }
         }
+
+        private void CharacterBorder_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            // 获取点击事件的源元素
+            var source = e.OriginalSource as DependencyObject;
+
+            // 检查点击事件是否发生在 CharacterPrompts 控件内
+            while (source != null)
+            {
+                if (source is xianyun.UserControl.CharacterPrompts)
+                {
+                    // 如果点击事件发生在 CharacterPrompts 控件内，则直接返回
+                    return;
+                }
+                source = VisualTreeHelper.GetParent(source);
+            }
+
+            // 检查当前控件数量是否已达到 6 个
+            if (CharacterPromptsWrapPanel.Children.Count >= 6)
+            {
+                MessageBox.Show("最多允许创建 6 个角色词条控件。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // 创建新的 CharacterPrompts 控件实例
+            var newCharacterPrompts = new xianyun.UserControl.CharacterPrompts();
+
+            // 将新控件添加到 WrapPanel 中
+            CharacterPromptsWrapPanel.Children.Add(newCharacterPrompts);
+
+            // 隐藏 StackPanel
+            CharacterPromptsStackPanel.Visibility = Visibility.Collapsed;
+        }
+
         private bool IsImageFile(string filePath)
         {
             string extension = System.IO.Path.GetExtension(filePath).ToLower();

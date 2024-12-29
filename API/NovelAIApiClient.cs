@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using System.IO.Compression;
 using System.Linq;
 using xianyun.MainPages;
+using static xianyun.ViewModel.MainViewModel;
+using System.Collections.Generic;
 
 namespace xianyun.API
 {
@@ -210,5 +212,54 @@ namespace xianyun.API
 
         [JsonProperty("width", NullValueHandling = NullValueHandling.Ignore)]
         public int? Width { get; set; }
+
+        [JsonProperty("characterPrompts", NullValueHandling = NullValueHandling.Ignore)]
+        public List<CharacterPrompt> CharacterPrompts { get; set; }
+
+        [JsonProperty("v4_prompt", NullValueHandling = NullValueHandling.Ignore)]
+        public V4Prompt V4Prompt { get; set; }
+
+        [JsonProperty("v4_negative_prompt", NullValueHandling = NullValueHandling.Ignore)]
+        public V4NegativePrompt V4NegativePrompt { get; set; }
+
+        [JsonProperty("use_coords", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? UseCoords { get; set; }
+    }
+
+
+    public class V4Prompt
+    {
+        [JsonProperty("caption")]
+        public V4PromptCaption Caption { get; set; }
+
+        [JsonProperty("use_coords")]
+        public bool UseCoords { get; set; } = true;
+
+        [JsonProperty("use_order")]
+        public bool UseOrder { get; set; } = true;
+    }
+
+    public class V4NegativePrompt
+    {
+        [JsonProperty("caption")]
+        public V4NegativePromptCaption Caption { get; set; }
+    }
+
+    public class V4PromptCaption
+    {
+        [JsonProperty("base_caption")]
+        public string BaseCaption { get; set; }
+
+        [JsonProperty("char_captions")]
+        public List<CharCaption> CharCaptions { get; set; }
+    }
+
+    public class V4NegativePromptCaption
+    {
+        [JsonProperty("base_caption")]
+        public string BaseCaption { get; set; }
+
+        [JsonProperty("char_captions")]
+        public List<CharCaption> CharCaptions { get; set; }
     }
 }

@@ -264,7 +264,7 @@
                     </Grid>
                 </Border>
                 <!--右侧内容-->
-                <Frame Grid.Column="1" Name="MainWindowFrame" NavigationUIVisibility="Hidden"/>
+                <Frame Grid.Column="1" x:Name="MainWindowFrame" NavigationUIVisibility="Hidden"/>
             </Grid>
         </Border>
     </Border>

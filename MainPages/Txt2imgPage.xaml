@@ -8,6 +8,7 @@
       xmlns:hc="https://handyorg.github.io/handycontrol"
       xmlns:common="clr-namespace:xianyun.Common"
       xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
+      xmlns:behaviors="clr-namespace:xianyun.Extensions"
       mc:Ignorable="d" 
       d:DesignHeight="758" d:DesignWidth="1129"
       FontSize="12" 
@@ -214,236 +215,287 @@
                         </Grid>
                     </Border>
                     <Border Grid.Row="1" Background="#ccdcd4" Margin="10" CornerRadius="5,5,5,5">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="10*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="10*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="10*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="10*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="10*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="10*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="10*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="10*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="10*"/>
-                                <RowDefinition Height="1*"/>
-                                <RowDefinition Height="45*"/>
-                            </Grid.RowDefinitions>
+                        <StackPanel>
+                            <!-- 第一个选项卡 -->
+                            <Expander Header="基础参数 Basic parameters" IsExpanded="True" behaviors:ExpanderGroupBehavior.GroupName="parameters">
+                                <Grid Height="420">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="1*"/>
+                                        <RowDefinition Height="10*"/>
+                                        <RowDefinition Height="1*"/>
+                                    </Grid.RowDefinitions>
 
-                            <!-- Guidance Scale Slider -->
-                            <Grid Grid.Row="0" Margin="6,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="50*"/>
-                                    <ColumnDefinition Width="100*"/>
-                                    <ColumnDefinition Width="15*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Guidance Scale:" Grid.Column="0">
-                                    <TextBlock.ToolTip>
-                                        <ToolTip>
-                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource GuidanceScaleExplanation}"/>
+                                    <!-- Guidance Scale Slider -->
+                                    <Grid Grid.Row="0" Margin="6,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="50*"/>
+                                            <ColumnDefinition Width="100*"/>
+                                            <ColumnDefinition Width="15*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Guidance Scale:" Grid.Column="0">
+                                            <TextBlock.ToolTip>
+                                                <ToolTip>
+                                                    <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource GuidanceScaleExplanation}"/>
+                                                </ToolTip>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <Slider Grid.Column="1" TickPlacement="Both" Minimum="0.1" Maximum="10" Value="{Binding GuidanceScale, Mode=TwoWay}"  TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                        <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                            <TextBlock Text="{Binding GuidanceScale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <!-- Horizontal Divider -->
+                                    <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                                    <!-- 采样 (Sampling) ComboBox -->
+                                    <Grid Grid.Row="2" Margin="6,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="25*"/>
+                                            <ColumnDefinition Width="80*"/>
+                                            <ColumnDefinition Width="25*"/>
+                                            <ColumnDefinition Width="90*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.Resources>
+                                            <common:NullableLongConverter x:Key="NullableLongConverter"/>
+                                        </Grid.Resources>
+                                        <!-- Sampling Method ComboBox -->
+                                        <TextBlock Text="采样:" Grid.Column="0">
+                                            <TextBlock.ToolTip>
+                                                <ToolTip>
+                                                    <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource SamplingMethodsExplanation}"/>
                                         </ToolTip>
-                                    </TextBlock.ToolTip>
-                                </TextBlock>
-                                <Slider Grid.Column="1" TickPlacement="Both" Minimum="0.1" Maximum="10" Value="{Binding GuidanceScale, Mode=TwoWay}"  TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
-                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                    <TextBlock Text="{Binding GuidanceScale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </Grid>
-                            <!-- Horizontal Divider -->
-                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="1" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-                            <!-- 采样 (Sampling) ComboBox -->
-                            <Grid Grid.Row="2" Margin="6,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="25*"/>
-                                    <ColumnDefinition Width="80*"/>
-                                    <ColumnDefinition Width="25*"/>
-                                    <ColumnDefinition Width="90*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.Resources>
-                                    <common:NullableLongConverter x:Key="NullableLongConverter"/>
-                                </Grid.Resources>
-                                <!-- Sampling Method ComboBox -->
-                                <TextBlock Text="采样:" Grid.Column="0">
-                                    <TextBlock.ToolTip>
-                                        <ToolTip>
-                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource SamplingMethodsExplanation}"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <ComboBox Grid.Column="1" ItemsSource="{Binding SamplingMethods}" SelectedItem="{Binding SamplingMethod,Mode=TwoWay}"/>
+                                        <TextBlock Text="Seed:" Grid.Column="2"/>
+                                        <ui:TextBox  PlaceholderText="Enter Seed" Text="{Binding Seed, Mode=TwoWay,Converter={StaticResource NullableLongConverter}}"  Grid.Column="3"/>
+                                    </Grid>
+                                    <!-- Horizontal Divider -->
+                                    <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+                                    <!-- Steps Slider -->
+                                    <Grid Grid.Row="4" Margin="6,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="16*"/>
+                                            <ColumnDefinition Width="90*"/>
+                                            <ColumnDefinition Width="14*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Steps:">
+                                            <TextBlock.ToolTip>
+                                                <ToolTip>
+                                                    <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource StepsSliderExpianation}"/>
                                         </ToolTip>
-                                    </TextBlock.ToolTip>
-                                </TextBlock>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding SamplingMethods}" SelectedItem="{Binding SamplingMethod,Mode=TwoWay}"/>
-                                <TextBlock Text="Seed:" Grid.Column="2"/>
-                                <ui:TextBox  PlaceholderText="Enter Seed" Text="{Binding Seed, Mode=TwoWay,Converter={StaticResource NullableLongConverter}}"  Grid.Column="3"/>
-                            </Grid>
-                            <!-- Horizontal Divider -->
-                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
-                            <!-- Steps Slider -->
-                            <Grid Grid.Row="4" Margin="6,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="16*"/>
-                                    <ColumnDefinition Width="90*"/>
-                                    <ColumnDefinition Width="14*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Steps:">
-                                    <TextBlock.ToolTip>
-                                        <ToolTip>
-                                        <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource StepsSliderExpianation}"/>
-                                        </ToolTip>
-                                    </TextBlock.ToolTip>
-                                </TextBlock>
-                                <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="{Binding Steps, Mode=TwoWay}"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
-                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                    <TextBlock Text="{Binding Steps, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </Grid>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="{Binding Steps, Mode=TwoWay}"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                        <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                            <TextBlock Text="{Binding Steps, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
 
-                            <!-- Horizontal Divider -->
-                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="5" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                                    <!-- Horizontal Divider -->
+                                    <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="5" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
 
-                            <!-- Width and Height Sliders -->
-                            <Grid Grid.Row="6" Margin="6,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="20*"/>
-                                    <ColumnDefinition Width="100*"/>
-                                    <ColumnDefinition Width="25*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Width:">
-                                    <TextBlock.ToolTip>
-                                        <ToolTip>
-                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource WidthExpianation}"/>
+                                    <!-- Width and Height Sliders -->
+                                    <Grid Grid.Row="6" Margin="6,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="20*"/>
+                                            <ColumnDefinition Width="100*"/>
+                                            <ColumnDefinition Width="25*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Width:">
+                                            <TextBlock.ToolTip>
+                                                <ToolTip>
+                                                    <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource WidthExpianation}"/>
                                         </ToolTip>
-                                    </TextBlock.ToolTip>
-                                </TextBlock>  
-                                <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048"  Value="{Binding Width, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True"  HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" ValueChanged="WidthSlider_ValueChanged"/>
-                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                    <TextBlock Text="{Binding Width, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </Grid>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048"  Value="{Binding Width, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True"  HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" ValueChanged="WidthSlider_ValueChanged"/>
+                                        <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                            <TextBlock Text="{Binding Width, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
 
-                            <!-- Horizontal Divider -->
-                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="7" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+                                    <!-- Horizontal Divider -->
+                                    <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="7" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
 
-                            <Grid Grid.Row="8" Margin="6,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="20*"/>
-                                    <ColumnDefinition Width="100*"/>
-                                    <ColumnDefinition Width="25*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Height:">
-                                    <TextBlock.ToolTip>
-                                        <ToolTip>
-                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource HeightExpianation}"/>
+                                    <Grid Grid.Row="8" Margin="6,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="20*"/>
+                                            <ColumnDefinition Width="100*"/>
+                                            <ColumnDefinition Width="25*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Height:">
+                                            <TextBlock.ToolTip>
+                                                <ToolTip>
+                                                    <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource HeightExpianation}"/>
                                         </ToolTip>
-                                    </TextBlock.ToolTip>
-                                </TextBlock>
-                                <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="{Binding Height, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" x:Name="HeightSlider"/>
-                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                    <TextBlock Text="{Binding Height, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </Grid>
-                            <!-- Horizontal Divider -->
-                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="9" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
-                            <!-- 便捷分辨率 (Convenient Resolution) ComboBox -->
-                            <Grid Grid.Row="10" Margin="6,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="60*"/>
-                                    <ColumnDefinition Width="130*"/>
-                                    <ColumnDefinition Width="80*"/>
-                                </Grid.ColumnDefinitions>
-                                <!-- Resolution ComboBox -->
-                                <TextBlock Text="便捷分辨率:">
-                                    <TextBlock.ToolTip>
-                                        <ToolTip>
-                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource ConvenientResolutionExpianation}"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048" Value="{Binding Height, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" x:Name="HeightSlider"/>
+                                        <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                            <TextBlock Text="{Binding Height, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <!-- Horizontal Divider -->
+                                    <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="9" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+                                    <!-- 便捷分辨率 (Convenient Resolution) ComboBox -->
+                                    <Grid Grid.Row="10" Margin="6,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60*"/>
+                                            <ColumnDefinition Width="130*"/>
+                                            <ColumnDefinition Width="80*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <!-- Resolution ComboBox -->
+                                        <TextBlock Text="便捷分辨率:">
+                                            <TextBlock.ToolTip>
+                                                <ToolTip>
+                                                    <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource ConvenientResolutionExpianation}"/>
                                         </ToolTip>
-                                    </TextBlock.ToolTip>
-                                </TextBlock>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding Resolution,Mode=TwoWay}"/>
-                                <ui:ToggleSwitch OffContent="禁用中" OnContent="已开启" IsChecked="{Binding IsConvenientResolution, Mode=TwoWay}" Grid.Column="2" FontSize="12" HorizontalAlignment="Right" Foreground="DarkSlateGray"/>
-                            </Grid>
-                            <!-- Horizontal Divider -->
-                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="11" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
-                            <!-- Prompt Guidance Rescale Slider -->
-                            <Grid Grid.Row="12" Margin="6,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100*"/>
-                                    <ColumnDefinition Width="75*"/>
-                                    <ColumnDefinition Width="25*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Prompt Guidance Rescale:">
-                                    <TextBlock.ToolTip>
-                                        <ToolTip>
-                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource PromptGuidanceRescaleExpianation}"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <ComboBox Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding Resolution,Mode=TwoWay}"/>
+                                        <ui:ToggleSwitch OffContent="禁用中" OnContent="已开启" IsChecked="{Binding IsConvenientResolution, Mode=TwoWay}" Grid.Column="2" FontSize="12" HorizontalAlignment="Right" Foreground="DarkSlateGray"/>
+                                    </Grid>
+                                    <!-- Horizontal Divider -->
+                                    <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="11" Margin="1,0,1,0" Grid.ColumnSpan="3"/>
+                                    <!-- Prompt Guidance Rescale Slider -->
+                                    <Grid Grid.Row="12" Margin="6,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100*"/>
+                                            <ColumnDefinition Width="75*"/>
+                                            <ColumnDefinition Width="25*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Prompt Guidance Rescale:">
+                                            <TextBlock.ToolTip>
+                                                <ToolTip>
+                                                    <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource PromptGuidanceRescaleExpianation}"/>
                                         </ToolTip>
-                                    </TextBlock.ToolTip>
-                                </TextBlock>
-                                <Slider Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="{Binding GuidanceRescale, Mode=TwoWay}" IsSnapToTickEnabled="True" TickFrequency="0.01" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
-                                <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
-                                    <TextBlock Text="{Binding GuidanceRescale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </Grid>
-                            <!-- Horizontal Divider -->
-                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="13" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-                            <!-- Noise Schedule ComboBox -->
-                            <Grid Grid.Row="14" Margin="6,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100*"/>
-                                    <ColumnDefinition Width="100*"/>
-                                    <ColumnDefinition Width="100*"/>
-                                    <ColumnDefinition Width="100*"/>
-                                </Grid.ColumnDefinitions>
-                                <CheckBox Grid.Column="0" Margin="2"  Content="Variety+" FontSize="10" IsChecked="{Binding IsVariety,Mode=TwoWay}"/>
-                                <CheckBox Grid.Column="1" Margin="2"  Content="Decrisp" FontSize="10" IsChecked="{Binding IsDecrisp,Mode=TwoWay}"/>
-                                <CheckBox Grid.Column="2" Margin="2"  Content="SMEA" FontSize="10" IsChecked="{Binding IsSMEA,Mode=TwoWay}"/>
-                                <CheckBox Grid.Column="3" Margin="2" IsEnabled="{Binding IsDYNEnabled,Mode=TwoWay}"  Content="DYN" FontSize="10" IsChecked="{Binding IsDYN,Mode=TwoWay}"/>
-                            </Grid>
-                            <!-- Horizontal Divider -->
-                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="15" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-                            <Grid Grid.Row="16" Margin="6,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="60*"/>
-                                    <ColumnDefinition Width="120*"/>
-                                </Grid.ColumnDefinitions>
-                                <!-- Noise Schedule ComboBox -->
-                                <TextBlock Text="Noise Schedule:">
-                                    <TextBlock.ToolTip>
-                                        <ToolTip>
-                                            <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource NoiseScheduleExpianation}"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <Slider Grid.Column="1" TickPlacement="Both" Minimum="0" Maximum="1" Value="{Binding GuidanceRescale, Mode=TwoWay}" IsSnapToTickEnabled="True" TickFrequency="0.01" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" AutoToolTipPrecision="2"/>
+                                        <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
+                                            <TextBlock Text="{Binding GuidanceRescale, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <!-- Horizontal Divider -->
+                                    <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="13" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                                    <!-- Noise Schedule ComboBox -->
+                                    <Grid Grid.Row="14" Margin="6,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100*"/>
+                                            <ColumnDefinition Width="100*"/>
+                                            <ColumnDefinition Width="100*"/>
+                                            <ColumnDefinition Width="100*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" Margin="2"  Content="Variety+" FontSize="10" IsChecked="{Binding IsVariety,Mode=TwoWay}"/>
+                                        <CheckBox Grid.Column="1" Margin="2"  Content="Decrisp" FontSize="10" IsChecked="{Binding IsDecrisp,Mode=TwoWay}"/>
+                                        <CheckBox Grid.Column="2" Margin="2"  Content="SMEA" FontSize="10" IsChecked="{Binding IsSMEA,Mode=TwoWay}"/>
+                                        <CheckBox Grid.Column="3" Margin="2" IsEnabled="{Binding IsDYNEnabled,Mode=TwoWay}"  Content="DYN" FontSize="10" IsChecked="{Binding IsDYN,Mode=TwoWay}"/>
+                                    </Grid>
+                                    <!-- Horizontal Divider -->
+                                    <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="15" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                                    <Grid Grid.Row="16" Margin="6,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60*"/>
+                                            <ColumnDefinition Width="120*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <!-- Noise Schedule ComboBox -->
+                                        <TextBlock Text="Noise Schedule:">
+                                            <TextBlock.ToolTip>
+                                                <ToolTip>
+                                                    <mdxam:MarkdownScrollViewer xml:space="preserve" Markdown="{StaticResource NoiseScheduleExpianation}"/>
                                         </ToolTip>
-                                    </TextBlock.ToolTip>
-                                </TextBlock>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding NoiseSchedules}" SelectedItem="{Binding NoiseSchedule,Mode=TwoWay}"/>
-                            </Grid>
-                            <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="17" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-                            <!-- Vibe Transfer Button -->
-                            <Grid Grid.Row="18" Margin="6,4">
-                                <Border BorderBrush="#FFC0C0C0" BorderThickness="1" CornerRadius="8" Background="#F7F9F2"
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <ComboBox Grid.Column="1" ItemsSource="{Binding NoiseSchedules}" SelectedItem="{Binding NoiseSchedule,Mode=TwoWay}"/>
+                                    </Grid>
+                                    <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="17" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
+                                    
+                                </Grid>
+                            </Expander>
+
+                            <!-- 第二个选项卡 -->
+                            <Expander Header="氛围转移 Vibe Transfer" behaviors:ExpanderGroupBehavior.GroupName="parameters">
+                                <!-- Vibe Transfer Button -->
+                                <Grid Margin="1" Height="420">
+                                    <Border BorderBrush="#FFC0C0C0" BorderThickness="1" CornerRadius="8" Background="#F7F9F2"
                                             VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                                             AllowDrop="True"
                                             DragEnter="Border_DragEnter"
                                             DragOver="Border_DragOver"
                                             Drop="Border_Drop"
                                             MouseLeftButtonUp="Border_MouseLeftButtonUp">
-                                    <Grid>
-                                        <ScrollViewer x:Name="ImageScrollViewer" Grid.Row="0">
-                                            <WrapPanel x:Name="ImageWrapPanel" HorizontalAlignment="Center" VerticalAlignment="Top" />
-                                        </ScrollViewer>
-                                        <StackPanel x:Name="UploadStackPanel" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Visible">
-                                            <!-- Icon -->
-                                            <Button FontFamily="../Assets/Fonts/#iconfont" FontSize="64" Foreground="#708871" Content="&#xe6b7;" Background="Transparent" BorderThickness="0" HorizontalAlignment="Center"/>
-                                            <!-- Text -->
-                                            <TextBlock FontSize="16" Foreground="#FF808080" Text="上传图像到Vibe Transfer" Margin="0,10,0,0" HorizontalAlignment="Center"/>
-                                        </StackPanel>
+                                        <Grid>
+                                            <ScrollViewer x:Name="ImageScrollViewer" Grid.Row="0">
+                                                <WrapPanel x:Name="ImageWrapPanel" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                                            </ScrollViewer>
+                                            <StackPanel x:Name="UploadStackPanel" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Visible">
+                                                <!-- Icon -->
+                                                <Button FontFamily="../Assets/Fonts/#iconfont" FontSize="64" Foreground="#708871" Content="&#xe6b7;" Background="Transparent" BorderThickness="0" HorizontalAlignment="Center"/>
+                                                <!-- Text -->
+                                                <TextBlock FontSize="16" Foreground="#FF808080" Text="上传图像到Vibe Transfer" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Expander>
+
+                            <!-- 第三个选项卡 -->
+                            <Expander Header="角色词条 Character Prompts" behaviors:ExpanderGroupBehavior.GroupName="parameters">
+                                <Border>
+                                    <Grid Height="420">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="10*"/>
+                                            <RowDefinition Height="1*"/>
+                                        </Grid.RowDefinitions>
+                                        <Border BorderBrush="#FFC0C0C0" BorderThickness="1" CornerRadius="8" Background="#F7F9F2"
+                                                VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                                AllowDrop="True"
+                                                DragEnter="Border_DragEnter"
+                                                DragOver="Border_DragOver"
+                                                Drop="Border_Drop"
+                                                MouseLeftButtonUp="CharacterBorder_MouseLeftButtonUp">
+                                            <Grid>
+                                                <ScrollViewer x:Name="CharacterPromptsCreate" Grid.Row="0">
+                                                    <WrapPanel x:Name="CharacterPromptsWrapPanel" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                                                </ScrollViewer>
+                                                <StackPanel x:Name="CharacterPromptsStackPanel" 
+                                                            Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                                                    <!-- Icon -->
+                                                    <Button FontFamily="../Assets/Fonts/#iconfont" FontSize="64" Foreground="#708871" Content="&#xe6d9;" 
+                                                            Background="Transparent" BorderThickness="0" HorizontalAlignment="Center" Margin="0,80,0,0"/>
+                                                    <!-- Text -->
+                                                    <TextBlock FontSize="16" Foreground="#FF808080" Text="点击添加角色控制器" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                                                    <TextBlock FontSize="16" Foreground="#FF808080" Text="Click to edit a character." Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                        <Grid Grid.Row="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="3*"/>
+                                                <ColumnDefinition Width="2*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="AI choice Character Positions" ToolTip="让AI决定坐标位置" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            <ui:ToggleSwitch Grid.Column="1" OffContent="Customize" OnContent="AI choice" IsChecked="{Binding UseAIChoicePositions,Mode=TwoWay}"/>
+                                        </Grid>
                                     </Grid>
                                 </Border>
-                            </Grid>
-                        </Grid>
+                            </Expander>
+                        </StackPanel>
                     </Border>
                 </Grid>
                 <Border Grid.Column="2" Background="#a2bfab" Width="335" CornerRadius="0,20,20,0" HorizontalAlignment="Right">
@@ -493,8 +545,8 @@
                                                     <RowDefinition Height="1*"/>
                                                     <RowDefinition Height="1*"/>
                                                 </Grid.RowDefinitions>
-                                                <ui:TextBox Grid.Row="0" PlaceholderText="正面词条" x:Name="PositiveTextBox" Margin="4,4" AcceptsReturn="True" TextWrapping="Wrap"/>
-                                                <ui:TextBox Grid.Row="1" PlaceholderText="负面词条" x:Name="NegativeTextBox" Margin="4,4" AcceptsReturn="True" TextWrapping="Wrap"/>
+                                                <TextBox Grid.Row="0" x:Name="PositiveTextBox" Margin="4,4" AcceptsReturn="True" TextWrapping="Wrap" Style="{x:Null}"/>
+                                                <TextBox Grid.Row="1" x:Name="NegativeTextBox" Margin="4,4" AcceptsReturn="True" TextWrapping="Wrap" Style="{x:Null}"/>
                                                 <Grid Background="Transparent" Grid.Row="2">
                                                     <TextBlock Text="图像预览" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="24" Foreground="#B0C5A4"/>
                                                     <Border>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -183,6 +184,18 @@ namespace xianyun.API
 
         [JsonProperty("defry", NullValueHandling = NullValueHandling.Ignore)]
         public int Defry { get; set; }
+
+        [JsonProperty("use_coords", NullValueHandling = NullValueHandling.Ignore)]
+        public bool UseCoords { get; set; }
+
+        [JsonProperty("characterPrompts", NullValueHandling = NullValueHandling.Ignore)]
+        public List<CharacterPrompt> CharacterPrompts { get; set; }
+
+        [JsonProperty("v4_prompt_char_captions", NullValueHandling = NullValueHandling.Ignore)]
+        public List<CharCaption> V4PromptCharCaptions { get; set; }
+
+        [JsonProperty("v4_negative_prompt_char_captions", NullValueHandling = NullValueHandling.Ignore)]
+        public List<CharCaption> V4NegativePromptCharCaptions { get; set; }
     }
 
     /// <summary>
