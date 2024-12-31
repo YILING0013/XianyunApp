@@ -728,6 +728,11 @@ namespace xianyun.MainPages
                 MessageBox.Show("请先选择一个笔记。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
+
+
+        //-----------------------------------------------------------------------------------------------//
+        //-----------------------------------  API绘图请求相关逻辑  -------------------------------------//
+        //-----------------------------------------------------------------------------------------------//
         public (string[] base64Images, double[] informationExtracted, double[] referenceStrength) ExtractImageData()
         {
             // 创建三个列表来存储图像的 base64 编码、InformationExtracted 和 ReferenceStrength 参数
@@ -944,7 +949,42 @@ namespace xianyun.MainPages
                                 Common.tools.ValidateResolution(ref width, ref height);
                                 BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
                                 string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
+                                novelAiRequest.Action = "img2img";
+                                novelAiRequest.Parameters.Width = width;
+                                novelAiRequest.Parameters.Height = height;
                                 novelAiRequest.Parameters.Image = base64Image;
+                                novelAiRequest.Parameters.Noise = _viewModel.Noise;
+                                novelAiRequest.Parameters.Strength = _viewModel.Strength;
+                                novelAiRequest.Parameters.ExtraNoiseSeed = (uint)seedValue;
+                                if (MaskImageSource.Source != null)
+                                {
+                                    novelAiRequest.Action = "infill";
+                                    novelAiRequest.Model = "nai-diffusion-3-inpainting";
+                                    novelAiRequest.Parameters.Mask = Common.tools.ConvertRenderTargetBitmapToBase64(maskImage);
+                                }
+                                if (_viewModel.ReqType != null)
+                                {
+                                    novelAiRequest.Action = null;
+                                    novelAiRequest.Input = null;
+                                    novelAiRequest.Model =null;
+                                    novelAiRequest.Parameters = null;
+                                    novelAiRequest.Width = width;
+                                    novelAiRequest.Height = height;
+                                    novelAiRequest.Image = base64Image;
+                                    novelAiRequest.ReqType = _viewModel.ReqType;
+
+                                    // 进一步检查 ReqType 是否为 "emotion" 或 "colorize"
+                                    if (_viewModel.ReqType == "emotion")
+                                    {
+                                        novelAiRequest.Prompt = _viewModel.ActualEmotion + ";;" + _viewModel.Emotion_Prompt;
+                                        novelAiRequest.Defry = _viewModel.Emotion_Defry;
+                                    }
+                                    if (_viewModel.ReqType == "colorize")
+                                    {
+                                        novelAiRequest.Prompt = _viewModel.Colorize_Prompt;
+                                        novelAiRequest.Defry = _viewModel.Colorize_Defry;
+                                    }
+                                }
                             }
                         }
                         _viewModel.ProgressValue = 90;
@@ -1986,6 +2026,15 @@ namespace xianyun.MainPages
             }
         }
 
+        private void ClearInkButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 清空 InkCanvas.Strokes
+            inkCanvas.Strokes.Clear();
+            // 清空 UndoStack 和 RedoStack
+            UndoStack.Clear();
+            RedoStack.Clear();
+        }
+
         private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
             Undo();
@@ -2492,23 +2541,6 @@ namespace xianyun.MainPages
             // 渲染到位图
             renderBitmap.Render(drawingVisual);
 
-            // 保存为PNG
-            //SaveFileDialog saveFileDialog = new SaveFileDialog
-            //{
-            //    Filter = "PNG文件|*.png",
-            //    FileName = "mask.png"
-            //};
-            //if (saveFileDialog.ShowDialog() == true)
-            //{
-            //    using (FileStream fs = new FileStream(saveFileDialog.FileName, FileMode.Create))
-            //    {
-            //        PngBitmapEncoder encoder = new PngBitmapEncoder();
-            //        encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-            //        encoder.Save(fs);
-            //    }
-            //    MessageBox.Show("蒙版已成功导出！");
-            //}
-
             // 将位图设置为Image控件的Source
             MaskImageSource.Source = renderBitmap;
             MaskViewBorder.Visibility = Visibility.Visible;
@@ -2522,6 +2554,83 @@ namespace xianyun.MainPages
             // 强制布局更新
             panZoomCanvas.UpdateLayout();
         }
+
+        private void SaveDrawButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (originalImage == null)
+            {
+                MessageBox.Show("尚未加载任何图像！");
+                return;
+            }
+
+            // 保存当前的变换
+            double savedScaleX = panZoomScaleTransform.ScaleX;
+            double savedScaleY = panZoomScaleTransform.ScaleY;
+            double savedTranslateX = panZoomTranslateTransform.X;
+            double savedTranslateY = panZoomTranslateTransform.Y;
+
+            // 重置变换
+            panZoomScaleTransform.ScaleX = 1.0;
+            panZoomScaleTransform.ScaleY = 1.0;
+            panZoomTranslateTransform.X = 0;
+            panZoomTranslateTransform.Y = 0;
+
+            // 强制布局更新
+            panZoomCanvas.UpdateLayout();
+
+            // 创建与原始图像大小一致的 RenderTargetBitmap
+            int imageWidth = originalImage.PixelWidth;
+            int imageHeight = originalImage.PixelHeight;
+
+            RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
+                imageWidth, imageHeight, 96, 96, PixelFormats.Pbgra32);
+
+            // 创建一个DrawingVisual，用于绘制原始图像和笔画
+            DrawingVisual drawingVisual = new DrawingVisual();
+            using (DrawingContext dc = drawingVisual.RenderOpen())
+            {
+                // 绘制原始图像
+                dc.DrawImage(originalImage, new Rect(0, 0, imageWidth, imageHeight));
+
+                // 绘制笔画
+                foreach (Stroke stroke in inkCanvas.Strokes)
+                {
+                    // 使用原始的绘制属性
+                    stroke.Draw(dc);
+                }
+            }
+
+            // 渲染到位图
+            renderBitmap.Render(drawingVisual);
+
+            // 恢复变换
+            panZoomScaleTransform.ScaleX = savedScaleX;
+            panZoomScaleTransform.ScaleY = savedScaleY;
+            panZoomTranslateTransform.X = savedTranslateX;
+            panZoomTranslateTransform.Y = savedTranslateY;
+
+            // 强制布局更新
+            panZoomCanvas.UpdateLayout();
+
+            // 将 RenderTargetBitmap 转换为 BitmapImage
+            BitmapImage bitmapImage = new BitmapImage();
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                PngBitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+                encoder.Save(memoryStream);
+                memoryStream.Position = 0;
+
+                bitmapImage.BeginInit();
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.StreamSource = memoryStream;
+                bitmapImage.EndInit();
+            }
+
+            originalImage = bitmapImage;
+        }
+
+        
 
         private void DelMaskBth_Click(object sender, RoutedEventArgs e)
         {

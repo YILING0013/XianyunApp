@@ -10,6 +10,7 @@ using System.Linq;
 using xianyun.MainPages;
 using static xianyun.ViewModel.MainViewModel;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace xianyun.API
 {
@@ -37,14 +38,25 @@ namespace xianyun.API
         {
             var json = JsonConvert.SerializeObject(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            LogPage.LogMessage($"Request URL: {_httpClient.BaseAddress}ai/generate-image");
-            LogPage.LogMessage($"Content-Type: {content.Headers.ContentType}");
+            string apiPath = "ai/generate-image"; // 默认接口路径
+            var jsonObject = JObject.Parse(json);
+            if (jsonObject.ContainsKey("req_type"))
+            {
+                string reqType = jsonObject["req_type"].ToString().ToLower();
+                switch (reqType)
+                {
+                    default:
+                        apiPath = "ai/augment-image";
+                        break;
+                }
+            }
+
+            LogPage.LogMessage($"Request URL: {_httpClient.BaseAddress}{apiPath}");
             LogPage.LogMessage($"Request Body: {json}");
 
-            var response = await _httpClient.PostAsync("ai/generate-image", content);
+            var response = await _httpClient.PostAsync(apiPath, content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -93,17 +105,35 @@ namespace xianyun.API
     /// </summary>
     public class NovelAiRequest
     {
-        [JsonProperty("action")]
+        [JsonProperty("action", NullValueHandling = NullValueHandling.Ignore)]
         public string Action { get; set; }
 
-        [JsonProperty("input")]
+        [JsonProperty("input", NullValueHandling = NullValueHandling.Ignore)]
         public string Input { get; set; }
 
-        [JsonProperty("model")]
+        [JsonProperty("model", NullValueHandling = NullValueHandling.Ignore)]
         public string Model { get; set; }
 
-        [JsonProperty("parameters")]
+        [JsonProperty("parameters", NullValueHandling = NullValueHandling.Ignore)]
         public NovelAiParameters Parameters { get; set; }
+
+        [JsonProperty("height", NullValueHandling = NullValueHandling.Ignore)]
+        public int? Height { get; set; }
+
+        [JsonProperty("defry", NullValueHandling = NullValueHandling.Ignore)]
+        public int? Defry { get; set; }
+
+        [JsonProperty("image", NullValueHandling = NullValueHandling.Ignore)]
+        public string Image { get; set; }
+
+        [JsonProperty("prompt", NullValueHandling = NullValueHandling.Ignore)]
+        public string Prompt { get; set; }
+
+        [JsonProperty("req_type", NullValueHandling = NullValueHandling.Ignore)]
+        public string ReqType { get; set; }
+
+        [JsonProperty("width", NullValueHandling = NullValueHandling.Ignore)]
+        public int? Width { get; set; }
     }
 
     /// <summary>
@@ -133,7 +163,7 @@ namespace xianyun.API
         public bool? DynamicThresholding { get; set; }
 
         [JsonProperty("extra_noise_seed", NullValueHandling = NullValueHandling.Ignore)]
-        public int? ExtraNoiseSeed { get; set; }
+        public uint? ExtraNoiseSeed { get; set; }
 
         [JsonProperty("height", NullValueHandling = NullValueHandling.Ignore)]
         public int? Height { get; set; }
@@ -154,7 +184,7 @@ namespace xianyun.API
         public string NegativePrompt { get; set; }
 
         [JsonProperty("noise", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Noise { get; set; }
+        public float? Noise { get; set; }
 
         [JsonProperty("noise_schedule", NullValueHandling = NullValueHandling.Ignore)]
         public string NoiseSchedule { get; set; }
@@ -205,7 +235,7 @@ namespace xianyun.API
         public int? Steps { get; set; }
 
         [JsonProperty("strength", NullValueHandling = NullValueHandling.Ignore)]
-        public double? Strength { get; set; }
+        public float? Strength { get; set; }
 
         [JsonProperty("ucPreset", NullValueHandling = NullValueHandling.Ignore)]
         public int? UcPreset { get; set; }

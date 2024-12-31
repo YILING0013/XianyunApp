@@ -979,14 +979,15 @@
                                                         </ResourceDictionary>
                                                     </Grid.Resources>
                                                     <hc:ButtonGroup Margin="1" Orientation="Vertical" VerticalAlignment="Center">
-                                                        <RadioButton GroupName="EditingTools" Click="InkButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe687;" Margin="1"/>
-                                                        <RadioButton GroupName="EditingTools" Click="PanZoomButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe616;" Margin="1"/>
-                                                        <RadioButton GroupName="EditingTools" Click="EraserButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe71e;" Margin="1"/>
-                                                        <Button Name="UndoButton" Click="UndoButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe7f4;" Margin="1"/>
-                                                        <Button Name="RedoButton" Click="RedoButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe602;" Margin="1"/>
-                                                        <Button FontFamily="../Assets/Fonts/#iconfont" Content="&#xe747;" Margin="1"/>
+                                                        <RadioButton GroupName="EditingTools" Click="InkButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe687;" Margin="1" ToolTip="画笔工具"/>
+                                                        <RadioButton GroupName="EditingTools" Click="PanZoomButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe616;" Margin="1" ToolTip="移动和缩放"/>
+                                                        <RadioButton GroupName="EditingTools" Click="EraserButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe71e;" Margin="1" ToolTip="橡皮工具"/>
+                                                        <Button Name="UndoButton" Click="UndoButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe7f4;" Margin="1" ToolTip="撤销"/>
+                                                        <Button Name="RedoButton" Click="RedoButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe602;" Margin="1" ToolTip="重做"/>
+                                                        <Button x:Name="ClearInkButton" Click="ClearInkButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe747;" Margin="1" ToolTip="清空"/>
                                                         <Button Click="ResetPositionButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe63a;" Margin="1"/>
-                                                        <Button Click="ExportMaskButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe63b;" Margin="1"/>
+                                                        <Button Click="SaveDrawButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe63b;" Margin="1" ToolTip="保存绘制内容到图像"/>
+                                                        <Button Click="ExportMaskButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe610;" Margin="1" ToolTip="导出绘制内容为蒙版"/>
                                                         <Button Click="ClearButton_Click" FontFamily="../Assets/Fonts/#iconfont" Content="&#xe64f;" Background="#FAAB78" Margin="1"/>
                                                     </hc:ButtonGroup>
                                                 </Grid>
