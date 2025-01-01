@@ -54,7 +54,6 @@ namespace xianyun.API
             }
 
             LogPage.LogMessage($"Request URL: {_httpClient.BaseAddress}{apiPath}");
-            LogPage.LogMessage($"Request Body: {json}");
 
             var response = await _httpClient.PostAsync(apiPath, content);
 

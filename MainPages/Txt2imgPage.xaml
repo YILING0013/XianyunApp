@@ -108,7 +108,14 @@
                         </TabControl>
                         <!-- 右上角的圆角透明按钮 -->
                         <Border Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent">
-                            <Button Name="TagMenuBth" Click="TagMenuBtn_Click" FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Content="&#xe677;" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#F9F9F9" BorderThickness="2"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="1" Name="TagMenuBth" Click="TagMenuBtn_Click" FontFamily="../Assets/Fonts/#iconfont" FontSize="16" Foreground="#708871" Content="&#xe677;" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#F9F9F9" BorderThickness="2"/>
+
+                            </Grid>
                         </Border>
                     </Grid>
                     <Grid Grid.Row="1">
@@ -209,9 +216,16 @@
                                 <ComboBox  Grid.Column="1" ItemsSource="{Binding Models}" SelectedItem="{Binding Model,Mode=TwoWay}"/>
                             </Grid>
                             <Border BorderBrush="#aaaaaa" BorderThickness="0,0,0,1" VerticalAlignment="Center" Grid.Row="3" Margin="1,0,1,0" Grid.ColumnSpan="2"/>
-                            <Button Content="Generate Image" Grid.Row="4" Margin="6,2,6,2"
-                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                        Click="GenerateButton_Click"/>
+                            <Grid Grid.Row="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Content="Generate Image" Grid.Column="0" Margin="6,2,6,2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Click="GenerateButton_Click"/>
+                                <Border Grid.Column="1" Margin="0,4,6,4" Background="#FFD2A0" CornerRadius="4">
+                                    <TextBlock x:Name="Opus" Text="剩余点数" Margin="6,0" Foreground="#9F5255"/>
+                                </Border>
+                            </Grid>
                         </Grid>
                     </Border>
                     <Border Grid.Row="1" Background="#ccdcd4" Margin="10" CornerRadius="5,5,5,5">

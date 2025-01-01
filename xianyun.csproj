@@ -80,6 +80,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="MainPages\SettingPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainPages\superResolutionPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -116,6 +120,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="API\GetSubscription.cs" />
     <Compile Include="API\NovelAIApiClient.cs" />
     <Compile Include="API\publicParameter.cs" />
     <Compile Include="API\XianyunApiClient.cs" />
@@ -137,6 +142,9 @@
     </Compile>
     <Compile Include="MainPages\LogPage.xaml.cs">
       <DependentUpon>LogPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainPages\SettingPage.xaml.cs">
+      <DependentUpon>SettingPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainPages\superResolutionPage.xaml.cs">
       <DependentUpon>superResolutionPage.xaml</DependentUpon>

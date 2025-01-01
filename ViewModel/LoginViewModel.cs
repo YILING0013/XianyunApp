@@ -347,7 +347,9 @@ namespace xianyun.ViewModel
                         {
                             Common.SessionManager.Token = finalToken;
                             int fixedTrainingStepsLeft = responseData.subscription.trainingStepsLeft.fixedTrainingStepsLeft;
+                            int purchasedTrainingSteps = responseData.subscription.trainingStepsLeft.purchasedTrainingSteps;
                             bool active = responseData.subscription.active;
+                            Common.SessionManager.Opus = fixedTrainingStepsLeft + purchasedTrainingSteps;
                             this.Message = $"Training Steps Left: {fixedTrainingStepsLeft}, Active: {active}";
                             OpenMainWindowAndCloseLoginWindow();  // 登录成功后打开主窗口
                         }

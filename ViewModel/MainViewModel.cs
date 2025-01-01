@@ -199,6 +199,9 @@ namespace xianyun.ViewModel
                         case "Page5":
                             page = MainPages.LogPage.Instance; // 使用单例实例
                             break;
+                        case "Page6":
+                            page = new MainPages.SettingPage();
+                            break;
                         default:
                             return;
                     }

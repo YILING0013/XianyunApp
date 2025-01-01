@@ -11,6 +11,8 @@ namespace xianyun.Common
     {
         public static string Session { get; set; }
         public static string Token { get; set; }
+
+        public static int Opus { get; set; }
     }
     public class TotpGenerator
     {

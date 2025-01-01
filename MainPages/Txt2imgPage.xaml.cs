@@ -94,6 +94,15 @@ namespace xianyun.MainPages
             inkCanvas.Cursor = Cursors.Cross;
             inkCanvas.IsHitTestVisible = false;
             LogPage.LogMessage(LogLevel.INFO, "绘图初始化成功");
+            if (string.IsNullOrEmpty(SessionManager.Session) && !string.IsNullOrEmpty(SessionManager.Token))
+            {
+                Opus.Text = "剩余点数:"+Common.SessionManager.Opus;
+            }
+            else
+            {
+                //隐藏文本框
+                Opus.Visibility = Visibility.Collapsed;
+            }
         }
         private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
         {
@@ -148,6 +157,7 @@ namespace xianyun.MainPages
 
         public void ImportCharacterPromptsData(WrapPanel characterPromptsWrapPanel, string filePath)
         {
+            characterPromptsWrapPanel.Children.Clear();
             if (!File.Exists(filePath))
             {
                 return;
@@ -730,9 +740,9 @@ namespace xianyun.MainPages
         }
 
 
-        //-----------------------------------------------------------------------------------------------//
-        //-----------------------------------  API绘图请求相关逻辑  -------------------------------------//
-        //-----------------------------------------------------------------------------------------------//
+        //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+        //--------------------------------------------------------------------------------  API绘图请求相关逻辑  ----------------------------------------------------------------------------------------//
+        //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
         public (string[] base64Images, double[] informationExtracted, double[] referenceStrength) ExtractImageData()
         {
             // 创建三个列表来存储图像的 base64 编码、InformationExtracted 和 ReferenceStrength 参数
@@ -990,6 +1000,7 @@ namespace xianyun.MainPages
                         _viewModel.ProgressValue = 90;
                         // 发送请求
                         string imageBase64 = await novelAiClient.GenerateImageAsync(novelAiRequest);
+                        await GetSubscription.GetSubscriptionInfoAsync();
                         var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
                         Application.Current.Dispatcher.Invoke(() =>
                         {
@@ -999,6 +1010,7 @@ namespace xianyun.MainPages
                             ImageViewerControl.ImageSource = bitmapFrame;
                         });
                         LogPage.LogMessage(LogLevel.INFO, "图像生成成功" );
+                        Opus.Text = "剩余点数:" + Common.SessionManager.Opus;
                         _viewModel.ProgressValue = 100;
                         await Task.Delay(3000); // 请求间隔3秒
                     }  
@@ -2456,9 +2468,9 @@ namespace xianyun.MainPages
             // 获取ImageViewerControl.ImageSource的BitmapFrame对象
             BitmapFrame bitmapFrame = ImageViewerControl.ImageSource as BitmapFrame;
             BitmapImage bitmapImage = Common.tools.ConvertBitmapFrameToBitmapImage(bitmapFrame);
-            //渲染到RenderImage
             originalImage = bitmapImage;
             if (originalImage != null) RenderImage(originalImage);
+            _viewModel.IsInkCanvasVisible = true;
         }
 
         // Border 尺寸变化事件
