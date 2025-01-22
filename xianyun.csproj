@@ -129,6 +129,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Common\Adorner.cs" />
+    <Compile Include="Common\ImageSaver.cs" />
     <Compile Include="Common\LoginHelper.cs" />
     <Compile Include="Common\NullableLongConverter.cs" />
     <Compile Include="Common\NotifyBase.cs" />

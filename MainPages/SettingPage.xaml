@@ -88,8 +88,8 @@
                                                             <ColumnDefinition Width="1*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Text="图像保存路径" VerticalAlignment="Center" Margin="12,0"/>
-                                                        <TextBox Grid.Column="1" Margin="2,4" VerticalAlignment="Stretch"/>
-                                                        <Button Grid.Column="2" Margin="6,4" VerticalAlignment="Stretch" Content="浏览文件夹" HorizontalAlignment="Stretch"/>
+                                                        <TextBox Grid.Column="1" Margin="2,4" VerticalAlignment="Stretch" Text="{Binding SaveDirectory,Mode=TwoWay}"/>
+                                                        <Button Click="BrowseFolderButton_Click" Grid.Column="2" Margin="6,4" VerticalAlignment="Stretch" Content="浏览文件夹" HorizontalAlignment="Stretch"/>
                                                     </Grid>
                                                     <Grid Grid.Row="1">
                                                         <Grid.ColumnDefinitions>
@@ -102,14 +102,14 @@
                                                                 <ColumnDefinition Width="1*"/>
                                                                 <ColumnDefinition Width="auto"/>
                                                             </Grid.ColumnDefinitions>
-                                                            <ComboBox Grid.Column="0" Margin="2,4,6,4" VerticalAlignment="Stretch"/>
+                                                            <ComboBox x:Name="NamingRuleComboBox" Grid.Column="0" Margin="2,4,6,4" VerticalAlignment="Stretch" SelectionChanged="NamingRuleComboBox_SelectionChanged" ItemsSource="{Binding NamingRules}" SelectedItem="{Binding NamingRule,Mode=TwoWay}"/>
                                                             <Grid Grid.Column="1" x:Name="CustomPrefixGroup" Visibility="Collapsed">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="auto"/>
                                                                     <ColumnDefinition Width="auto"/>
                                                                 </Grid.ColumnDefinitions>
                                                                 <TextBlock Grid.Column="0" Text="自定义前缀" Margin="2" VerticalAlignment="Center"/>
-                                                                <TextBox Grid.Column="1" x:Name="CustomPrefix" Width="200" Margin="2,4"/>
+                                                                <TextBox x:Name="CustomPrefix" Grid.Column="1" Width="200" Margin="2,4" Text="{Binding CustomPrefix,Mode=TwoWay}"/>
                                                             </Grid>
                                                         </Grid>
                                                     </Grid>
@@ -119,7 +119,7 @@
                                                             <ColumnDefinition Width="1*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Text="图像生成结束后自动下载图像到指定路径" VerticalAlignment="Center" Margin="12,0"/>
-                                                        <ui:ToggleSwitch Grid.Column="1" HorizontalAlignment="Right" Margin="6,0" OffContent="不自动保存图像" OnContent="自动保存图像"/>
+                                                        <ui:ToggleSwitch IsChecked="{Binding AutoSaveEnabled,Mode=TwoWay}" Grid.Column="1" HorizontalAlignment="Right" Margin="6,0" OffContent="不自动保存图像" OnContent="自动保存图像"/>
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -131,7 +131,7 @@
                                                     <DropShadowEffect Color="Gray" ShadowDepth="1" BlurRadius="5" Opacity="0.2" Direction="0"/>
                                                     <!--阴影-->
                                                 </Border.Effect>
-                                                <Grid>
+                                                <Grid IsEnabled="False" x:Name="NovelAIUserSettings">
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="1*"/>
                                                         <RowDefinition Height="1*"/>
@@ -143,7 +143,7 @@
                                                             <ColumnDefinition Width="1*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Text="启用大图模式（最大分辨率提高、步数最高支持50步）" VerticalAlignment="Center" Margin="12,0"/>
-                                                        <ui:ToggleSwitch Grid.Column="1" HorizontalAlignment="Right" Margin="6,0" OffContent="未启用，当前生成不消耗点数" OnContent="已开启，请注意点数消耗"/>
+                                                        <ui:ToggleSwitch IsChecked="{Binding UseOpsEnabled}" Grid.Column="1" HorizontalAlignment="Right" Margin="6,0" OffContent="未启用，订阅状态不消耗点数" OnContent="已开启，请注意点数消耗"/>
                                                     </Grid>
                                                     <Grid Grid.Row="1">
                                                         <Grid.ColumnDefinitions>
@@ -151,7 +151,7 @@
                                                             <ColumnDefinition Width="1*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Text="自定义最高连续生成次数" VerticalAlignment="Center" Margin="12,0"/>
-                                                        <ui:NumberBox Grid.Column="1" Margin="6,0" Maximum="300"/>
+                                                        <ui:NumberBox Grid.Column="1" Margin="6,0" Maximum="1000" Value="{Binding DrawingMaxFrequency,Mode=TwoWay}"/>
                                                     </Grid>
                                                     <Grid Grid.Row="2">
                                                         <Grid.ColumnDefinitions>
@@ -159,7 +159,7 @@
                                                             <ColumnDefinition Width="2*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Text="NovelAI请求接口配置" VerticalAlignment="Center" Margin="12,0"/>
-                                                        <ui:TextBox Grid.Column="1" Margin="6,4" VerticalAlignment="Stretch" PlaceholderText="输入NovelAI的API接口地址（代理接口地址），输入内容不要包括ai/generate-image等，不懂则请勿修改"/>
+                                                        <ui:TextBox Grid.Column="1" Margin="6,4" VerticalAlignment="Stretch" PlaceholderText="输入NovelAI的代理接口地址，输入内容不要包括ai/generate-image等，没有请留空"/>
                                                     </Grid>
                                                 </Grid>
                                             </Border>

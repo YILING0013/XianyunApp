@@ -201,7 +201,7 @@
                                     <ColumnDefinition Width="10*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="连续绘制(次):"/>
-                                <Slider Grid.Column="1" Value="{Binding DrawingFrequency, Mode=TwoWay}" TickPlacement="Both" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                <Slider Grid.Column="1" Value="{Binding DrawingFrequency, Mode=TwoWay}" TickPlacement="Both" Minimum="1" Maximum="{Binding DrawingMaxFrequency,Mode=TwoWay}" TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                                 <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                     <TextBlock Text="{Binding DrawingFrequency, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
@@ -314,7 +314,7 @@
                                         </ToolTip>
                                             </TextBlock.ToolTip>
                                         </TextBlock>
-                                        <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="28" Value="{Binding Steps, Mode=TwoWay}"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
+                                        <Slider Grid.Column="1" TickPlacement="Both" Minimum="1" Maximum="{Binding MaxSteps,Mode=TwoWay}" Value="{Binding Steps, Mode=TwoWay}"  TickFrequency="1" IsSnapToTickEnabled="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight"/>
                                         <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                             <TextBlock Text="{Binding Steps, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
@@ -337,7 +337,7 @@
                                         </ToolTip>
                                             </TextBlock.ToolTip>
                                         </TextBlock>
-                                        <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="2048"  Value="{Binding Width, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True"  HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" ValueChanged="WidthSlider_ValueChanged"/>
+                                        <Slider Grid.Column="1" TickPlacement="Both" Minimum="512" Maximum="{Binding MaxWidth,Mode=TwoWay}"  Value="{Binding Width, Mode=TwoWay}"  TickFrequency="64" IsSnapToTickEnabled="True"  HorizontalAlignment="Stretch" VerticalAlignment="Center" AutoToolTipPlacement="BottomRight" ValueChanged="WidthSlider_ValueChanged"/>
                                         <Border Grid.Column="2" Background="#C0DBEA" Margin="4,4,0,4" CornerRadius="5" BorderBrush="#7C96AB" BorderThickness="1">
                                             <TextBlock Text="{Binding Width, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>

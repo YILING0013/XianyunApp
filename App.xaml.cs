@@ -25,6 +25,7 @@ namespace xianyun
             base.OnStartup(e);
             // 初始化 GlobalViewModel
             GlobalViewModel = new MainViewModel();
+            GlobalViewModel.LoadParameters();
         }
         protected override void OnExit(ExitEventArgs e)
         {

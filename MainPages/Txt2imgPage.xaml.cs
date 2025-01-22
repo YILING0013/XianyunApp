@@ -80,7 +80,6 @@ namespace xianyun.MainPages
             _viewModel = App.GlobalViewModel;
             this.DataContext = _viewModel;
             this.Loaded += Txt2imgPage_Loaded;
-
             inkCanvas.DefaultDrawingAttributes = new DrawingAttributes
             {
                 Color = (Color)ColorConverter.ConvertFromString(TextHex.Text),
@@ -93,7 +92,6 @@ namespace xianyun.MainPages
             inkCanvas.UseCustomCursor = true;
             inkCanvas.Cursor = Cursors.Cross;
             inkCanvas.IsHitTestVisible = false;
-            LogPage.LogMessage(LogLevel.INFO, "绘图初始化成功");
             if (string.IsNullOrEmpty(SessionManager.Session) && !string.IsNullOrEmpty(SessionManager.Token))
             {
                 Opus.Text = "剩余点数:"+Common.SessionManager.Opus;
@@ -102,17 +100,19 @@ namespace xianyun.MainPages
             {
                 //隐藏文本框
                 Opus.Visibility = Visibility.Collapsed;
+                _viewModel.DrawingMaxFrequency = 10;
             }
+            LogPage.LogMessage(LogLevel.INFO, "绘图初始化成功");
         }
         private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
         {
             var viewModel = DataContext as MainViewModel;
             if (ConfigurationService.ConfigurationExists())
             {
-                _viewModel.LoadParameters();
                 // 设置全局登录状态为已登录
                 var app = (App)Application.Current;
                 app.IsLoading = true;
+                _viewModel.SaveParameters();
             }
             if (viewModel != null)
             {
@@ -320,8 +320,15 @@ namespace xianyun.MainPages
             double closestBelow = 512;
             double closestBelowDiff = double.MaxValue;
 
+            // 如果 UseOpsEnabled 为 true，则调整边界值和遍历范围
+            if (_viewModel.UseOpsEnabled)
+            {
+                minBound = 3063808;
+                maxBound = 3145728;
+            }
+
             // 遍历高度范围
-            for (double x = 512; x <= 2048; x += 64)
+            for (double x = 512; x <= (_viewModel.UseOpsEnabled ? 4096 : 2048); x += 64)
             {
                 double product = x * widthValue;
                 if (product >= minBound && product <= maxBound)
@@ -1010,6 +1017,20 @@ namespace xianyun.MainPages
                             ImageViewerControl.ImageSource = bitmapFrame;
                         });
                         LogPage.LogMessage(LogLevel.INFO, "图像生成成功" );
+                        if (_viewModel.AutoSaveEnabled) {
+                            string fileName = ImageSaver.GenerateFileName(_viewModel.CustomPrefix);
+                            try
+                            {
+                                ImageSaver.SaveImage(imageBase64, _viewModel.SaveDirectory, fileName);
+                                MessageBox.Show("图像已保存到: " + System.IO.Path.Combine(_viewModel.SaveDirectory, fileName));
+                                LogPage.LogMessage(LogLevel.INFO, "成功保存图像到: " + System.IO.Path.Combine(_viewModel.SaveDirectory, fileName));
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show("保存图像失败: " + ex.Message);
+                                LogPage.LogMessage(LogLevel.ERROR, "保存图像失败: " + ex.Message);
+                            }
+                        }
                         Opus.Text = "剩余点数:" + Common.SessionManager.Opus;
                         _viewModel.ProgressValue = 100;
                         await Task.Delay(3000); // 请求间隔3秒
@@ -1179,7 +1200,19 @@ namespace xianyun.MainPages
                                 _viewModel.ProgressValue = 100;
                                 Console.WriteLine("图像生成成功！");
                                 LogPage.LogMessage(LogLevel.INFO, "图像生成成功！");
-
+                                if (_viewModel.AutoSaveEnabled)
+                                {
+                                    string fileName = ImageSaver.GenerateFileName(_viewModel.CustomPrefix);
+                                    try
+                                    {
+                                        ImageSaver.SaveImage(imageBase64, _viewModel.SaveDirectory, fileName);
+                                        LogPage.LogMessage(LogLevel.INFO, "成功保存图像到: " + System.IO.Path.Combine(_viewModel.SaveDirectory, fileName));
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogPage.LogMessage(LogLevel.ERROR, "保存图像失败: " + ex.Message);
+                                    }
+                                }
                                 var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {

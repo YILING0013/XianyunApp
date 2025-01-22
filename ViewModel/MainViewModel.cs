@@ -35,9 +35,12 @@ namespace xianyun.ViewModel
         private int _emotionDefry = 0;
         private int _colorizeDefry = 0;
         private int _drawingFrequency = 1;
+        private int _drawingMaxFrequency = 10;
         private int _steps = 28;
+        private int _maxSteps = 28;
         private long? _seed = null;
         private int _width = 1024;
+        private int _maxWidth = 2048;
         private int _height = 1024;
         private bool _isConvenientResolution = false;
         private bool _isVariety= false;
@@ -69,6 +72,11 @@ namespace xianyun.ViewModel
         private bool _isIgnorePenPressure = true;
         private bool _addOriginalImage = true;
         private bool _isUseAIChoicePositions = false;
+        private string _saveDirectory = string.Empty;
+        private string _customPrefix = string.Empty;
+        private bool _autoSaveEnabled = false;
+        private bool _useOpsEnabled = false;
+        private string _namingRule;
 
         private readonly Dictionary<string, string> _samplingMethodMapping = new Dictionary<string, string>
         {
@@ -115,6 +123,7 @@ namespace xianyun.ViewModel
         public List<string> SamplingMethods { get; set; } = new List<string> { "Euler", "Euler Ancestral", "DPM++ 2S Ancestral", "DPM++ SDE", "DPM++ 2M", "DDIM" };
         public List<string> Resolutions { get; set; } = new List<string> { "1024*1024", "1216*832", "832*1216" };
         public List<string> NoiseSchedules { get; set; } = new List<string> { "native", "karras", "exponential", "polyexponential" };
+        public List<string> NamingRules { get; set; } = new List<string> { "年_月_日_时间格式", "自定义前缀_年_月_日_时间格式" };
         // 其他从 MainViewModel 导入的属性和命令
         public ICommand NavigateCommand { get; }
         public ICommand CloseWindowCommand { get; }
@@ -154,6 +163,7 @@ namespace xianyun.ViewModel
             Emotion = Emotions[0];
             Resolution = Resolutions[0];
             NoiseSchedule = NoiseSchedules[0];
+            NamingRule = NamingRules[0];
             CloseWindowCommand = new RelayCommand<System.Windows.Window>(async window =>
             {
                 SaveParameters();
@@ -469,6 +479,25 @@ namespace xianyun.ViewModel
                 DoNotify();
             }
         }
+
+        public int DrawingMaxFrequency
+        {
+
+            //限制最大值1000
+            get => _drawingMaxFrequency;
+            set
+            {
+                if (value > 1000)
+                {
+                    _drawingMaxFrequency = 1000;
+                }
+                else
+                {
+                    _drawingMaxFrequency = value;
+                }
+                DoNotify();
+            }
+        }
         public int Emotion_Defry
         {
             get => _emotionDefry;
@@ -496,6 +525,16 @@ namespace xianyun.ViewModel
                 DoNotify();
             }
         }
+
+        public int MaxSteps
+        {
+            get => _maxSteps;
+            set
+            {
+                _maxSteps = value;
+                DoNotify();
+            }
+        }
         public long? Seed
         {
             get => _seed;
@@ -515,6 +554,17 @@ namespace xianyun.ViewModel
                 DoNotify();
             }
         }
+
+        public int MaxWidth
+        {
+            get => _maxWidth;
+            set
+            {
+                _maxWidth = value;
+                DoNotify();
+            }
+        }
+
         public int Height
         {
             get => _height;
@@ -752,6 +802,70 @@ namespace xianyun.ViewModel
             }
         }
 
+        public string SaveDirectory
+        {
+            get => _saveDirectory;
+            set
+            {
+                _saveDirectory = value;
+                DoNotify();
+            }
+        }
+
+        public string CustomPrefix
+        {
+            get => _customPrefix;
+            set
+            {
+                _customPrefix = value;
+                DoNotify();
+            }
+        }
+
+        public bool AutoSaveEnabled
+        {
+            get => _autoSaveEnabled;
+            set
+            {
+                _autoSaveEnabled = value;
+                DoNotify();
+            }
+        }
+
+        public bool UseOpsEnabled
+        {
+            //当启用Ops时，使MaxSteps为50,关闭时恢复为28
+            get => _useOpsEnabled;
+            set
+            {
+                _useOpsEnabled = value;
+                if (value)
+                {
+                    MaxSteps = 50;
+                    MaxWidth = 4096;
+                }
+                else
+                {
+                    MaxSteps = 28;
+                    MaxWidth = 2048;
+                }
+                DoNotify();
+            }
+
+        }
+
+        public string NamingRule
+        {
+            get => _namingRule;
+            set
+            {
+                if (_namingRule != value)
+                {
+                    _namingRule = value;
+                    DoNotify();
+                }
+            }
+        }
         // 加载参数的方法
         public void LoadParameters()
         {
@@ -785,6 +899,11 @@ namespace xianyun.ViewModel
             this.BrushWidth= loadedConfig.BrushWidth;
             this.BrushHeight = loadedConfig.BrushHeight;
             this.SelectColor = loadedConfig.SelectColor;
+            this.SaveDirectory = loadedConfig.SaveDirectory;
+            this.NamingRule = loadedConfig.NamingRule;
+            this.CustomPrefix = loadedConfig.CustomPrefix;
+            this.AutoSaveEnabled = loadedConfig.AutoSaveEnabled;
+            this.UseOpsEnabled = loadedConfig.UseOpsEnabled;
         }
 
         // 保存参数的方法

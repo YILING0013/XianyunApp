@@ -111,6 +111,13 @@ namespace xianyun.Common
             return resizedImage;
         }
 
+
+        /// <summary>
+        /// 将 BitmapImage 转换为 Base64 字符串
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="encoder"></param>
+        /// <returns></returns>
         public static string ConvertImageToBase64(BitmapImage image, BitmapEncoder encoder = null)
         {
             // 如果没有提供编码器，默认使用 Png 编码器
@@ -131,6 +138,12 @@ namespace xianyun.Common
             }
         }
 
+
+        /// <summary>
+        /// 将 Base64 字符串转换为 BitmapFrame
+        /// </summary>
+        /// <param name="base64String"></param>
+        /// <returns></returns>
         public static BitmapFrame ConvertBase64ToBitmapFrame(string base64String)
         {
             byte[] imageBytes = Convert.FromBase64String(base64String);
@@ -145,6 +158,12 @@ namespace xianyun.Common
             return BitmapFrame.Create(bitmapImage);
         }
 
+
+        /// <summary>
+        /// 将 Base64 字符串转换为 BitmapImage
+        /// </summary>
+        /// <param name="base64String"></param>
+        /// <returns></returns>
         public static BitmapImage ConvertBase64ToBitmapImage(string base64String)
         {
             byte[] imageBytes = Convert.FromBase64String(base64String);
@@ -159,6 +178,11 @@ namespace xianyun.Common
             return bitmapImage;
         }
 
+        /// <summary>
+        /// 将 BitmapFrame 转换为 BitmapImage
+        /// </summary>
+        /// <param name="bitmapFrame"></param>
+        /// <returns></returns>
         public static BitmapImage ConvertBitmapFrameToBitmapImage(BitmapFrame bitmapFrame)
         {
             BitmapImage bitmapImage = new BitmapImage();
@@ -177,22 +201,21 @@ namespace xianyun.Common
             return bitmapImage;
         }
 
+
+        /// <summary>
+        /// 将 RenderTargetBitmap 转换为 Base64 字符串
+        /// </summary>
+        /// <param name="renderBitmap"></param>
+        /// <returns></returns>
         public static string ConvertRenderTargetBitmapToBase64(RenderTargetBitmap renderBitmap)
         {
             // 使用 MemoryStream 存储 PNG 数据
             using (MemoryStream memoryStream = new MemoryStream())
             {
-                // 使用 PngBitmapEncoder 编码图像
                 PngBitmapEncoder encoder = new PngBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-
-                // 将编码后的图像保存到 MemoryStream
                 encoder.Save(memoryStream);
-
-                // 将 MemoryStream 转换为字节数组
                 byte[] imageBytes = memoryStream.ToArray();
-
-                // 将字节数组转换为 Base64 字符串
                 string base64String = Convert.ToBase64String(imageBytes);
 
                 return base64String;
