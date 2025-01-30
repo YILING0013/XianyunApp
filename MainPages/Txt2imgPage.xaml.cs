@@ -1,29 +1,27 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using xianyun.API;
+using xianyun.Common;
 using xianyun.UserControl;
 using xianyun.ViewModel;
-using System.IO;
-using System.IO.Compression;
-using System.Windows.Media.Animation;
-using xianyun.Common;
-using xianyun.API;
-using Newtonsoft.Json;
-using System.Windows.Ink;
-using System.Windows.Controls.Primitives;
 using AduSkin.Utility.Media;
 using static xianyun.ViewModel.MainViewModel;
 
@@ -34,38 +32,45 @@ namespace xianyun.MainPages
     /// </summary>
     public partial class Txt2imgPage : Page
     {
-        private bool dragInProgress = false;
-        private bool isTagMenuOpen = false;
+        #region Fields
 
-        private Stack<Stroke> UndoStack = new Stack<Stroke>();
-        private Stack<Stroke> RedoStack = new Stack<Stroke>();
+        private bool _dragInProgress;
+        private bool _isTagMenuOpen;
+        private bool _isCancelling;
+        private bool _isGenerating;
 
-        // Transformations
-        private TransformGroup panZoomTransformGroup;
-        private ScaleTransform panZoomScaleTransform;
-        private TranslateTransform panZoomTranslateTransform;
+        // InkCanvas undo/redo
+        private readonly Stack<Stroke> _undoStack = new Stack<Stroke>();
+        private readonly Stack<Stroke> _redoStack = new Stack<Stroke>();
 
-        // Mouse interaction
-        private Point lastMousePosition;
-        private bool isPanning = false;
-        private bool isPanZoomMode = false;
+        // Transformations for pan/zoom
+        private TransformGroup _panZoomTransformGroup;
+        private ScaleTransform _panZoomScaleTransform;
+        private TranslateTransform _panZoomTranslateTransform;
+        private Point _lastMousePosition;
+        private bool _isPanning;
+        private bool _isPanZoomMode;
 
-        private double H = 0;
-        private double S = 1;
-        private double B = 1;
+        // HSBA / RGBA fields
+        private double _H;
+        private double _S = 1;
+        private double _B = 1;
+        private int _R = 255;
+        private int _G = 255;
+        private int _BVal = 255;
+        private int _AVal = 255;
+        private float _AFloat = 255;
 
-        private int R = 255;
-        private int G = 255;
-        private int _B = 255;
-        private int A = 255;
-        private float _A = 255;
+        // Original image references
+        private BitmapImage _originalImage;
+        private RenderTargetBitmap _maskImage;
 
-        private BitmapImage originalImage;
-        RenderTargetBitmap maskImage;
-        private DragAdorner currentAdorner;
+        // Drag adorner
+        private DragAdorner _currentAdorner;
+
         private MainViewModel _viewModel;
 
-        private string BackupFilePath = "characterPromptsBackup.json";
+        private const string BackupFilePath = "characterPromptsBackup.json";
 
         public class CharacterPromptBackup
         {
@@ -74,76 +79,92 @@ namespace xianyun.MainPages
             public string SelectedPosition { get; set; }
             public string BorderColor { get; set; }
         }
+
+        #endregion
+
+        #region Constructor / Initialization
+
         public Txt2imgPage()
         {
             InitializeComponent();
             _viewModel = App.GlobalViewModel;
-            this.DataContext = _viewModel;
-            this.Loaded += Txt2imgPage_Loaded;
+            DataContext = _viewModel;
+
+            Loaded += Txt2imgPage_Loaded;
+
+            // Setup InkCanvas
             inkCanvas.DefaultDrawingAttributes = new DrawingAttributes
             {
                 Color = (Color)ColorConverter.ConvertFromString(TextHex.Text),
-                Height = _viewModel.BrushHeight, // 画笔高度
-                Width = _viewModel.BrushWidth,  // 画笔宽度
-                IgnorePressure = _viewModel.IsIgnorePenPressure // 忽略笔压
+                Height = _viewModel.BrushHeight,
+                Width = _viewModel.BrushWidth,
+                IgnorePressure = _viewModel.IsIgnorePenPressure
             };
-            inkCanvas.Background = Brushes.Transparent; // 背景透明
-            inkCanvas.EditingMode = InkCanvasEditingMode.Ink;  // 默认绘制模式
+            inkCanvas.Background = Brushes.Transparent;
+            inkCanvas.EditingMode = InkCanvasEditingMode.Ink;
             inkCanvas.UseCustomCursor = true;
             inkCanvas.Cursor = Cursors.Cross;
             inkCanvas.IsHitTestVisible = false;
+            inkCanvas.StrokeCollected += InkCanvas_StrokeCollected;
+
             if (string.IsNullOrEmpty(SessionManager.Session) && !string.IsNullOrEmpty(SessionManager.Token))
             {
-                Opus.Text = "剩余点数:"+Common.SessionManager.Opus;
+                Opus.Text = "剩余点数:" + SessionManager.Opus;
             }
             else
             {
-                //隐藏文本框
+                // Hide the "Opus" text if no valid token
                 Opus.Visibility = Visibility.Collapsed;
                 _viewModel.DrawingMaxFrequency = 10;
             }
             LogPage.LogMessage(LogLevel.INFO, "绘图初始化成功");
         }
+
         private void Txt2imgPage_Loaded(object sender, RoutedEventArgs e)
         {
-            var viewModel = DataContext as MainViewModel;
+            // If configuration exists, set IsLoading to true and persist parameters
             if (ConfigurationService.ConfigurationExists())
             {
-                // 设置全局登录状态为已登录
                 var app = (App)Application.Current;
                 app.IsLoading = true;
                 _viewModel.SaveParameters();
             }
-            if (viewModel != null)
-            {
-                viewModel.ImgPreviewArea = ImgPreviewArea;
-                viewModel.ImageStackPanel = ImageStackPanel;
-                viewModel.ImageViewerControl = ImageViewerControl;
-            }
-            InputTextBox.Text = viewModel.PositivePrompt;
+
+            // Link relevant UI elements to the ViewModel
+            _viewModel.ImgPreviewArea = ImgPreviewArea;
+            _viewModel.ImageStackPanel = ImageStackPanel;
+            _viewModel.ImageViewerControl = ImageViewerControl;
+
+            InputTextBox.Text = _viewModel.PositivePrompt;
             UpdateTagsContainer();
+
+            // Load JSON files into TreeView
             string folderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "json_files");
             LoadJsonFilesToTreeView(folderPath);
-            // 还原控件数据
+
+            // Restore character prompts data
             ImportCharacterPromptsData(CharacterPromptsWrapPanel, BackupFilePath);
+
+            // Load notes
             LoadNotesFromFile();
         }
 
+        #endregion
+
+        #region CharacterPrompts Backup / Restore
+
         /// <summary>
-        /// 将 WrapPanel 中的 CharacterPrompts 控件的数据导出为 JSON 文件
+        /// Exports the CharacterPrompts data in the WrapPanel to a JSON file.
         /// </summary>
-        /// <param name="characterPromptsWrapPanel"></param>
-        /// <param name="filePath"></param>
         public void ExportCharacterPromptsData(WrapPanel characterPromptsWrapPanel, string filePath)
         {
             var backupData = new List<CharacterPromptBackup>();
 
-            foreach (var child in characterPromptsWrapPanel.Children)
+            foreach (object child in characterPromptsWrapPanel.Children)
             {
                 if (child is CharacterPrompts characterPrompt)
                 {
                     dynamic state = characterPrompt.GetControlState();
-
                     var border = characterPrompt.FindName("CharacterBorder") as Border;
                     string borderColor = border?.BorderBrush.ToString();
 
@@ -162,27 +183,18 @@ namespace xianyun.MainPages
         }
 
         /// <summary>
-        /// 从 JSON 文件中导入数据到 CharacterPrompts 控件
+        /// Imports the CharacterPrompts data from a JSON file into the WrapPanel.
         /// </summary>
-        /// <param name="characterPromptsWrapPanel"></param>
-        /// <param name="filePath"></param>
         public void ImportCharacterPromptsData(WrapPanel characterPromptsWrapPanel, string filePath)
         {
             characterPromptsWrapPanel.Children.Clear();
-            if (!File.Exists(filePath))
-            {
-                return;
-            }
+            if (!File.Exists(filePath)) return;
 
             string json = File.ReadAllText(filePath);
             var backupData = JsonConvert.DeserializeObject<List<CharacterPromptBackup>>(json);
+            if (backupData == null) return;
 
-            if (backupData == null)
-            {
-                return;
-            }
-
-            foreach (var data in backupData)
+            foreach (CharacterPromptBackup data in backupData)
             {
                 var newCharacterPrompt = new CharacterPrompts
                 {
@@ -203,38 +215,30 @@ namespace xianyun.MainPages
                         }
                         catch
                         {
-                            // 忽略转换失败
+                            // Ignore invalid color
                         }
                     }
                 }
-
                 characterPromptsWrapPanel.Children.Add(newCharacterPrompt);
                 CharacterPromptsStackPanel.Visibility = Visibility.Collapsed;
             }
         }
 
-        /// <summary>
-        /// HexTextBox的回车事件，触发LoseFocus使颜色值生效
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        #endregion
+
+        #region Color Picker & RGBA/HSBA Handling
+
         private void HexTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            // 检查是否按下回车键
             if (e.Key == Key.Enter)
             {
                 HexTextLostFocus(sender, e);
                 (sender as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
             }
         }
-        /// <summary>
-        /// RGBA颜色值的文本框回车事件，触发LoseFocus使颜色值生效
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+
         private void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            // 检查是否按下回车键
             if (e.Key == Key.Enter)
             {
                 TextBox_LostFocus(sender, e);
@@ -242,104 +246,203 @@ namespace xianyun.MainPages
             }
         }
 
-        /// <summary>
-        /// EmotionDefry的点击事件，当点击时，将Emotion的Defry降低；低于0时，禁用减号按钮
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        private void TextHex_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (inkCanvas == null || string.IsNullOrWhiteSpace(TextHex.Text)) return;
+            try
+            {
+                var color = (Color)ColorConverter.ConvertFromString(TextHex.Text);
+                inkCanvas.DefaultDrawingAttributes.Color = color;
+            }
+            catch (FormatException)
+            {
+                // If invalid color, default to white
+                inkCanvas.DefaultDrawingAttributes.Color = Colors.White;
+            }
+        }
+
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // Validate RGBA
+            if (!int.TryParse(TextR.Text, out int Rvalue) || Rvalue is < 0 or > 255)
+            {
+                TextR.Text = _R.ToString();
+                return;
+            }
+            if (!int.TryParse(TextG.Text, out int Gvalue) || Gvalue is < 0 or > 255)
+            {
+                TextG.Text = _G.ToString();
+                return;
+            }
+            if (!int.TryParse(TextB.Text, out int Bvalue) || Bvalue is < 0 or > 255)
+            {
+                TextB.Text = _BVal.ToString();
+                return;
+            }
+            if (!int.TryParse(TextA.Text, out int Avalue) || Avalue is < 0 or > 255)
+            {
+                TextA.Text = _AVal.ToString();
+                return;
+            }
+
+            _R = Rvalue;
+            _G = Gvalue;
+            _BVal = Bvalue;
+            _AVal = Avalue;
+            _AFloat = _AVal / 255f;
+
+            var rgbaColor = new RgbaColor(_R, _G, _BVal, _AVal);
+            _viewModel.SelectColor = rgbaColor.SolidColorBrush;
+            TextHex.Text = rgbaColor.HexString;
+
+            // Convert RGBA to HSBA
+            HsbaColor hsbaColor = rgbaColor.ToHsbaColor();
+            _H = hsbaColor.H;
+            _S = hsbaColor.S;
+            _B = hsbaColor.B;
+
+            thumbH.UpdatePositionByPercent(0.0, _H / 360.0);
+            thumbSB.UpdatePositionByPercent(_S, 1.0 - _B);
+            thumbA.UpdatePositionByPercent(1 - _AFloat, 0.0);
+        }
+
+        private void HexTextLostFocus(object sender, RoutedEventArgs e)
+        {
+            var rgbaColor = new RgbaColor(TextHex.Text);
+            _viewModel.SelectColor = rgbaColor.SolidColorBrush;
+            TextR.Text = rgbaColor.R.ToString();
+            TextG.Text = rgbaColor.G.ToString();
+            TextB.Text = rgbaColor.B.ToString();
+            TextA.Text = rgbaColor.A.ToString();
+
+            var hsbaColor = rgbaColor.ToHsbaColor();
+            _H = hsbaColor.H;
+            _S = hsbaColor.S;
+            _B = hsbaColor.B;
+            _AVal = rgbaColor.A;
+
+            thumbH.UpdatePositionByPercent(0.0, _H / 360.0);
+            thumbSB.UpdatePositionByPercent(_S, 1.0 - _B);
+            thumbA.UpdatePositionByPercent(1 - (rgbaColor.A / 255.0), 0.0);
+        }
+
+        private void ThumbPro_ValueChanged(double xpercent, double ypercent)
+        {
+            // Hue
+            _H = 360 * ypercent;
+            var hColor = new HsbaColor(_H, 1, 1, 1);
+            viewSelectColor.Fill = hColor.SolidColorBrush;
+
+            var newColor = new HsbaColor(_H, _S, _B, _AVal / 255.0);
+            _viewModel.SelectColor = newColor.SolidColorBrush;
+            _viewModel.SelectColor_A = newColor.Color;
+
+            ColorChange(newColor.RgbaColor);
+        }
+
+        private void ThumbPro_ValueChanged_1(double xpercent, double ypercent)
+        {
+            // Saturation, Brightness
+            _S = xpercent;
+            _B = 1 - ypercent;
+
+            var newColor = new HsbaColor(_H, _S, _B, _AVal / 255.0);
+            _viewModel.SelectColor = newColor.SolidColorBrush;
+            _viewModel.SelectColor_A = newColor.Color;
+
+            ColorChange(newColor.RgbaColor);
+        }
+
+        private void ThumbPro_ValueChanged_A(double xpercent, double ypercent)
+        {
+            // Alpha
+            _AVal = (int)((1 - xpercent) * 255);
+            var rgbaColor = new RgbaColor(_R, _G, _BVal, _AVal);
+            _viewModel.SelectColor = rgbaColor.SolidColorBrush;
+            TextA.Text = _AVal.ToString();
+            TextHex.Text = rgbaColor.HexString;
+        }
+
+        private void ColorChange(RgbaColor color)
+        {
+            _R = color.R;
+            _G = color.G;
+            _BVal = color.B;
+            _AVal = color.A;
+
+            TextR.Text = _R.ToString();
+            TextG.Text = _G.ToString();
+            TextB.Text = _BVal.ToString();
+            TextA.Text = _AVal.ToString();
+            TextHex.Text = color.HexString;
+        }
+
+        #endregion
+
+        #region Emotion Defry
+
         private void EmotionDefryReduce_Click(object sender, RoutedEventArgs e)
         {
-            // 确保 Defry 值不能小于 0
             if (_viewModel.Emotion_Defry > 0)
             {
                 _viewModel.Emotion_Defry--;
                 UpdateDefryGrade();
             }
-
-            // 禁用 EmotionDefryReduce 按钮当 Defry 为 0
             EmotionDefryReduce.IsEnabled = _viewModel.Emotion_Defry > 0;
-
-            // 确保当 Defry 小于 5 时，EmotionDefryPlus 按钮始终启用
             EmotionDefryPlus.IsEnabled = _viewModel.Emotion_Defry < 5;
         }
 
-        /// <summary>
-        /// EmotionDefry的点击事件，当点击时，将Emotion的Defry增加；高于5时，禁用加号按钮
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void EmotionDefryPlus_Click(object sender, RoutedEventArgs e)
         {
-            // 确保 Defry 值不能大于 5
             if (_viewModel.Emotion_Defry < 5)
             {
                 _viewModel.Emotion_Defry++;
                 UpdateDefryGrade();
             }
-
-            // 禁用 EmotionDefryPlus 按钮当 Defry 为 5
             EmotionDefryPlus.IsEnabled = _viewModel.Emotion_Defry < 5;
-
-            // 确保当 Defry 大于 0 时，EmotionDefryReduce 按钮始终启用
             EmotionDefryReduce.IsEnabled = _viewModel.Emotion_Defry > 0;
         }
 
-        /// <summary>
-        /// EmotionDefry的文本更新事件，随defry值的变化更新defry等级对应文本
-        /// </summary>
         private void UpdateDefryGrade()
         {
             string[] grades = { "Normal", "Slightly Weak", "Weak", "Even Weaker", "Very Weak", "Weakest" };
             defryGrade.Text = grades[_viewModel.Emotion_Defry];
         }
 
-        /// <summary>
-        /// 宽度的调节滑块逻辑，当宽度值改变时，更新高度滑块的最大值
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        #endregion
+
+        #region Width / Height Adjustment
+
         private void WidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (HeightSlider == null)
-            {
-                return; // 如果 HeightSlider 未初始化，直接返回，避免空引用错误
-            }
-            // 获取当前的宽度值
+            if (HeightSlider == null) return;
             double widthValue = e.NewValue;
             double maxHeight = CalculateMaxHeight(widthValue);
 
-            // 设置 Height 滑条的最大值
             HeightSlider.Maximum = maxHeight;
-            // 如果当前高度值大于新的最大高度，更新高度值
             if (_viewModel.Height > maxHeight)
             {
                 _viewModel.Height = (int)maxHeight;
             }
         }
 
-        /// <summary>
-        /// 通过宽度值计算最大高度值
-        /// </summary>
-        /// <param name="widthValue"></param>
-        /// <returns></returns>
         private double CalculateMaxHeight(double widthValue)
         {
-            // 定义最小和最大边界值
             double minBound = 1011712;
             double maxBound = 1048576;
             double maxHeight = 512;
             double closestBelow = 512;
             double closestBelowDiff = double.MaxValue;
 
-            // 如果 UseOpsEnabled 为 true，则调整边界值和遍历范围
             if (_viewModel.UseOpsEnabled)
             {
                 minBound = 3063808;
                 maxBound = 3145728;
             }
 
-            // 遍历高度范围
-            for (double x = 512; x <= (_viewModel.UseOpsEnabled ? 4096 : 2048); x += 64)
+            // Step through the possible heights
+            double upperLimit = _viewModel.UseOpsEnabled ? 4096 : 2048;
+            for (double x = 512; x <= upperLimit; x += 64)
             {
                 double product = x * widthValue;
                 if (product >= minBound && product <= maxBound)
@@ -357,168 +460,140 @@ namespace xianyun.MainPages
                 }
             }
 
-            // 返回最大高度值
             return (maxHeight != 512) ? maxHeight : closestBelow;
         }
 
-        //###########################################################################################################################################################################//
-        #region 词条选择库相关逻辑
-        private void SearchInTreeView(string searchText)
-        {
-            // 清空 ListBox 中的现有项
-            TagListBox.Items.Clear();
+        #endregion
 
-            if (string.IsNullOrEmpty(searchText))
-            {
-                return; // 如果搜索文本为空，则不进行任何操作
-            }
+        #region Tag Tree / Search
 
-            // 遍历 TreeView 中的所有节点
-            foreach (TreeViewItem fileNode in TagTreeView.Items)
-            {
-                foreach (TreeViewItem categoryNode in fileNode.Items)
-                {
-                    if (categoryNode.Tag is Dictionary<string, string> dictionary)
-                    {
-                        // 遍历字典中的所有键值对
-                        foreach (var keyValuePair in dictionary)
-                        {
-                            // 如果键或值包含搜索文本，将键（中文）添加到 ListBox 中
-                            if (keyValuePair.Key.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                keyValuePair.Value.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
-                            {
-                                // 将键添加为 ListBox 项目，显示中文文本
-                                TagListBox.Items.Add(new ListBoxItem
-                                {
-                                    Content = keyValuePair.Key, // 显示中文文本
-                                    Tag = keyValuePair.Value    // 将值存储在 Tag 中以备后用
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 如果没有找到匹配项，显示一个提示
-            if (TagListBox.Items.Count == 0)
-            {
-                TagListBox.Items.Add(new ListBoxItem { Content = "未找到匹配的结果。" });
-            }
-        }
-        // 当按下回车键时进行搜索
-        private void AutoSuggestBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                var searchBox = sender as Wpf.Ui.Controls.AutoSuggestBox;
-                string searchText = searchBox.Text;
-
-                // 调用搜索方法
-                SearchInTreeView(searchText);
-            }
-        }
-        // 当输入框失去焦点时进行搜索
-        private void AutoSuggestBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            var searchBox = sender as Wpf.Ui.Controls.AutoSuggestBox;
-            string searchText = searchBox.Text;
-
-            // 调用搜索方法
-            SearchInTreeView(searchText);
-        }
         private void LoadJsonFilesToTreeView(string folderPath)
         {
-            // 确保文件夹存在
             if (!Directory.Exists(folderPath))
             {
                 MessageBox.Show("指定的文件夹不存在。");
                 return;
             }
 
-            // 遍历文件夹中的所有 JSON 文件
             var jsonFiles = Directory.GetFiles(folderPath, "*.json");
-
-            foreach (var file in jsonFiles)
+            foreach (string file in jsonFiles)
             {
-                // 读取文件内容
                 string jsonContent = File.ReadAllText(file);
-
-                // 解析 JSON 内容到字典
                 var dict = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(jsonContent);
 
-                // 获取文件名作为 TreeView 顶层节点
+                // Create top-level node for file
                 var fileName = System.IO.Path.GetFileNameWithoutExtension(file);
-                TreeViewItem fileNode = new TreeViewItem
-                {
-                    Header = fileName
-                };
+                TreeViewItem fileNode = new TreeViewItem { Header = fileName };
 
-                // 将 JSON 字典内容作为子节点添加到 TreeView 中
                 foreach (var category in dict)
                 {
                     TreeViewItem categoryNode = new TreeViewItem
                     {
                         Header = category.Key,
-                        Tag = category.Value // 将字典内容存储在 Tag 中，方便后续操作
+                        Tag = category.Value // store the dictionary in Tag
                     };
                     fileNode.Items.Add(categoryNode);
                 }
-
-                // 将顶层文件节点添加到 TreeView 中
                 TagTreeView.Items.Add(fileNode);
             }
         }
+
         private void TagTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            var selectedItem = TagTreeView.SelectedItem as TreeViewItem;
-            if (selectedItem?.Tag is Dictionary<string, string> dictionary)
+            if (TagTreeView.SelectedItem is TreeViewItem selectedItem && selectedItem.Tag is Dictionary<string, string> dictionary)
             {
-                // 清空 ListBox
                 TagListBox.Items.Clear();
-
-                // 将字典中的键添加到 ListBox 中
-                foreach (var key in dictionary.Keys)
+                foreach (string key in dictionary.Keys)
                 {
                     TagListBox.Items.Add(key);
                 }
             }
         }
+
         private void TagListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            // 如果选中项是从 ListBox 中的搜索结果
-            if (TagListBox.SelectedItem is ListBoxItem selectedItem && selectedItem.Tag is string value)
+            // If from search results
+            if (TagListBox.SelectedItem is ListBoxItem listBoxItem && listBoxItem.Tag is string valueFromSearch)
             {
-                // 从搜索结果中获取键（中文）和值（英文）
-                string selectedKey = selectedItem.Content.ToString(); // 键（中文）
-
-                // 创建新的 TagControl，并添加到 TagsContainer
-                TagControl newTagControl = new TagControl(value, value, selectedKey);
+                string selectedKey = listBoxItem.Content.ToString();
+                var newTagControl = new TagControl(valueFromSearch, valueFromSearch, selectedKey);
                 newTagControl.TextChanged += TagControl_TextChanged;
                 newTagControl.TagDeleted += TagControl_TagDeleted;
                 TagsContainer.Children.Add(newTagControl);
             }
-            // 如果是从 TreeView 中选择的项目
+            // If directly from the TagTreeView
             else if (TagListBox.SelectedItem is string selectedKey)
             {
-                var selectedTreeViewItem = TagTreeView.SelectedItem as TreeViewItem;
-                if (selectedTreeViewItem?.Tag is Dictionary<string, string> dictionary)
+                if (TagTreeView.SelectedItem is TreeViewItem treeItem && treeItem.Tag is Dictionary<string, string> dictionary)
                 {
-                    // 获取对应的值
-                    var selectedValue = dictionary[selectedKey];
-
-                    // 创建新的 TagControl，并添加到 TagsContainer
-                    TagControl newTagControl = new TagControl(selectedValue, selectedValue, selectedKey);
+                    string selectedValue = dictionary[selectedKey];
+                    var newTagControl = new TagControl(selectedValue, selectedValue, selectedKey);
                     newTagControl.TextChanged += TagControl_TextChanged;
                     newTagControl.TagDeleted += TagControl_TagDeleted;
                     TagsContainer.Children.Add(newTagControl);
                 }
             }
-            // 添加完 TagControl 后，更新 PositivePrompt 和 InputTextBox
             UpdateViewModelTagsText();
         }
+
+        private void SearchInTreeView(string searchText)
+        {
+            TagListBox.Items.Clear();
+            if (string.IsNullOrEmpty(searchText)) return;
+
+            foreach (TreeViewItem fileNode in TagTreeView.Items)
+            {
+                foreach (object child in fileNode.Items)
+                {
+                    if (child is TreeViewItem categoryNode && categoryNode.Tag is Dictionary<string, string> dictionary)
+                    {
+                        foreach (var kv in dictionary)
+                        {
+                            bool keyMatch = kv.Key.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
+                            bool valueMatch = kv.Value.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
+                            if (keyMatch || valueMatch)
+                            {
+                                TagListBox.Items.Add(new ListBoxItem
+                                {
+                                    Content = kv.Key,
+                                    Tag = kv.Value
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            if (TagListBox.Items.Count == 0)
+            {
+                TagListBox.Items.Add(new ListBoxItem { Content = "未找到匹配的结果。" });
+            }
+        }
+
+        private void AutoSuggestBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                if (sender is Wpf.Ui.Controls.AutoSuggestBox searchBox)
+                {
+                    string searchText = searchBox.Text;
+                    SearchInTreeView(searchText);
+                }
+            }
+        }
+
+        private void AutoSuggestBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is Wpf.Ui.Controls.AutoSuggestBox searchBox)
+            {
+                string searchText = searchBox.Text;
+                SearchInTreeView(searchText);
+            }
+        }
+
         #endregion
-        //###########################################################################################################################################################################//
-        #region 笔记本相关逻辑
+
+        #region Notebook (Save / Load Notes)
+
         public class NoteModel
         {
             public string Name { get; set; }
@@ -527,111 +602,88 @@ namespace xianyun.MainPages
             public string ImagePath { get; set; }
             public List<CharacterPromptBackup> CharacterPromptsData { get; set; }
         }
+
         private void SaveNote_Click(object sender, RoutedEventArgs e)
         {
-            // 弹出输入框获取保存名称
             string noteName = Microsoft.VisualBasic.Interaction.InputBox("请输入保存名称", "保存笔记", "");
+            if (string.IsNullOrEmpty(noteName)) return;
 
-            if (!string.IsNullOrEmpty(noteName))
+            var existingNote = _viewModel.Notes.FirstOrDefault(n => n.Name == noteName);
+            if (existingNote != null)
             {
-                // 检查是否存在重名
-                var existingNote = _viewModel.Notes.FirstOrDefault(note => note.Name == noteName);
-                if (existingNote != null)
-                {
-                    MessageBox.Show("该名称已存在，请选择其他名称。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                // 保存正面和负面词条
-                string positivePrompt = _viewModel.PositivePrompt;
-                string negativePrompt = _viewModel.NegitivePrompt;
-
-                // 保存 CharacterPrompts 数据
-                var characterPromptsData = new List<CharacterPromptBackup>();
-                foreach (var child in CharacterPromptsWrapPanel.Children)
-                {
-                    if (child is CharacterPrompts characterPrompt)
-                    {
-                        dynamic state = characterPrompt.GetControlState();
-
-                        var border = characterPrompt.FindName("CharacterBorder") as Border;
-                        string borderColor = border?.BorderBrush.ToString();
-
-                        characterPromptsData.Add(new CharacterPromptBackup
-                        {
-                            Prompt = state.prompt,
-                            UndesiredContent = state.uc,
-                            SelectedPosition = state.selectedPosition,
-                            BorderColor = borderColor
-                        });
-                    }
-                }
-
-                // 检查是否有图像，如果有则保存图像
-                string imagePath = null;
-                if (ImageViewerControl.ImageSource != null)
-                {
-                    // 确保目标文件夹存在
-                    string folderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NoteBookImgPath");
-                    if (!Directory.Exists(folderPath))
-                    {
-                        Directory.CreateDirectory(folderPath);
-                    }
-
-                    // 设置图像的保存路径
-                    imagePath = System.IO.Path.Combine(folderPath, $"{noteName}.png");
-
-                    var encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create((BitmapSource)ImageViewerControl.ImageSource));
-
-                    // 保存图像
-                    using (var fileStream = new System.IO.FileStream(imagePath, System.IO.FileMode.Create))
-                    {
-                        encoder.Save(fileStream);
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("没有图像可保存，保存的笔记将不包含图像。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-
-                // 创建新的笔记对象
-                var newNote = new NoteModel
-                {
-                    Name = noteName,
-                    PositivePrompt = positivePrompt,
-                    NegativePrompt = negativePrompt,
-                    ImagePath = imagePath, // 如果没有图像，ImagePath 将为 null
-                    CharacterPromptsData = characterPromptsData // 保存 CharacterPrompts 数据
-                };
-
-                // 将笔记添加到内存集合
-                _viewModel.Notes.Add(newNote);
-
-                // 将笔记保存到本地文件
-                SaveNoteToFile(newNote);
-
-                // 更新 ListBox
-                UpdateListBoxItems();
+                MessageBox.Show("该名称已存在，请选择其他名称。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
+
+            string positivePrompt = _viewModel.PositivePrompt;
+            string negativePrompt = _viewModel.NegitivePrompt;
+
+            var characterPromptsData = new List<CharacterPromptBackup>();
+            foreach (object child in CharacterPromptsWrapPanel.Children)
+            {
+                if (child is CharacterPrompts characterPrompt)
+                {
+                    dynamic state = characterPrompt.GetControlState();
+                    var border = characterPrompt.FindName("CharacterBorder") as Border;
+                    string borderColor = border?.BorderBrush.ToString();
+
+                    characterPromptsData.Add(new CharacterPromptBackup
+                    {
+                        Prompt = state.prompt,
+                        UndesiredContent = state.uc,
+                        SelectedPosition = state.selectedPosition,
+                        BorderColor = borderColor
+                    });
+                }
+            }
+
+            // Save image if available
+            string imagePath = null;
+            if (ImageViewerControl.ImageSource != null)
+            {
+                string folderPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NoteBookImgPath");
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                imagePath = System.IO.Path.Combine(folderPath, $"{noteName}.png");
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create((BitmapSource)ImageViewerControl.ImageSource));
+                using var fileStream = new FileStream(imagePath, FileMode.Create);
+                encoder.Save(fileStream);
+            }
+            else
+            {
+                MessageBox.Show("没有图像可保存，保存的笔记将不包含图像。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+            var newNote = new NoteModel
+            {
+                Name = noteName,
+                PositivePrompt = positivePrompt,
+                NegativePrompt = negativePrompt,
+                ImagePath = imagePath,
+                CharacterPromptsData = characterPromptsData
+            };
+
+            _viewModel.Notes.Add(newNote);
+            SaveNoteToFile(newNote);
+            UpdateListBoxItems();
         }
 
         private void SaveNoteToFile(NoteModel note)
         {
             string filePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "notes.json");
+            var notes = new List<NoteModel>();
 
-            // 读取现有笔记
-            List<NoteModel> notes = new List<NoteModel>();
             if (File.Exists(filePath))
             {
                 string json = File.ReadAllText(filePath);
                 notes = JsonConvert.DeserializeObject<List<NoteModel>>(json) ?? new List<NoteModel>();
             }
-
-            // 添加新笔记
             notes.Add(note);
 
-            // 保存到文件
             string newJson = JsonConvert.SerializeObject(notes, Formatting.Indented);
             File.WriteAllText(filePath, newJson);
         }
@@ -639,68 +691,62 @@ namespace xianyun.MainPages
         private void LoadNotesFromFile()
         {
             string filePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "notes.json");
+            if (!File.Exists(filePath)) return;
 
-            if (File.Exists(filePath))
+            try
             {
-                try
-                {
-                    string json = File.ReadAllText(filePath);
-                    var notes = JsonConvert.DeserializeObject<List<NoteModel>>(json) ?? new List<NoteModel>();
-                    _viewModel.Notes.Clear();
+                string json = File.ReadAllText(filePath);
+                var notes = JsonConvert.DeserializeObject<List<NoteModel>>(json) ?? new List<NoteModel>();
+                _viewModel.Notes.Clear();
 
-                    // 将笔记添加到 ViewModel
-                    foreach (var note in notes)
-                    {
-                        _viewModel.Notes.Add(note);
-                    }
-                }
-                catch (Exception ex)
+                foreach (var note in notes)
                 {
-                    MessageBox.Show($"加载笔记时发生错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                    LogPage.LogMessage(LogLevel.ERROR, "加载笔记时发生错误: " + ex.Message);
+                    _viewModel.Notes.Add(note);
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载笔记时发生错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogPage.LogMessage(LogLevel.ERROR, "加载笔记时发生错误: " + ex.Message);
             }
         }
 
         private void UpdateListBoxItems()
         {
-            // 确保 ViewModel 中的 Notes 集合已经更新
-            ListBox listBox = this.FindName("NoteBookListBox") as ListBox;
+            ListBox listBox = FindName("NoteBookListBox") as ListBox;
             if (listBox != null)
             {
-                // 因为 ListBox 已经通过 ItemsSource 绑定到 _viewModel.Notes，所以不需要手动清空和添加项目
-                // 只需通知 UI 数据已更新即可，确保 Notes 集合是 ObservableCollection<NoteModel>
-                // 如果不是 ObservableCollection，需要改为 ObservableCollection，以便自动通知 UI 更新
-                listBox.ItemsSource = null; // 解除现有绑定
-                listBox.ItemsSource = _viewModel.Notes; // 重新绑定
+                listBox.ItemsSource = null;
+                listBox.ItemsSource = _viewModel.Notes;
             }
         }
+
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (NoteBookListBox.SelectedItem is NoteModel selectedNote)
             {
-                // 更新正面和负面词条文本框
                 PositiveTextBox.Text = selectedNote.PositivePrompt;
                 NegativeTextBox.Text = selectedNote.NegativePrompt;
 
-                // 更新图像控件
+                // Preview image
                 if (!string.IsNullOrEmpty(selectedNote.ImagePath) && File.Exists(selectedNote.ImagePath))
                 {
-                    var image = new BitmapImage();
+                    var bitmap = new BitmapImage();
                     using (var stream = new FileStream(selectedNote.ImagePath, FileMode.Open, FileAccess.Read))
                     {
-                        image.BeginInit();
-                        image.CacheOption = BitmapCacheOption.OnLoad; // 确保图像加载后不锁定文件
-                        image.StreamSource = stream;
-                        image.EndInit();
+                        bitmap.BeginInit();
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.StreamSource = stream;
+                        bitmap.EndInit();
                     }
-                    NoteImgPreview.Source = image;
+                    NoteImgPreview.Source = bitmap;
                 }
                 else
                 {
-                    NoteImgPreview.Source = null; // 如果没有图像，清空预览
+                    NoteImgPreview.Source = null;
                 }
-                // 更新 CharacterPrompts 控件
+
+                // Rebuild character prompts
                 CharacterPromptsWrapPanel.Children.Clear();
                 if (selectedNote.CharacterPromptsData != null)
                 {
@@ -725,24 +771,21 @@ namespace xianyun.MainPages
                                 }
                                 catch
                                 {
-                                    // 忽略转换失败
+                                    // Ignore
                                 }
                             }
                         }
-
                         CharacterPromptsWrapPanel.Children.Add(newCharacterPrompt);
                     }
                 }
             }
         }
+
         private void DeleteNote_Click(object sender, RoutedEventArgs e)
         {
             if (NoteBookListBox.SelectedItem is NoteModel selectedNote)
             {
-                // 清空图像预览，确保文件不被锁定
                 NoteImgPreview.Source = null;
-
-                // 删除图像文件（如果存在）
                 if (!string.IsNullOrEmpty(selectedNote.ImagePath) && File.Exists(selectedNote.ImagePath))
                 {
                     try
@@ -756,11 +799,7 @@ namespace xianyun.MainPages
                         return;
                     }
                 }
-
-                // 从内存集合中移除
                 _viewModel.Notes.Remove(selectedNote);
-
-                // 从本地文件中移除
                 RemoveNoteFromFile(selectedNote);
             }
             else
@@ -772,27 +811,21 @@ namespace xianyun.MainPages
         private void RemoveNoteFromFile(NoteModel note)
         {
             string filePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "notes.json");
+            if (!File.Exists(filePath)) return;
 
-            if (File.Exists(filePath))
+            try
             {
-                try
-                {
-                    // 读取现有笔记
-                    string json = File.ReadAllText(filePath);
-                    var notes = JsonConvert.DeserializeObject<List<NoteModel>>(json) ?? new List<NoteModel>();
+                string json = File.ReadAllText(filePath);
+                var notes = JsonConvert.DeserializeObject<List<NoteModel>>(json) ?? new List<NoteModel>();
+                notes.RemoveAll(n => n.Name == note.Name);
 
-                    // 移除指定笔记
-                    notes.RemoveAll(n => n.Name == note.Name);
-
-                    // 保存到文件
-                    string newJson = JsonConvert.SerializeObject(notes, Formatting.Indented);
-                    File.WriteAllText(filePath, newJson);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"更新笔记文件时发生错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                    LogPage.LogMessage(LogLevel.ERROR, "更新笔记文件时发生错误: " + ex.Message);
-                }
+                string newJson = JsonConvert.SerializeObject(notes, Formatting.Indented);
+                File.WriteAllText(filePath, newJson);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"更新笔记文件时发生错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogPage.LogMessage(LogLevel.ERROR, "更新笔记文件时发生错误: " + ex.Message);
             }
         }
 
@@ -800,12 +833,11 @@ namespace xianyun.MainPages
         {
             if (NoteBookListBox.SelectedItem is NoteModel selectedNote)
             {
-                // 更新 _viewModel 中的词条
                 _viewModel.PositivePrompt = selectedNote.PositivePrompt;
                 _viewModel.NegitivePrompt = selectedNote.NegativePrompt;
                 InputTextBox.Text = _viewModel.PositivePrompt;
 
-                // 更新 CharacterPrompts 控件
+                // Rebuild character prompts
                 CharacterPromptsWrapPanel.Children.Clear();
                 if (selectedNote.CharacterPromptsData != null)
                 {
@@ -830,11 +862,10 @@ namespace xianyun.MainPages
                                 }
                                 catch
                                 {
-                                    // 忽略转换失败
+                                    // Ignore
                                 }
                             }
                         }
-
                         CharacterPromptsWrapPanel.Children.Add(newCharacterPrompt);
                     }
                 }
@@ -845,75 +876,68 @@ namespace xianyun.MainPages
                 MessageBox.Show("请先选择一个笔记。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
-        #endregion
-        //###########################################################################################################################################################################//
-        #region API绘图请求相关逻辑
-        public (string[] base64Images, double[] informationExtracted, double[] referenceStrength) ExtractImageData()
-        {
-            // 创建三个列表来存储图像的 base64 编码、InformationExtracted 和 ReferenceStrength 参数
-            List<string> reference_image_multiple = new List<string>();
-            List<double> reference_information_extracted_multiple = new List<double>();
-            List<double> reference_strength_multiple = new List<double>();
 
-            // 遍历 ImageWrapPanel 中的所有子控件
-            foreach (var child in ImageWrapPanel.Children)
+        #endregion
+
+        #region Drawing / API Generation
+
+        /// <summary>
+        /// Extracts image data (base64) and reference parameters from VibeTransfer controls.
+        /// </summary>
+        private (string[] base64Images, double[] informationExtracted, double[] referenceStrength) ExtractImageData()
+        {
+            var referenceImageMultiple = new List<string>();
+            var referenceInformationExtractedMultiple = new List<double>();
+            var referenceStrengthMultiple = new List<double>();
+
+            foreach (object child in ImageWrapPanel.Children)
             {
-                if (child is xianyun.UserControl.VibeTransfer vibeTransfer)
+                if (child is VibeTransfer vibeTransfer)
                 {
-                    // 获取图像的 base64 编码
                     string base64Image = vibeTransfer.GetImageAsBase64();
                     if (!string.IsNullOrEmpty(base64Image))
                     {
-                        reference_image_multiple.Add(base64Image);
+                        referenceImageMultiple.Add(base64Image);
                     }
-
-                    // 获取 InformationExtracted 和 ReferenceStrength 参数
-                    double informationExtracted = vibeTransfer.InformationExtracted;
-                    double referenceStrength = vibeTransfer.ReferenceStrength;
-
-                    reference_information_extracted_multiple.Add(informationExtracted);
-                    reference_strength_multiple.Add(referenceStrength);
+                    referenceInformationExtractedMultiple.Add(vibeTransfer.InformationExtracted);
+                    referenceStrengthMultiple.Add(vibeTransfer.ReferenceStrength);
                 }
             }
-
-            // 转换为数组并返回
             return (
-                reference_image_multiple.ToArray(),
-                reference_information_extracted_multiple.ToArray(),
-                reference_strength_multiple.ToArray()
+                referenceImageMultiple.ToArray(),
+                referenceInformationExtractedMultiple.ToArray(),
+                referenceStrengthMultiple.ToArray()
             );
         }
 
-        public (List<CharacterPrompt> characterPrompts, List<CharCaption> v4PromptCharCaptions, List<CharCaption> v4NegativePromptCharCaptions) GetCharacterPromptsData(WrapPanel characterPromptsWrapPanel)
+        /// <summary>
+        /// Collects character prompts data for building requests.
+        /// </summary>
+        private (List<CharacterPrompt> characterPrompts,
+                 List<CharCaption> v4PromptCharCaptions,
+                 List<CharCaption> v4NegativePromptCharCaptions)
+            GetCharacterPromptsData(WrapPanel characterPromptsWrapPanel)
         {
             var characterPrompts = new List<CharacterPrompt>();
             var v4PromptCharCaptions = new List<CharCaption>();
             var v4NegativePromptCharCaptions = new List<CharCaption>();
 
-            // 遍历 WrapPanel 中的每个 CharacterPrompts 控件
-            foreach (var child in characterPromptsWrapPanel.Children)
+            foreach (object child in characterPromptsWrapPanel.Children)
             {
-                if (child is CharacterPrompts characterPrompt)
+                if (child is CharacterPrompts cp)
                 {
-                    // 获取控件状态
-                    dynamic state = characterPrompt.GetControlState();
-
-                    // 构建 characterPrompts 数据
+                    dynamic state = cp.GetControlState();
                     characterPrompts.Add(new CharacterPrompt
                     {
                         Prompt = state.prompt,
                         Uc = state.uc,
                         Center = new Center { X = state.center.x, Y = state.center.y }
                     });
-
-                    // 构建 v4_prompt_char_captions 数据
                     v4PromptCharCaptions.Add(new CharCaption
                     {
                         CharCaptionText = state.prompt,
                         Centers = new List<Center> { new Center { X = state.center.x, Y = state.center.y } }
                     });
-
-                    // 构建 v4_negative_prompt_char_captions 数据
                     v4NegativePromptCharCaptions.Add(new CharCaption
                     {
                         CharCaptionText = state.uc,
@@ -921,67 +945,51 @@ namespace xianyun.MainPages
                     });
                 }
             }
-
             return (characterPrompts, v4PromptCharCaptions, v4NegativePromptCharCaptions);
         }
-
-        private bool _isCancelling = false; // 用于标记是否取消
-        private bool _isGenerating = false; // 用于标记是否正在生成
 
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
 
-            // 如果当前正在生成图像，则点击按钮应取消后续操作，并锁定按钮
+            // If already generating, clicking tries to cancel
             if (_isGenerating)
             {
                 _isCancelling = true;
                 button.Content = "正在取消...";
                 button.IsEnabled = false;
+                return;
             }
-            else
-            {
-                _isCancelling = false;
-                _isGenerating = true;
-                button.Content = "取消生成";
-                button.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F7DED0"));
 
-                await GenerateImageRequest();
+            _isCancelling = false;
+            _isGenerating = true;
+            button.Content = "取消生成";
+            button.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F7DED0"));
 
-                // 恢复按钮状态
-                button.Content = "Generate Image";
-                button.Background = new SolidColorBrush(Colors.White);
-                button.IsEnabled = true;
-                _isGenerating = false;
-            }
+            await GenerateImageRequest();
+
+            // Restore button state
+            button.Content = "Generate Image";
+            button.Background = new SolidColorBrush(Colors.White);
+            button.IsEnabled = true;
+            _isGenerating = false;
         }
+
         private async Task GenerateImageRequest()
         {
             try
             {
-                // 判断是否使用 XianyunApiClient 或 NovelAiApiClient
+                // If there's no Xianyun session but a valid NovelAI token, use NovelAI; otherwise use Xianyun
                 if (string.IsNullOrEmpty(SessionManager.Session) && !string.IsNullOrEmpty(SessionManager.Token))
                 {
-                    // 使用 NovelAI 的逻辑
                     var novelAiClient = new NovelAiApiClient("https://image.novelai.net", SessionManager.Token);
                     Console.WriteLine("使用 NovelAI API");
 
-                    // 获取 VibeTransfer 的数据
                     var (base64Images, informationExtracted, referenceStrength) = ExtractImageData();
+                    var (characterPrompts, v4PromptCharCaptions, v4NegativePromptCharCaptions)
+                        = GetCharacterPromptsData(CharacterPromptsWrapPanel);
 
-                    // 获取 CharacterPromptsWrapPanel
-                    var characterPromptsWrapPanel = CharacterPromptsWrapPanel;
-
-                    if (characterPromptsWrapPanel == null)
-                    {
-                        MessageBox.Show("未找到 CharacterPromptsWrapPanel。");
-                        return;
-                    }
-
-                    // 获取数据
-                    var (characterPrompts, v4PromptCharCaptions, v4NegativePromptCharCaptions) = GetCharacterPromptsData(characterPromptsWrapPanel);
-
-                    // 生成随机种子的方法
+                    // Random seed generator
                     long GenerateRandomSeed()
                     {
                         var random = new Random();
@@ -996,8 +1004,9 @@ namespace xianyun.MainPages
 
                     for (int i = 0; i < _viewModel.DrawingFrequency; i++)
                     {
+                        if (_isCancelling) break; // If cancel is requested, stop looping.
+
                         var seedValue = _viewModel.Seed ?? GenerateRandomSeed();
-                        // 创建 NovelAI 的请求对象
                         var novelAiRequest = new NovelAiRequest
                         {
                             Action = "generate",
@@ -1022,7 +1031,6 @@ namespace xianyun.MainPages
                                 ReferenceImageMultiple = base64Images.Length > 0 ? base64Images : null,
                                 ReferenceInformationExtractedMultiple = informationExtracted.Length > 0 ? informationExtracted : null,
                                 ReferenceStrengthMultiple = referenceStrength.Length > 0 ? referenceStrength : null,
-                                // 填充 characterPrompts、v4_prompt 和 v4_negative_prompt
                                 UseCoords = !_viewModel.IsUseAIChoicePositions,
                                 CharacterPrompts = characterPrompts,
                                 V4Prompt = new V4Prompt
@@ -1048,47 +1056,44 @@ namespace xianyun.MainPages
 
                         if (_viewModel.IsConvenientResolution)
                         {
-                            string Resolution = _viewModel.Resolution;
-                            // 解析分辨率字符串
-                            string[] resolution = Resolution.Split('*');
+                            string[] resolution = _viewModel.Resolution.Split('*');
                             novelAiRequest.Parameters.Width = int.Parse(resolution[0]);
                             novelAiRequest.Parameters.Height = int.Parse(resolution[1]);
                         }
 
-                        if (originalImage != null)
+                        if (_originalImage != null)
                         {
-                            if (originalImage is BitmapImage image)
+                            if (_originalImage is BitmapImage image)
                             {
-                                int width = image.PixelWidth;
-                                int height = image.PixelHeight;
-                                Common.tools.ValidateResolution(ref width, ref height);
-                                BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
-                                string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
+                                int w = image.PixelWidth;
+                                int h = image.PixelHeight;
+                                tools.ValidateResolution(ref w, ref h);
+                                BitmapImage resized = tools.ResizeImage(_originalImage, w, h);
+                                string base64Image = tools.ConvertImageToBase64(resized, new PngBitmapEncoder());
+
                                 novelAiRequest.Action = "img2img";
-                                novelAiRequest.Parameters.Width = width;
-                                novelAiRequest.Parameters.Height = height;
+                                novelAiRequest.Parameters.Width = w;
+                                novelAiRequest.Parameters.Height = h;
                                 novelAiRequest.Parameters.Image = base64Image;
-                                novelAiRequest.Parameters.Noise = _viewModel.Noise;
-                                novelAiRequest.Parameters.Strength = _viewModel.Strength;
                                 novelAiRequest.Parameters.ExtraNoiseSeed = (uint)seedValue;
                                 if (MaskImageSource.Source != null)
                                 {
                                     novelAiRequest.Action = "infill";
                                     novelAiRequest.Model = "nai-diffusion-3-inpainting";
-                                    novelAiRequest.Parameters.Mask = Common.tools.ConvertRenderTargetBitmapToBase64(maskImage);
+                                    novelAiRequest.Parameters.Mask = tools.ConvertRenderTargetBitmapToBase64(_maskImage);
                                 }
                                 if (_viewModel.ReqType != null)
                                 {
+                                    // Switch to stylized calls or other API calls
                                     novelAiRequest.Action = null;
                                     novelAiRequest.Input = null;
                                     novelAiRequest.Model = null;
                                     novelAiRequest.Parameters = null;
-                                    novelAiRequest.Width = width;
-                                    novelAiRequest.Height = height;
+                                    novelAiRequest.Width = w;
+                                    novelAiRequest.Height = h;
                                     novelAiRequest.Image = base64Image;
                                     novelAiRequest.ReqType = _viewModel.ReqType;
 
-                                    // 进一步检查 ReqType 是否为 "emotion" 或 "colorize"
                                     if (_viewModel.ReqType == "emotion")
                                     {
                                         novelAiRequest.Prompt = _viewModel.ActualEmotion + ";;" + _viewModel.Emotion_Prompt;
@@ -1102,27 +1107,30 @@ namespace xianyun.MainPages
                                 }
                             }
                         }
+
                         _viewModel.ProgressValue = 90;
-                        // 发送请求
-                        string imageBase64 = await novelAiClient.GenerateImageAsync(novelAiRequest);
-                        await GetSubscription.GetSubscriptionInfoAsync();
-                        var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
+                        string imageB64 = await novelAiClient.GenerateImageAsync(novelAiRequest);
+                        await GetSubscription.GetSubscriptionInfoAsync(); // Refresh subscription info
+
+                        var bitmapFrame = tools.ConvertBase64ToBitmapFrame(imageB64);
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            var imgPreview = new ImgPreview(imageBase64);
+                            var imgPreview = new ImgPreview(imageB64);
                             imgPreview.ImageClicked += _viewModel.OnImageClicked;
                             ImageStackPanel.Children.Add(imgPreview);
                             ImageViewerControl.ImageSource = bitmapFrame;
                         });
                         LogPage.LogMessage(LogLevel.INFO, "图像生成成功");
+
                         if (_viewModel.AutoSaveEnabled)
                         {
                             string fileName = ImageSaver.GenerateFileName(_viewModel.CustomPrefix);
                             try
                             {
-                                ImageSaver.SaveImage(imageBase64, _viewModel.SaveDirectory, fileName);
+                                ImageSaver.SaveImage(imageB64, _viewModel.SaveDirectory, fileName);
                                 MessageBox.Show("图像已保存到: " + System.IO.Path.Combine(_viewModel.SaveDirectory, fileName));
-                                LogPage.LogMessage(LogLevel.INFO, "成功保存图像到: " + System.IO.Path.Combine(_viewModel.SaveDirectory, fileName));
+                                LogPage.LogMessage(LogLevel.INFO, "成功保存图像到: " +
+                                    System.IO.Path.Combine(_viewModel.SaveDirectory, fileName));
                             }
                             catch (Exception ex)
                             {
@@ -1130,9 +1138,12 @@ namespace xianyun.MainPages
                                 LogPage.LogMessage(LogLevel.ERROR, "保存图像失败: " + ex.Message);
                             }
                         }
-                        Opus.Text = "剩余点数:" + Common.SessionManager.Opus;
+
+                        Opus.Text = "剩余点数:" + SessionManager.Opus;
                         _viewModel.ProgressValue = 100;
-                        await Task.Delay(3000); // 请求间隔3秒
+
+                        // Wait 3s between requests
+                        await Task.Delay(3000);
                     }
                 }
                 else
@@ -1140,22 +1151,10 @@ namespace xianyun.MainPages
                     var apiClient = new XianyunApiClient("https://nocaptchauri.idlecloud.cc", SessionManager.Session);
                     Console.WriteLine(SessionManager.Session);
 
-                    // 获取 VibeTransfer 的数据
                     var (base64Images, informationExtracted, referenceStrength) = ExtractImageData();
+                    var (characterPrompts, v4PromptCharCaptions, v4NegativePromptCharCaptions)
+                        = GetCharacterPromptsData(CharacterPromptsWrapPanel);
 
-                    // 获取 CharacterPromptsWrapPanel
-                    var characterPromptsWrapPanel = CharacterPromptsWrapPanel;
-
-                    if (characterPromptsWrapPanel == null)
-                    {
-                        MessageBox.Show("未找到 CharacterPromptsWrapPanel。");
-                        return;
-                    }
-
-                    // 获取数据
-                    var (characterPrompts, v4PromptCharCaptions, v4NegativePromptCharCaptions) = GetCharacterPromptsData(characterPromptsWrapPanel);
-
-                    // 生成随机种子的方法
                     long GenerateRandomSeed()
                     {
                         var random = new Random();
@@ -1168,12 +1167,11 @@ namespace xianyun.MainPages
                         return seed;
                     }
 
-                    // 循环生成图像请求
                     for (int i = 0; i < _viewModel.DrawingFrequency; i++)
                     {
-                        var seedValue = _viewModel.Seed?.ToString() ?? GenerateRandomSeed().ToString();
+                        if (_isCancelling) break; // if cancellation requested, exit
 
-                        // 创建图像生成请求对象
+                        var seedValue = _viewModel.Seed?.ToString() ?? GenerateRandomSeed().ToString();
                         var imageRequest = new ImageGenerationRequest
                         {
                             Model = _viewModel.Model,
@@ -1192,162 +1190,126 @@ namespace xianyun.MainPages
                             Sm = _viewModel.IsSMEA,
                             SmDyn = _viewModel.IsDYN,
                             PictureId = TotpGenerator.GenerateTotp(_viewModel._secretKey),
-                            // 填充 characterPrompts、v4PromptCharCaptions 和 v4NegativePromptCharCaptions
                             CharacterPrompts = characterPrompts,
                             V4PromptCharCaptions = v4PromptCharCaptions,
                             V4NegativePromptCharCaptions = v4NegativePromptCharCaptions,
-                            UseCoords = !_viewModel.IsUseAIChoicePositions,
+                            UseCoords = !_viewModel.IsUseAIChoicePositions
                         };
 
                         if (_viewModel.IsConvenientResolution)
                         {
-                            string Resolution = _viewModel.Resolution;
-                            // 解析分辨率字符串
-                            string[] resolution = Resolution.Split('*');
+                            string[] resolution = _viewModel.Resolution.Split('*');
                             imageRequest.Width = int.Parse(resolution[0]);
                             imageRequest.Height = int.Parse(resolution[1]);
                         }
 
-                        // 检查是否有 VibeTransfer 数据
                         if (base64Images.Length > 0 && informationExtracted.Length > 0 && referenceStrength.Length > 0)
                         {
                             imageRequest.ReferenceImage = base64Images;
                             imageRequest.InformationExtracted = informationExtracted;
                             imageRequest.ReferenceStrength = referenceStrength;
                         }
-                        else
-                        {
-                            // 如果没有VibeTransfer数据，则将这些字段设置为null
-                            imageRequest.ReferenceImage = null;
-                            imageRequest.InformationExtracted = null;
-                            imageRequest.ReferenceStrength = null;
-                        }
-                        if (originalImage != null)
-                        {
-                            if (originalImage is BitmapImage image)
-                            {
-                                int width = image.PixelWidth;
-                                int height = image.PixelHeight;
-                                Common.tools.ValidateResolution(ref width, ref height);
-                                BitmapImage resizedImage = Common.tools.ResizeImage(originalImage, width, height);
-                                string base64Image = Common.tools.ConvertImageToBase64(resizedImage, new PngBitmapEncoder());
-                                // 获取图像的长和宽
-                                if (_viewModel.ReqType != null)
-                                {
-                                    imageRequest.Width = width;
-                                    imageRequest.Height = height;
-                                    imageRequest.Image = base64Image;
-                                    imageRequest.ReqType = _viewModel.ReqType;
 
-                                    // 进一步检查 ReqType 是否为 "emotion" 或 "colorize"
-                                    if (_viewModel.ReqType == "emotion")
-                                    {
-                                        // 设置 Prompt 和 Defry
-                                        imageRequest.Prompt = _viewModel.ActualEmotion + ";;" + _viewModel.Emotion_Prompt;
-                                        imageRequest.Defry = _viewModel.Emotion_Defry;
-                                    }
-                                    if (_viewModel.ReqType == "colorize")
-                                    {
-                                        // 设置 Prompt 和 Defry
-                                        imageRequest.Prompt = _viewModel.Colorize_Prompt;
-                                        imageRequest.Defry = _viewModel.Colorize_Defry;
-                                    }
-                                }
-                                else
+                        // If there's an original image, we handle i2i or custom request
+                        if (_originalImage != null && _originalImage is BitmapImage orgImg)
+                        {
+                            int w = orgImg.PixelWidth;
+                            int h = orgImg.PixelHeight;
+                            tools.ValidateResolution(ref w, ref h);
+                            BitmapImage resized = tools.ResizeImage(_originalImage, w, h);
+                            string base64Img = tools.ConvertImageToBase64(resized, new PngBitmapEncoder());
+
+                            if (_viewModel.ReqType != null)
+                            {
+                                imageRequest.Width = w;
+                                imageRequest.Height = h;
+                                imageRequest.Image = base64Img;
+                                imageRequest.ReqType = _viewModel.ReqType;
+
+                                if (_viewModel.ReqType == "emotion")
                                 {
-                                    imageRequest.Width = width;
-                                    imageRequest.Height = height;
-                                    imageRequest.Image = base64Image;
-                                    imageRequest.Action = true;
-                                    imageRequest.Noise = _viewModel.Noise;
-                                    imageRequest.Strength = _viewModel.Strength;
-                                    if (MaskImageSource.Source != null)
-                                    {
-                                        imageRequest.Mask = Common.tools.ConvertRenderTargetBitmapToBase64(maskImage);
-                                    }
+                                    imageRequest.Prompt = _viewModel.ActualEmotion + ";;" + _viewModel.Emotion_Prompt;
+                                    imageRequest.Defry = _viewModel.Emotion_Defry;
+                                }
+                                else if (_viewModel.ReqType == "colorize")
+                                {
+                                    imageRequest.Prompt = _viewModel.Colorize_Prompt;
+                                    imageRequest.Defry = _viewModel.Colorize_Defry;
+                                }
+                            }
+                            else
+                            {
+                                imageRequest.Width = w;
+                                imageRequest.Height = h;
+                                imageRequest.Image = base64Img;
+                                imageRequest.Action = true;
+                                imageRequest.Noise = _viewModel.Noise;
+                                imageRequest.Strength = _viewModel.Strength;
+                                if (MaskImageSource.Source != null)
+                                {
+                                    imageRequest.Mask = tools.ConvertRenderTargetBitmapToBase64(_maskImage);
                                 }
                             }
                         }
-                        var (jobId, initialQueuePosition) = await apiClient.GenerateImageAsync(imageRequest);
-                        Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialQueuePosition}");
-                        LogPage.LogMessage(LogLevel.INFO, "任务已提交，任务ID: " + jobId + ", 初始队列位置: " + initialQueuePosition);
 
-                        int currentQueuePosition = initialQueuePosition;
+                        // Send request
+                        var (jobId, initialPos) = await apiClient.GenerateImageAsync(imageRequest);
+                        Console.WriteLine($"任务已提交，任务ID: {jobId}, 初始队列位置: {initialPos}");
+                        LogPage.LogMessage(LogLevel.INFO, $"任务已提交，任务ID: {jobId}, 初始队列位置: {initialPos}");
+
+                        int currentQueuePosition = initialPos;
                         _viewModel.ProgressValue = 0;
 
+                        // Poll until job starts processing
                         while (currentQueuePosition > 0)
                         {
-                            var (status, imageBase64, queuePosition) = await apiClient.CheckResultAsync(jobId);
+                            var (status, imageBase64, queuePos) = await apiClient.CheckResultAsync(jobId);
                             if (status == "processing")
                             {
                                 _viewModel.ProgressValue = 70;
-                                currentQueuePosition = queuePosition;
+                                currentQueuePosition = queuePos;
                             }
                             else if (status == "queued")
                             {
-                                _viewModel.ProgressValue = 70 * (1 - (double)queuePosition / initialQueuePosition);
-                                currentQueuePosition = queuePosition;
+                                _viewModel.ProgressValue = 70 * (1 - (double)queuePos / initialPos);
+                                currentQueuePosition = queuePos;
                             }
-                            await Task.Delay(5000); // 轮询延迟
+                            if (_isCancelling) break;
+                            await Task.Delay(5000);
                         }
 
-                        // 继续更新进度并处理图像生成
+                        // If user canceled during the queue
+                        if (_isCancelling) break;
+
+                        // Continue updating progress while processing
                         while (_viewModel.ProgressValue < 96)
                         {
                             var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
                             if (status == "completed")
                             {
                                 _viewModel.ProgressValue = 100;
-                                Console.WriteLine("图像生成成功！");
                                 LogPage.LogMessage(LogLevel.INFO, "图像生成成功！");
-                                if (_viewModel.AutoSaveEnabled)
-                                {
-                                    string fileName = ImageSaver.GenerateFileName(_viewModel.CustomPrefix);
-                                    try
-                                    {
-                                        ImageSaver.SaveImage(imageBase64, _viewModel.SaveDirectory, fileName);
-                                        LogPage.LogMessage(LogLevel.INFO, "成功保存图像到: " + System.IO.Path.Combine(_viewModel.SaveDirectory, fileName));
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogPage.LogMessage(LogLevel.ERROR, "保存图像失败: " + ex.Message);
-                                    }
-                                }
-                                var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    var imgPreview = new ImgPreview(imageBase64);
-                                    imgPreview.ImageClicked += _viewModel.OnImageClicked;
-                                    ImageStackPanel.Children.Add(imgPreview);
-                                    ImageViewerControl.ImageSource = bitmapFrame;
-                                });
+                                HandlePostGenerationSave(imageBase64);
                                 break;
                             }
-
                             _viewModel.ProgressValue += new Random().Next(1, 4);
+                            if (_isCancelling) break;
                             await Task.Delay(1500);
                         }
 
-                        // 最终检查生成完成
-                        while (_viewModel.ProgressValue < 100)
+                        // Final check
+                        while (_viewModel.ProgressValue < 100 && !_isCancelling)
                         {
                             await Task.Delay(2000);
                             var (status, imageBase64, _) = await apiClient.CheckResultAsync(jobId);
                             if (status == "completed")
                             {
                                 _viewModel.ProgressValue = 100;
-                                var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(imageBase64);
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    var imgPreview = new ImgPreview(imageBase64);
-                                    imgPreview.ImageClicked += _viewModel.OnImageClicked;
-                                    ImageStackPanel.Children.Add(imgPreview);
-                                    ImageViewerControl.ImageSource = bitmapFrame;
-                                });
+                                HandlePostGenerationSave(imageBase64);
                                 break;
                             }
                         }
-                        await Task.Delay(3000); // 请求间隔3秒
+                        await Task.Delay(3000);
                     }
                 }
             }
@@ -1357,40 +1319,76 @@ namespace xianyun.MainPages
                 LogPage.LogMessage(LogLevel.ERROR, "生成错误: " + ex.Message);
             }
         }
+
+        /// <summary>
+        /// Handle saving the returned Base64 image, updating UI, etc.
+        /// </summary>
+        private void HandlePostGenerationSave(string imageBase64)
+        {
+            var bitmapFrame = tools.ConvertBase64ToBitmapFrame(imageBase64);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var imgPreview = new ImgPreview(imageBase64);
+                imgPreview.ImageClicked += _viewModel.OnImageClicked;
+                ImageStackPanel.Children.Add(imgPreview);
+                ImageViewerControl.ImageSource = bitmapFrame;
+            });
+
+            if (_viewModel.AutoSaveEnabled)
+            {
+                string fileName = ImageSaver.GenerateFileName(_viewModel.CustomPrefix);
+                try
+                {
+                    ImageSaver.SaveImage(imageBase64, _viewModel.SaveDirectory, fileName);
+                    LogPage.LogMessage(LogLevel.INFO, "成功保存图像到: " +
+                        System.IO.Path.Combine(_viewModel.SaveDirectory, fileName));
+                }
+                catch (Exception ex)
+                {
+                    LogPage.LogMessage(LogLevel.ERROR, "保存图像失败: " + ex.Message);
+                }
+            }
+        }
+
         #endregion
-        //###########################################################################################################################################################################//
+
+        #region Tag Menu & Animations
 
         private void TagMenuBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (isTagMenuOpen)
+            if (_isTagMenuOpen)
             {
-                Storyboard storyboard = (Storyboard)FindResource("RightTagMenuClose");
-                storyboard.Begin();
+                ((Storyboard)FindResource("RightTagMenuClose")).Begin();
             }
             else
             {
-                Storyboard storyboard = (Storyboard)FindResource("RightTagMenu");
-                storyboard.Begin();
+                ((Storyboard)FindResource("RightTagMenu")).Begin();
             }
-
-            isTagMenuOpen = !isTagMenuOpen;
+            _isTagMenuOpen = !_isTagMenuOpen;
         }
+
         private void I2IMenuBtn_Open(object sender, RoutedEventArgs e)
         {
-            Storyboard storyboard = (Storyboard)FindResource("Left_i2iMenu");
-            storyboard.Begin();
+            ((Storyboard)FindResource("Left_i2iMenu")).Begin();
         }
+
         private void I2IMenuBtn_Close(object sender, RoutedEventArgs e)
         {
-            Storyboard storyboard = (Storyboard)FindResource("Left_i2iMenuClose");
-            storyboard.Begin();
+            ((Storyboard)FindResource("Left_i2iMenuClose")).Begin();
         }
+
+        #endregion
+
+        #region Positive Prompt Tag Management
+
         private void TagsContainer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount == 2) {
+            if (e.ClickCount == 2)
+            {
                 if (TagsContainer.Children.Count > 0)
                 {
-                    var tagsText = string.Join(",", TagsContainer.Children.OfType<TagControl>().Select(tc => tc.GetAdjustedText()));
+                    string tagsText = string.Join(",", TagsContainer.Children.OfType<TagControl>()
+                                                .Select(tc => tc.GetAdjustedText()));
                     InputTextBox.Text = tagsText;
                 }
                 else
@@ -1399,117 +1397,11 @@ namespace xianyun.MainPages
                 }
                 ScrollViewer.Visibility = Visibility.Collapsed;
                 InputTextBox.Visibility = Visibility.Visible;
-                InputTextBox.UpdateLayout();  // 强制刷新布局
+                InputTextBox.UpdateLayout();
                 InputTextBox.Focus();
             }
         }
-        private void Border_DragEnter(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                e.Effects = DragDropEffects.Copy;
-            }
-            else
-            {
-                e.Effects = DragDropEffects.None;
-            }
-        }
-        private void Border_DragOver(object sender, DragEventArgs e)
-        {
-            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                e.Effects = DragDropEffects.None;
-            }
-        }
-        private void Border_Drop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                foreach (var filePath in files)
-                {
-                    if (IsImageFile(filePath))
-                    {
-                        // 创建 VibeTransfer 控件实例
-                        var vibeTransfer = new xianyun.UserControl.VibeTransfer();
 
-                        // 使用文件路径设置图像
-                        vibeTransfer.SetImageFromFile(filePath);
-
-                        // 将 VibeTransfer 控件添加到 WrapPanel 中
-                        ImageWrapPanel.Children.Add(vibeTransfer);
-                    }
-                }
-                UploadStackPanel.Visibility = Visibility.Collapsed;
-            }
-        }
-        private void Border_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image files (*.jpg, *.jpeg, *.png)|*.jpg;*.jpeg;*.png";
-            openFileDialog.Multiselect = true;
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                foreach (string filePath in openFileDialog.FileNames)
-                {
-                    if (IsImageFile(filePath))
-                    {
-                        // 创建 VibeTransfer 控件实例
-                        var vibeTransfer = new xianyun.UserControl.VibeTransfer();
-
-                        // 使用文件路径设置图像
-                        vibeTransfer.SetImageFromFile(filePath);
-
-                        // 将 VibeTransfer 控件添加到 WrapPanel 中
-                        ImageWrapPanel.Children.Add(vibeTransfer);
-                    }
-                }
-                UploadStackPanel.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        private void CharacterBorder_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            // 获取点击事件的源元素
-            var source = e.OriginalSource as DependencyObject;
-
-            // 检查点击事件是否发生在 CharacterPrompts 控件内
-            while (source != null)
-            {
-                if (source is xianyun.UserControl.CharacterPrompts)
-                {
-                    // 如果点击事件发生在 CharacterPrompts 控件内，则直接返回
-                    return;
-                }
-                source = VisualTreeHelper.GetParent(source);
-            }
-
-            // 检查当前控件数量是否已达到 6 个
-            if (CharacterPromptsWrapPanel.Children.Count >= 6)
-            {
-                MessageBox.Show("最多允许创建 6 个角色词条控件。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            // 创建新的 CharacterPrompts 控件实例
-            var newCharacterPrompts = new xianyun.UserControl.CharacterPrompts();
-
-            // 将新控件添加到 WrapPanel 中
-            CharacterPromptsWrapPanel.Children.Add(newCharacterPrompts);
-
-            // 隐藏 StackPanel
-            CharacterPromptsStackPanel.Visibility = Visibility.Collapsed;
-        }
-
-        private bool IsImageFile(string filePath)
-        {
-            string extension = System.IO.Path.GetExtension(filePath).ToLower();
-            return extension == ".jpg" || extension == ".jpeg" || extension == ".png";
-        }
-
-        //###########################################################################################################################################################################//
-        #region 正面词条输入区域相关逻辑
         private void InputTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             ProcessInputText();
@@ -1526,85 +1418,140 @@ namespace xianyun.MainPages
                 ScrollViewer.Visibility = Visibility.Visible;
             }
         }
-        private void UpdateTagsContainer()
+
+        private void ProcessInputText()
         {
+            if (InputTextBox.Visibility != Visibility.Visible) return;
+
             string inputText = InputTextBox.Text.Trim();
-
-            if (!string.IsNullOrEmpty(inputText))
+            if (string.IsNullOrEmpty(inputText))
             {
-                // 将中文逗号转换为英文逗号
-                inputText = inputText.Replace("，", ",");
-
-                // 分割文本
+                TagsContainer.Children.Clear();
+                UpdateViewModelTagsText();
+            }
+            else
+            {
+                inputText = inputText.Replace("，", ","); // Convert to English comma
                 string[] newTags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                                             .Select(tag => AutoCompleteBrackets(tag.Trim()))
-                                             .ToArray();
+                                            .Select(tag => AutoCompleteBrackets(tag.Trim()))
+                                            .ToArray();
 
-                // 获取现有的 TagControl 列表
-                var existingTagControls = TagsContainer.Children.OfType<TagControl>().ToList();
-
-                foreach (var tag in newTags)
+                var existing = TagsContainer.Children.OfType<TagControl>().ToList();
+                foreach (string tag in newTags)
                 {
-                    // 使用标签文本本身作为唯一标识符
-                    var existingTagControl = existingTagControls.FirstOrDefault(tc => tc.GetAdjustedText() == tag);
-
-                    if (existingTagControl == null)
+                    var existingControl = existing.FirstOrDefault(tc => tc.GetAdjustedText() == tag);
+                    if (existingControl == null)
                     {
-                        // 如果不存在，则创建新的 TagControl 并添加到容器中
-                        TagControl newTagControl = new TagControl(tag, tag);
+                        var newTagControl = new TagControl(tag, tag);
                         newTagControl.TextChanged += TagControl_TextChanged;
                         newTagControl.TagDeleted += TagControl_TagDeleted;
                         TagsContainer.Children.Add(newTagControl);
                     }
                     else
                     {
-                        // 如果存在，保持组件，并从现有列表中移除，避免删除
-                        existingTagControls.Remove(existingTagControl);
+                        existing.Remove(existingControl);
                     }
                 }
+                // Remove old
+                foreach (var oldControl in existing) TagsContainer.Children.Remove(oldControl);
 
-                // 删除不再需要的 TagControl
-                foreach (var tagControl in existingTagControls)
-                {
-                    TagsContainer.Children.Remove(tagControl);
-                }
+                UpdateViewModelTagsText();
             }
-            // 隐藏 TextBox
-            InputTextBox.Visibility = Visibility.Collapsed;
         }
-        private void UpdateTagsContainerForNotes()
+
+        private string AutoCompleteBrackets(string text)
+        {
+            // Square brackets
+            int leftSquare = text.Count(c => c == '[');
+            int rightSquare = text.Count(c => c == ']');
+            if (leftSquare > rightSquare)
+            {
+                text = text.PadRight(text.Length + (leftSquare - rightSquare), ']');
+            }
+            else if (rightSquare > leftSquare)
+            {
+                text = text.PadLeft(text.Length + (rightSquare - leftSquare), '[');
+            }
+
+            // Curly braces
+            int leftCurly = text.Count(c => c == '{');
+            int rightCurly = text.Count(c => c == '}');
+            if (leftCurly > rightCurly)
+            {
+                text = text.PadRight(text.Length + (leftCurly - rightCurly), '}');
+            }
+            else if (rightCurly > leftCurly)
+            {
+                text = text.PadLeft(text.Length + (rightCurly - leftCurly), '{');
+            }
+            return text;
+        }
+
+        private void UpdateTagsContainer()
         {
             string inputText = InputTextBox.Text.Trim();
-
-            if (!string.IsNullOrEmpty(inputText))
+            if (string.IsNullOrEmpty(inputText))
             {
-                // 将中文逗号转换为英文逗号
-                inputText = inputText.Replace("，", ",");
+                InputTextBox.Visibility = Visibility.Collapsed;
+                return;
+            }
 
-                // 分割文本
-                string[] newTags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                                             .Select(tag => AutoCompleteBrackets(tag.Trim()))
-                                             .ToArray();
+            inputText = inputText.Replace("，", ",");
+            string[] newTags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(tag => AutoCompleteBrackets(tag.Trim()))
+                                        .ToArray();
 
-                // 清空现有的 TagControl，确保顺序与新内容一致
-                TagsContainer.Children.Clear();
-
-                // 根据新的标签内容，按顺序重新生成 TagControl
-                foreach (var tag in newTags)
+            var existingTagControls = TagsContainer.Children.OfType<TagControl>().ToList();
+            foreach (string tag in newTags)
+            {
+                var existing = existingTagControls.FirstOrDefault(tc => tc.GetAdjustedText() == tag);
+                if (existing == null)
                 {
-                    TagControl newTagControl = new TagControl(tag, tag);
+                    var newTagControl = new TagControl(tag, tag);
                     newTagControl.TextChanged += TagControl_TextChanged;
                     newTagControl.TagDeleted += TagControl_TagDeleted;
                     TagsContainer.Children.Add(newTagControl);
                 }
-
-                // 更新 ViewModel 中的 PositivePrompt 以保持一致性
-                UpdateViewModelTagsText();
+                else
+                {
+                    existingTagControls.Remove(existing);
+                }
             }
 
-            // 隐藏 TextBox
+            // Remove leftover
+            foreach (var leftover in existingTagControls) TagsContainer.Children.Remove(leftover);
             InputTextBox.Visibility = Visibility.Collapsed;
         }
+
+        private void UpdateTagsContainerForNotes()
+        {
+            string inputText = InputTextBox.Text.Trim();
+            if (string.IsNullOrEmpty(inputText))
+            {
+                return;
+            }
+            inputText = inputText.Replace("，", ",");
+            string[] newTags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(tag => AutoCompleteBrackets(tag.Trim()))
+                                        .ToArray();
+
+            TagsContainer.Children.Clear();
+            foreach (string tag in newTags)
+            {
+                var newTagControl = new TagControl(tag, tag);
+                newTagControl.TextChanged += TagControl_TextChanged;
+                newTagControl.TagDeleted += TagControl_TagDeleted;
+                TagsContainer.Children.Add(newTagControl);
+            }
+            UpdateViewModelTagsText();
+            InputTextBox.Visibility = Visibility.Collapsed;
+        }
+
+        private void TagControl_TextChanged(object sender, EventArgs e)
+        {
+            UpdateViewModelTagsText();
+        }
+
         private void TagControl_TagDeleted(object sender, EventArgs e)
         {
             if (sender is TagControl tagControl)
@@ -1613,400 +1560,387 @@ namespace xianyun.MainPages
                 UpdateViewModelTagsText();
             }
         }
-        private void TagControl_TextChanged(object sender, EventArgs e)
-        {
-            UpdateViewModelTagsText();
-        }
+
         private void UpdateViewModelTagsText()
         {
-            if (TagsContainer.Children.Count > 0)
+            if (TagsContainer.Children.Count == 0)
             {
-                var tagsText = string.Join(",", TagsContainer.Children.OfType<TagControl>().Select(tc => tc.GetAdjustedText()));
-                InputTextBox.Text = tagsText;
-                // 获取已绑定的 Txt2imgPageModel 实例
-                var viewModel = DataContext as MainViewModel;
-                if (viewModel != null && viewModel != null)
-                {
-                    viewModel.PositivePrompt = tagsText;
-                }
+                _viewModel.PositivePrompt = string.Empty;
+                InputTextBox.Text = string.Empty;
+                return;
             }
-        }
-        private void ProcessInputText()
-        {
-            if (InputTextBox.Visibility == Visibility.Visible)
-            {
-                string inputText = InputTextBox.Text.Trim();
 
-                if (string.IsNullOrEmpty(inputText))
-                {
-                    // 如果输入框为空，清空所有标签
-                    TagsContainer.Children.Clear();
-                    UpdateViewModelTagsText();
-                }
-                else
-                {
-                    // 将中文逗号转换为英文逗号
-                    inputText = inputText.Replace("，", ",");
-
-                    // 分割文本
-                    string[] newTags = inputText.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                                                 .Select(tag => AutoCompleteBrackets(tag.Trim()))
-                                                 .ToArray();
-
-                    // 获取现有的 TagControl 列表
-                    var existingTagControls = TagsContainer.Children.OfType<TagControl>().ToList();
-
-                    foreach (var tag in newTags)
-                    {
-                        // 使用标签文本作为标识符
-                        var existingTagControl = existingTagControls.FirstOrDefault(tc => tc.GetAdjustedText() == tag);
-
-                        if (existingTagControl == null)
-                        {
-                            // 如果不存在该标签
-                            TagControl newTagControl = new TagControl(tag, tag);
-                            newTagControl.TextChanged += TagControl_TextChanged;
-                            TagsContainer.Children.Add(newTagControl);
-                        }
-                        else
-                        {
-                            // 如果存在，保持组件，并从现有列表中移除，避免删除
-                            existingTagControls.Remove(existingTagControl);
-                        }
-                    }
-
-                    // 删除不再需要的 TagControl
-                    foreach (var tagControl in existingTagControls)
-                    {
-                        TagsContainer.Children.Remove(tagControl);
-                    }
-                    UpdateViewModelTagsText();
-                }
-                InputTextBox.Visibility = Visibility.Collapsed;
-            }
+            var tagsText = string.Join(",", TagsContainer.Children.OfType<TagControl>().Select(tc => tc.GetAdjustedText()));
+            InputTextBox.Text = tagsText;
+            _viewModel.PositivePrompt = tagsText;
         }
 
-        private string AutoCompleteBrackets(string text)
-        {
-            // 补全方括号 []
-            int leftSquareBracketsCount = text.Count(c => c == '[');
-            int rightSquareBracketsCount = text.Count(c => c == ']');
-            if (leftSquareBracketsCount > rightSquareBracketsCount)
-            {
-                text = text.PadRight(text.Length + (leftSquareBracketsCount - rightSquareBracketsCount), ']');
-            }
-            else if (rightSquareBracketsCount > leftSquareBracketsCount)
-            {
-                text = text.PadLeft(text.Length + (rightSquareBracketsCount - leftSquareBracketsCount), '[');
-            }
+        #endregion
 
-            // 补全花括号 {}
-            int leftCurlyBracketsCount = text.Count(c => c == '{');
-            int rightCurlyBracketsCount = text.Count(c => c == '}');
-            if (leftCurlyBracketsCount > rightCurlyBracketsCount)
-            {
-                text = text.PadRight(text.Length + (leftCurlyBracketsCount - rightCurlyBracketsCount), '}');
-            }
-            else if (rightCurlyBracketsCount > leftCurlyBracketsCount)
-            {
-                text = text.PadLeft(text.Length + (rightCurlyBracketsCount - leftCurlyBracketsCount), '{');
-            }
-
-            return text;
-        }
+        #region Drag-and-Drop Handling for TagControls
 
         private void TagsContainer_DragOver(object sender, DragEventArgs e)
         {
-            dragInProgress = true;
-            TagControl dragControl = null;
-            try
-            {
-                IDataObject dataObject = e.Data;
-                if (dataObject.GetData(typeof(TagControl)) == null)
-                {
-                    e.Effects = DragDropEffects.None;
-                    return;
-                }
-                dragControl = (TagControl)dataObject.GetData(typeof(TagControl));
-            }
-            catch
+            _dragInProgress = true;
+            if (sender is not WrapPanel panel)
             {
                 e.Effects = DragDropEffects.None;
                 return;
             }
-            if (sender is WrapPanel panel)
+
+            if (!e.Data.GetDataPresent(typeof(TagControl)))
             {
-                // 获取鼠标相对于WrapPanel的位置
-                Point position = e.GetPosition(panel);
-                //System.Diagnostics.Debug.WriteLine(position);
+                e.Effects = DragDropEffects.None;
+                return;
+            }
 
-                e.Effects = DragDropEffects.Move;
+            e.Effects = DragDropEffects.Move;
+            var dataObject = e.Data;
+            var draggedControl = (TagControl)dataObject.GetData(typeof(TagControl));
 
-                // 定义两个变量，分别表示左边和右边最接近鼠标位置的子控件
-                UIElement leftElement = null;
-                UIElement rightElement = null;
-                int insertIndex = -1;
+            // Position logic
+            Point position = e.GetPosition(panel);
+            UIElement leftElement = null;
+            UIElement rightElement = null;
+            int insertIndex = -1;
 
-                if (panel.Children.Count == 0)
+            if (panel.Children.Count == 0)
+            {
+                e.Effects = DragDropEffects.None;
+                return;
+            }
+
+            for (int i = 0; i < panel.Children.Count; i++)
+            {
+                var element = panel.Children[i];
+                UIElement nextElement = null;
+                if (i + 1 < panel.Children.Count) nextElement = panel.Children[i + 1];
+
+                Point elementPos = element.TranslatePoint(new Point(0, 0), panel);
+                double elementWidth = element.DesiredSize.Width;
+                double elementHeight = element.DesiredSize.Height;
+                int padding = 0;
+
+                if (i == 0 && position.Y < elementPos.Y - padding)
                 {
-                    e.Effects = DragDropEffects.None;
-                    return;
+                    rightElement = element;
+                    leftElement = null;
+                    insertIndex = 0;
+                    break;
                 }
 
-                // 遍历子控件，找到左边和右边最接近鼠标位置的子控件
-                // System.Diagnostics.Debug.WriteLine(panel.Children.Count);
-                for (int i = 0; i < panel.Children.Count; i++)
-                {
-                    var element = panel.Children[i];
-                    UIElement nextElement = null;
-                    if (i + 1 < panel.Children.Count)
-                    {
-                        nextElement = panel.Children[i + 1];
-                    }
-                    // System.Diagnostics.Debug.WriteLine(panel.Children.IndexOf(element));
-                    //System.Diagnostics.Debug.WriteLine(element);
-                    // 获取子控件相对于WrapPanel的坐标和大小
-                    Point elementPosition = element.TranslatePoint(new Point(0, 0), panel);
-                    //System.Diagnostics.Debug.WriteLine(elementPosition);
-                    double elementWidth = element.DesiredSize.Width;
-                    double elementHeight = element.DesiredSize.Height;
+                bool sameRow = position.Y >= elementPos.Y - padding && position.Y <= elementPos.Y + elementHeight + padding;
+                if (!sameRow) continue;
 
-                    // 判断是否在同一行或同一列
-                    var padding = 0;
-                    if (i == 0 && position.Y < elementPosition.Y - padding)
+                if (position.X >= elementPos.X + elementWidth / 2)
+                {
+                    if (nextElement == null)
                     {
-                        rightElement = element;
-                        leftElement = null;
-                        insertIndex = 0;
+                        leftElement = element;
+                        rightElement = null;
+                        insertIndex = panel.Children.Count;
                         break;
                     }
-                    bool sameRow = position.Y >= elementPosition.Y - padding && position.Y <= elementPosition.Y + elementHeight + padding;
-
-                    if (sameRow)
+                    else
                     {
-                        if (position.X >= elementPosition.X + elementWidth / 2)
+                        Point nextPos = nextElement.TranslatePoint(new Point(0, 0), panel);
+                        double nextWidth = nextElement.DesiredSize.Width;
+                        double nextHeight = nextElement.DesiredSize.Height;
+                        bool sameRowNext = position.Y >= nextPos.Y - padding && position.Y <= nextPos.Y + nextHeight + padding;
+
+                        if (sameRowNext)
                         {
-                            if (nextElement == null)
+                            if (position.X <= nextPos.X + nextWidth / 2)
                             {
                                 leftElement = element;
-                                rightElement = null;
-                                insertIndex = panel.Children.Count;
+                                rightElement = nextElement;
+                                insertIndex = i + 1;
                                 break;
-                            }
-                            else
-                            {
-                                Point elementPositionNext = nextElement.TranslatePoint(new Point(0, 0), panel);
-                                double elementWidthNext = nextElement.DesiredSize.Width;
-                                double elementHeightNext = nextElement.DesiredSize.Height;
-                                bool sameRowNext = position.Y >= elementPositionNext.Y - padding && position.Y <= elementPositionNext.Y + elementHeightNext + padding;
-                                if (sameRowNext)
-                                {
-                                    if (position.X <= elementPositionNext.X + elementWidthNext / 2)
-                                    {
-                                        leftElement = element;
-                                        rightElement = nextElement;
-                                        insertIndex = i + 1;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    leftElement = element;
-                                    rightElement = null;
-                                    insertIndex = i + 1;
-                                    break;
-                                }
                             }
                         }
                         else
                         {
-                            rightElement = element;
-                            leftElement = null;
-                            insertIndex = i;
+                            leftElement = element;
+                            rightElement = null;
+                            insertIndex = i + 1;
                             break;
                         }
                     }
                 }
-
-                if (insertIndex == -1)
+                else
                 {
-                    leftElement = panel.Children[panel.Children.Count - 1];
-                    rightElement = null;
-                    insertIndex = panel.Children.Count;
-                }
-
-
-
-                // 创建一个Adorner对象，用于显示一个指示器
-                AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(panel);
-                if (adornerLayer != null)
-                {
-                    // 移除之前的Adorner对象
-                    if (currentAdorner != null)
-                    {
-                        //adornerLayer.Remove(currentAdorner);
-                        //currentAdorner = null;
-                    }
-                    else
-                    {
-                        currentAdorner = new DragAdorner(panel, dragControl, true, 0.8);
-                        adornerLayer.Add(currentAdorner);
-                    }
-
-                    // 创建一个新的Adorner对象，并设置其位置和大小
-                    //Border border = new Border();
-                    //border.Width = 30;
-                    //border.Height = 30;
-                    //border.BorderThickness = Thickness.;
-                    //border.BorderBrush = new 
-
-
-                    if (leftElement != null)
-                    {
-                        // 如果左右都有子控件，那么指示器的位置在两个子控件之间
-                        Point leftPosition = leftElement.TranslatePoint(new Point(0, 0), panel);
-
-                        double leftWidth = leftElement.DesiredSize.Width;
-                        double leftHeight = leftElement.DesiredSize.Height;
-
-
-                        // Canvas.SetLeft(currentAdorner, leftPosition.X + leftWidth - dragControl.DesiredSize.Width/2);
-                        // Canvas.SetTop(currentAdorner, leftPosition.Y);
-                        // System.Diagnostics.Debug.WriteLine(leftPosition.X + leftWidth - dragControl.DesiredSize.Width / 2 + " " + leftPosition.Y);
-                        currentAdorner.LeftOffset = leftPosition.X + leftWidth;
-                        currentAdorner.TopOffset = leftPosition.Y + leftHeight / 2;
-                    }
-                    else if (rightElement != null)
-                    {
-
-
-                        Point rightPosition = rightElement.TranslatePoint(new Point(0, 0), panel);
-
-                        double rightWidth = rightElement.DesiredSize.Width;
-                        double rightHeight = rightElement.DesiredSize.Height;
-
-
-                        currentAdorner.LeftOffset = rightPosition.X;
-                        currentAdorner.TopOffset = rightPosition.Y + rightHeight / 2;
-
-                    }
-                    else
-                    {
-                        adornerLayer.Remove(currentAdorner);
-                        currentAdorner = null;
-                    }
+                    rightElement = element;
+                    leftElement = null;
+                    insertIndex = i;
+                    break;
                 }
             }
+
+            if (insertIndex == -1)
+            {
+                leftElement = panel.Children[^1];
+                rightElement = null;
+                insertIndex = panel.Children.Count;
+            }
+
+            // Adorner layer
+            AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(panel);
+            if (adornerLayer == null) return;
+
+            if (_currentAdorner == null)
+            {
+                _currentAdorner = new DragAdorner(panel, draggedControl, true, 0.8);
+                adornerLayer.Add(_currentAdorner);
+            }
+
+            if (leftElement != null)
+            {
+                Point leftPosition = leftElement.TranslatePoint(new Point(0, 0), panel);
+                double lw = leftElement.DesiredSize.Width;
+                double lh = leftElement.DesiredSize.Height;
+
+                _currentAdorner.LeftOffset = leftPosition.X + lw;
+                _currentAdorner.TopOffset = leftPosition.Y + lh / 2;
+            }
+            else if (rightElement != null)
+            {
+                Point rightPosition = rightElement.TranslatePoint(new Point(0, 0), panel);
+                double rw = rightElement.DesiredSize.Width;
+                double rh = rightElement.DesiredSize.Height;
+
+                _currentAdorner.LeftOffset = rightPosition.X;
+                _currentAdorner.TopOffset = rightPosition.Y + rh / 2;
+            }
+            else
+            {
+                adornerLayer.Remove(_currentAdorner);
+                _currentAdorner = null;
+            }
+        }
+
+        /// <summary>
+        /// 当在 ScrollViewer 中拖拽时，若接近其上下边缘，则自动滚动
+        /// </summary>
+        private void ScrollViewer_PreviewDragOver(object sender, DragEventArgs e)
+        {
+            // 确保确实是 TagControl
+            if (!e.Data.GetDataPresent(typeof(TagControl)))
+            {
+                return;
+            }
+
+            // 获取鼠标在 ScrollViewer 中的位置
+            Point pos = e.GetPosition(ScrollViewer);
+
+            // 距离边缘多少时开始滚动
+            double tolerance = 10;
+            // 每次滚动多少距离
+            double offset = 20;
+
+            // 如果鼠标在可视区域顶部像素范围内，则向上滚
+            if (pos.Y < tolerance)
+            {
+                ScrollViewer.ScrollToVerticalOffset(ScrollViewer.VerticalOffset - offset);
+            }
+            // 如果鼠标在可视区域底部像素范围内，则向下滚
+            else if (pos.Y > ScrollViewer.ActualHeight - tolerance)
+            {
+                ScrollViewer.ScrollToVerticalOffset(ScrollViewer.VerticalOffset + offset);
+            }
+        }
+
+        private void TagsContainer_DragLeave(object sender, DragEventArgs e)
+        {
+            _dragInProgress = false;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!_dragInProgress)
+                    TagsContainer_OnRealTargetDragLeave(sender, e);
+            }));
+        }
+
+        private void TagsContainer_OnRealTargetDragLeave(object sender, DragEventArgs e)
+        {
+            if (sender is not WrapPanel panel) return;
+            AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(panel);
+            if (adornerLayer != null && _currentAdorner != null)
+            {
+                adornerLayer.Remove(_currentAdorner);
+                _currentAdorner = null;
+            }
+        }
+
+        private void TagsContainer_DragEnter(object sender, DragEventArgs e)
+        {
+            _dragInProgress = true;
         }
 
         private void TagsContainer_Drop(object sender, DragEventArgs e)
         {
-            if (!(sender is WrapPanel panel))
-            {
-                return;
-            }
+            if (sender is not WrapPanel panel) return;
 
             AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(panel);
-            if (adornerLayer != null && currentAdorner != null)
+            if (adornerLayer != null && _currentAdorner != null)
             {
-                adornerLayer.Remove(currentAdorner);
-                currentAdorner = null;
+                adornerLayer.Remove(_currentAdorner);
+                _currentAdorner = null;
             }
 
-            TagControl dragControl;
-            try
-            {
-                IDataObject dataObject = e.Data;
-                if (dataObject.GetData(typeof(TagControl)) == null)
-                {
-                    e.Effects = DragDropEffects.None;
-                    return;
-                }
-                dragControl = (TagControl)dataObject.GetData(typeof(TagControl));
-            }
-            catch
+            if (!e.Data.GetDataPresent(typeof(TagControl)))
             {
                 e.Effects = DragDropEffects.None;
                 return;
             }
+            var draggedControl = (TagControl)e.Data.GetData(typeof(TagControl));
 
-            if (panel != null)
+            Point position = e.GetPosition(panel);
+            int insertIndex = -1;
+
+            for (int i = 0; i < panel.Children.Count; i++)
             {
-                // 获取鼠标相对于WrapPanel的位置
-                Point position = e.GetPosition(panel);
+                var element = panel.Children[i];
+                Point elementPos = element.TranslatePoint(new Point(0, 0), panel);
+                double w = element.DesiredSize.Width;
+                double h = element.DesiredSize.Height;
 
-                // 定义插入位置
-                int insertIndex = -1;
-                for (int i = 0; i < panel.Children.Count; i++)
+                bool sameRow = position.Y >= elementPos.Y && position.Y <= elementPos.Y + h;
+                if (!sameRow) continue;
+
+                if (position.X < elementPos.X + w / 2)
                 {
-                    var element = panel.Children[i];
-                    Point elementPosition = element.TranslatePoint(new Point(0, 0), panel);
-                    double elementWidth = element.DesiredSize.Width;
-                    double elementHeight = element.DesiredSize.Height;
-
-                    // 判断是否在同一行
-                    if (position.Y >= elementPosition.Y && position.Y <= elementPosition.Y + elementHeight)
-                    {
-                        if (position.X < elementPosition.X + elementWidth / 2)
-                        {
-                            insertIndex = i;
-                            break;
-                        }
-                    }
+                    insertIndex = i;
+                    break;
                 }
+            }
+            if (insertIndex == -1) insertIndex = panel.Children.Count;
 
-                // 如果没有找到合适的位置，插入到最后
-                if (insertIndex == -1)
-                {
-                    insertIndex = panel.Children.Count;
-                }
+            int currentIndex = panel.Children.IndexOf(draggedControl);
+            if (currentIndex != -1 && insertIndex != currentIndex)
+            {
+                panel.Children.RemoveAt(currentIndex);
+                if (insertIndex > currentIndex) insertIndex--;
+                panel.Children.Insert(insertIndex, draggedControl);
+            }
+            UpdateViewModelTagsText();
+        }
 
-                int currentIndex = panel.Children.IndexOf(dragControl);
-                if (currentIndex != -1 && insertIndex != currentIndex)
-                {
-                    panel.Children.RemoveAt(currentIndex);
-                    if (insertIndex > currentIndex) insertIndex--;
-                    panel.Children.Insert(insertIndex, dragControl);
-                }
-                UpdateViewModelTagsText();
+        #endregion
+
+        #region VibeTransfer Drag & Drop
+
+        private void Border_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None;
+        }
+
+        private void Border_DragOver(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.None;
             }
         }
+
+        private void Border_Drop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            foreach (string filePath in files)
+            {
+                if (IsImageFile(filePath))
+                {
+                    var vibeTransfer = new VibeTransfer();
+                    vibeTransfer.SetImageFromFile(filePath);
+                    ImageWrapPanel.Children.Add(vibeTransfer);
+                }
+            }
+            UploadStackPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void Border_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Image files (*.jpg, *.jpeg, *.png)|*.jpg;*.jpeg;*.png",
+                Multiselect = true
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                foreach (string filePath in openFileDialog.FileNames)
+                {
+                    if (IsImageFile(filePath))
+                    {
+                        var vibeTransfer = new VibeTransfer();
+                        vibeTransfer.SetImageFromFile(filePath);
+                        ImageWrapPanel.Children.Add(vibeTransfer);
+                    }
+                }
+                UploadStackPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private bool IsImageFile(string filePath)
+        {
+            string extension = System.IO.Path.GetExtension(filePath).ToLower();
+            return extension is ".jpg" or ".jpeg" or ".png";
+        }
+
         #endregion
-        //###########################################################################################################################################################################//
+
+        #region CharacterPrompts (Add on Border Click)
+
+        private void CharacterBorder_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            // If clicking inside the existing CharacterPrompts, ignore
+            DependencyObject source = e.OriginalSource as DependencyObject;
+            while (source != null)
+            {
+                if (source is CharacterPrompts) return;
+                source = VisualTreeHelper.GetParent(source);
+            }
+
+            // Max 6
+            if (CharacterPromptsWrapPanel.Children.Count >= 6)
+            {
+                MessageBox.Show("最多允许创建 6 个角色词条控件。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // Create new
+            var newCharacterPrompts = new CharacterPrompts();
+            CharacterPromptsWrapPanel.Children.Add(newCharacterPrompts);
+            CharacterPromptsStackPanel.Visibility = Visibility.Collapsed;
+        }
+
+        #endregion
+
+        #region Export / Save Images
 
         private async void ExportImagesButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // 打开保存对话框，让用户选择保存路径
-                SaveFileDialog saveFileDialog = new SaveFileDialog
+                var saveFileDialog = new SaveFileDialog
                 {
                     Title = "选择保存路径",
                     Filter = "ZIP 压缩包 (*.zip)|*.zip",
                     FileName = "ExportedImages.zip"
                 };
-
-                if (saveFileDialog.ShowDialog() != true)
-                {
-                    return; // 用户取消操作
-                }
-
-                // 获取用户选择的保存路径
+                if (saveFileDialog.ShowDialog() != true) return;
                 string zipFilePath = saveFileDialog.FileName;
 
-                // 创建临时目录存放图像
-                string tempDirectory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ExportedImages");
+                string tempDirectory = Path.Combine(Path.GetTempPath(), "ExportedImages");
                 if (Directory.Exists(tempDirectory))
                 {
-                    Directory.Delete(tempDirectory, true); // 清理旧数据
+                    Directory.Delete(tempDirectory, true);
                 }
                 Directory.CreateDirectory(tempDirectory);
 
-                // 显示进度条
                 _viewModel.IsCreatingZipVisible = true;
                 _viewModel.CreateZipProgressValue = 0;
 
-                // 获取控件数量
                 int totalControls = ImageStackPanel.Children.OfType<ImgPreview>().Count();
                 if (totalControls == 0)
                 {
@@ -2018,39 +1952,27 @@ namespace xianyun.MainPages
                 double progressIncrement = 100.0 / totalControls;
                 double currentProgress = 0;
 
-                // 遍历 StackPanel 中的 ImgPreview 控件
-                foreach (var child in ImageStackPanel.Children)
+                foreach (object child in ImageStackPanel.Children)
                 {
                     if (child is ImgPreview imgPreview)
                     {
-                        // 获取图像的 BitmapImage 对象
-                        BitmapImage bitmapImage = imgPreview.GetBitmapImage();
-                        if (bitmapImage != null)
+                        BitmapImage bmp = imgPreview.GetBitmapImage();
+                        if (bmp != null)
                         {
-                            // 将 BitmapImage 保存为 PNG 文件
-                            string fileName = $"{Guid.NewGuid()}.png"; // 随机文件名
-                            string filePath = System.IO.Path.Combine(tempDirectory, fileName);
-
-                            using (FileStream fileStream = new FileStream(filePath, FileMode.Create))
-                            {
-                                BitmapEncoder encoder = new PngBitmapEncoder();
-                                encoder.Frames.Add(BitmapFrame.Create(bitmapImage));
-                                encoder.Save(fileStream);
-                            }
+                            string fileName = $"{Guid.NewGuid()}.png";
+                            string filePath = Path.Combine(tempDirectory, fileName);
+                            using var fs = new FileStream(filePath, FileMode.Create);
+                            BitmapEncoder encoder = new PngBitmapEncoder();
+                            encoder.Frames.Add(BitmapFrame.Create(bmp));
+                            encoder.Save(fs);
                         }
-
-                        // 更新进度条
                         currentProgress += progressIncrement;
                         _viewModel.CreateZipProgressValue = Math.Min(currentProgress, 100);
-                        await Task.Delay(10); // 模拟延迟以便可视化进度
+                        await Task.Delay(10);
                     }
                 }
 
-                // 创建压缩包
-                if (File.Exists(zipFilePath))
-                {
-                    File.Delete(zipFilePath); // 删除旧的压缩包
-                }
+                if (File.Exists(zipFilePath)) File.Delete(zipFilePath);
                 ZipFile.CreateFromDirectory(tempDirectory, zipFilePath);
                 MessageBox.Show($"图像已成功导出为压缩包：{zipFilePath}", "导出成功", MessageBoxButton.OK, MessageBoxImage.Information);
                 LogPage.LogMessage(LogLevel.INFO, "图像已经成功导出为压缩包：" + zipFilePath);
@@ -2066,66 +1988,47 @@ namespace xianyun.MainPages
             }
         }
 
+        #endregion
 
-        private void TagsContainer_OnRealTargetDragLeave(object sender, DragEventArgs e)
+        #region Upload to I2I
+
+        private void Upload_To_I2I_Click(object sender, RoutedEventArgs e)
         {
-            if (!(sender is WrapPanel panel))
+            if (ImageViewerControl.ImageSource is BitmapFrame frame)
             {
-                return;
-            }
-            AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(panel);
-            if (adornerLayer != null)
-            {
-                // 移除之前的Adorner对象
-                if (currentAdorner != null)
-                {
-                    adornerLayer.Remove(currentAdorner);
-                    currentAdorner = null;
-                }
+                BitmapImage newImage = tools.ConvertBitmapFrameToBitmapImage(frame);
+                _originalImage = newImage;
+                if (_originalImage != null) RenderImage(_originalImage);
+                _viewModel.IsInkCanvasVisible = true;
             }
         }
-        private void TagsContainer_DragLeave(object sender, DragEventArgs e)
-        {
 
-            dragInProgress = false;
+        #endregion
 
-            this.Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (dragInProgress == false) TagsContainer_OnRealTargetDragLeave(sender, e);
-            }));
-
-
-        }
-
-        private void TagsContainer_DragEnter(object sender, DragEventArgs e)
-        {
-            dragInProgress = true;
-        }
+        #region InkCanvas + Pan/Zoom
 
         private void UploadButton_Click(object sender, RoutedEventArgs e)
         {
-            // 打开文件对话框选择图像
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "图像文件|*.jpg;*.jpeg;*.png;*.bmp;*.gif";
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "图像文件|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
+            };
             if (openFileDialog.ShowDialog() == true)
             {
-                // 加载图像
-                BitmapImage image = new BitmapImage(new Uri(openFileDialog.FileName));
-                int imageWidth = image.PixelWidth;
-                int imageHeight = image.PixelHeight;
-                Common.tools.ValidateResolution(ref imageWidth, ref imageHeight);
-                BitmapImage resizedImage = Common.tools.ResizeImage(image, imageWidth, imageHeight);
-                originalImage = resizedImage;
-                // 使用原始图像渲染
-                RenderImage(originalImage);
-                _viewModel.IsInkCanvasVisible=true;
+                var img = new BitmapImage(new Uri(openFileDialog.FileName));
+                int w = img.PixelWidth;
+                int h = img.PixelHeight;
+                tools.ValidateResolution(ref w, ref h);
+                BitmapImage resized = tools.ResizeImage(img, w, h);
+                _originalImage = resized;
+                RenderImage(_originalImage);
+                _viewModel.IsInkCanvasVisible = true;
             }
         }
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
-            // 清空图像
-            originalImage = null;
+            _originalImage = null;
             image.Source = null;
             inkCanvas.Strokes.Clear();
             _viewModel.IsInkCanvasVisible = false;
@@ -2133,25 +2036,17 @@ namespace xianyun.MainPages
 
         private void InkCanvas_StrokeCollected(object sender, InkCanvasStrokeCollectedEventArgs e)
         {
-            // 将新笔画加入 UndoStack
-            UndoStack.Push(e.Stroke);
-
-            // 清空 RedoStack，因为新操作会使重做无效
-            RedoStack.Clear();
+            _undoStack.Push(e.Stroke);
+            _redoStack.Clear();
         }
 
-        private void Undo()
+        private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
-            if (UndoStack.Count > 0)
+            if (_undoStack.Count > 0)
             {
-                // 从 UndoStack 弹出最近的笔画
-                Stroke lastStroke = UndoStack.Pop();
-
-                // 从 InkCanvas.Strokes 移除该笔画
-                inkCanvas.Strokes.Remove(lastStroke);
-
-                // 将笔画压入 RedoStack
-                RedoStack.Push(lastStroke);
+                Stroke stroke = _undoStack.Pop();
+                inkCanvas.Strokes.Remove(stroke);
+                _redoStack.Push(stroke);
             }
             else
             {
@@ -2159,18 +2054,13 @@ namespace xianyun.MainPages
             }
         }
 
-        private void Redo()
+        private void RedoButton_Click(object sender, RoutedEventArgs e)
         {
-            if (RedoStack.Count > 0)
+            if (_redoStack.Count > 0)
             {
-                // 从 RedoStack 弹出最近的笔画
-                Stroke lastStroke = RedoStack.Pop();
-
-                // 添加回 InkCanvas.Strokes
-                inkCanvas.Strokes.Add(lastStroke);
-
-                // 将笔画压入 UndoStack
-                UndoStack.Push(lastStroke);
+                Stroke stroke = _redoStack.Pop();
+                inkCanvas.Strokes.Add(stroke);
+                _undoStack.Push(stroke);
             }
             else
             {
@@ -2180,82 +2070,11 @@ namespace xianyun.MainPages
 
         private void ClearInkButton_Click(object sender, RoutedEventArgs e)
         {
-            // 清空 InkCanvas.Strokes
             inkCanvas.Strokes.Clear();
-            // 清空 UndoStack 和 RedoStack
-            UndoStack.Clear();
-            RedoStack.Clear();
+            _undoStack.Clear();
+            _redoStack.Clear();
         }
 
-        private void UndoButton_Click(object sender, RoutedEventArgs e)
-        {
-            Undo();
-        }
-
-        private void RedoButton_Click(object sender, RoutedEventArgs e)
-        {
-            Redo();
-        }
-
-        private void RenderImage(BitmapImage bitmap)
-        {
-            // Set the image source
-            image.Source = bitmap;
-
-            // Initialize transformations if not already done
-            if (panZoomTransformGroup == null)
-            {
-                panZoomTransformGroup = new TransformGroup();
-                panZoomScaleTransform = new ScaleTransform();
-                panZoomTranslateTransform = new TranslateTransform();
-                panZoomTransformGroup.Children.Add(panZoomScaleTransform); // 先缩放
-                panZoomTransformGroup.Children.Add(panZoomTranslateTransform); // 后平移
-                panZoomCanvas.RenderTransform = panZoomTransformGroup;
-            }
-
-            // Reset transformations when loading a new image
-            panZoomScaleTransform.ScaleX = 1.0;
-            panZoomScaleTransform.ScaleY = 1.0;
-            panZoomTranslateTransform.X = 0;
-            panZoomTranslateTransform.Y = 0;
-
-            // 获取Border的尺寸
-            double borderWidth = imageBorder.ActualWidth;
-            double borderHeight = imageBorder.ActualHeight;
-
-            // 获取图像的尺寸
-            double imageWidth = bitmap.PixelWidth;
-            double imageHeight = bitmap.PixelHeight;
-
-            // 计算缩放比例
-            double scaleX = borderWidth / imageWidth;
-            double scaleY = borderHeight / imageHeight;
-            double scale = Math.Min(scaleX, scaleY);
-
-            // 应用缩放
-            image.Width = imageWidth;
-            image.Height = imageHeight;
-
-            inkCanvas.Width = imageWidth;
-            inkCanvas.Height = imageHeight;
-
-            Canvas.SetLeft(image, 0);
-            Canvas.SetTop(image, 0);
-            Canvas.SetLeft(inkCanvas, 0);
-            Canvas.SetTop(inkCanvas, 0);
-
-            panZoomScaleTransform.ScaleX = scale;
-            panZoomScaleTransform.ScaleY = scale;
-
-            panZoomTranslateTransform.X = (borderWidth - imageWidth * scale) / 2;
-            panZoomTranslateTransform.Y = (borderHeight - imageHeight * scale) / 2;
-        }
-
-        /// <summary>
-        /// 对画笔的宽度进行调整
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void BrushWidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (inkCanvas != null)
@@ -2264,11 +2083,6 @@ namespace xianyun.MainPages
             }
         }
 
-        /// <summary>
-        /// 对画笔的高度进行调整
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void BrushHeightSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (inkCanvas != null)
@@ -2277,69 +2091,11 @@ namespace xianyun.MainPages
             }
         }
 
-        /// <summary>
-        /// 通过HEX文本框对画笔的颜色进行调整
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void TextHex_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (inkCanvas != null && !string.IsNullOrWhiteSpace(TextHex.Text))
-            {
-                try
-                {
-                    // 尝试将文本转换为颜色
-                    var color = (Color)ColorConverter.ConvertFromString(TextHex.Text);
-                    inkCanvas.DefaultDrawingAttributes.Color = color;
-                }
-                catch (FormatException)
-                {
-                    // 如果转换失败，设置一个默认颜色
-                    inkCanvas.DefaultDrawingAttributes.Color = Colors.White;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 重置图像的尺寸
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ResetPositionButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (originalImage != null)
-            {
-                // 获取Border的尺寸
-                double borderWidth = imageBorder.ActualWidth;
-                double borderHeight = imageBorder.ActualHeight;
-
-                // 获取图像的尺寸
-                double imageWidth = originalImage.PixelWidth;
-                double imageHeight = originalImage.PixelHeight;
-
-                // 计算缩放比例
-                double scaleX = borderWidth / imageWidth;
-                double scaleY = borderHeight / imageHeight;
-                double scale = Math.Min(scaleX, scaleY);
-
-                // 重置变换
-                panZoomScaleTransform.ScaleX = scale;
-                panZoomScaleTransform.ScaleY = scale;
-                panZoomTranslateTransform.X = (borderWidth - imageWidth * scale) / 2;
-                panZoomTranslateTransform.Y = (borderHeight - imageHeight * scale) / 2;
-            }
-        }
-
-        /// <summary>
-        /// 进入画布的平移缩放模式
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void PanZoomButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!isPanZoomMode)
+            if (!_isPanZoomMode)
             {
-                isPanZoomMode = true;
+                _isPanZoomMode = true;
                 inkCanvas.IsHitTestVisible = false;
                 panZoomCanvas.MouseWheel += PanZoomCanvas_MouseWheel;
                 panZoomCanvas.MouseDown += PanZoomCanvas_MouseDown;
@@ -2348,12 +2104,9 @@ namespace xianyun.MainPages
             }
         }
 
-        /// <summary>
-        /// 退出画布的平移缩放模式
-        /// </summary>
         private void ExitPanZoomMode()
         {
-            isPanZoomMode = false;
+            _isPanZoomMode = false;
             inkCanvas.IsHitTestVisible = true;
             panZoomCanvas.MouseWheel -= PanZoomCanvas_MouseWheel;
             panZoomCanvas.MouseDown -= PanZoomCanvas_MouseDown;
@@ -2361,318 +2114,178 @@ namespace xianyun.MainPages
             panZoomCanvas.MouseUp -= PanZoomCanvas_MouseUp;
         }
 
-        /// <summary>
-        /// 启用画笔
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void InkButton_Click(object sender, RoutedEventArgs e)
         {
             inkCanvas.EditingMode = InkCanvasEditingMode.Ink;
             ExitPanZoomMode();
         }
 
-        /// <summary>
-        /// 启用橡皮擦
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void EraserButton_Click(object sender, RoutedEventArgs e)
         {
             inkCanvas.EditingMode = InkCanvasEditingMode.EraseByPoint;
             ExitPanZoomMode();
         }
 
-        private void ColorChange(RgbaColor color)
-        {
-            R = color.R;
-            G = color.G;
-            _B = color.B;
-            A = color.A;
-            TextR.Text = R.ToString();
-            TextG.Text = G.ToString();
-            TextB.Text = _B.ToString();
-            TextA.Text = A.ToString();
-            TextHex.Text = color.HexString;
-        }
-
-        private void ThumbPro_ValueChanged(double xpercent, double ypercent)
-        {
-            H = 360 * ypercent;
-            HsbaColor Hcolor = new HsbaColor(H, 1, 1, 1);
-            viewSelectColor.Fill = Hcolor.SolidColorBrush;
-
-            Hcolor = new HsbaColor(H, S, B, A / 255.0);
-            _viewModel.SelectColor = Hcolor.SolidColorBrush;
-            _viewModel.SelectColor_A = Hcolor.Color;
-
-            ColorChange(Hcolor.RgbaColor);
-        }
-
-        private void ThumbPro_ValueChanged_1(double xpercent, double ypercent)
-        {
-            S = xpercent;
-            B = 1 - ypercent;
-            HsbaColor Hcolor = new HsbaColor(H, S, B, A/255.0);
-
-            _viewModel.SelectColor = Hcolor.SolidColorBrush;
-            _viewModel.SelectColor_A = Hcolor.Color;
-
-            ColorChange(Hcolor.RgbaColor);
-        }
-
-        private void ThumbPro_ValueChanged_A(double xpercent, double ypercent)
-        {
-            A = (int)((1 - xpercent) * 255);
-            RgbaColor rgbaColor = new RgbaColor(R, G, _B, (int)A);
-            _viewModel.SelectColor = rgbaColor.SolidColorBrush;
-            TextA.Text = A.ToString();
-            TextHex.Text = rgbaColor.HexString;
-        }
-
-        /// <summary>
-        /// ARGB文本框的失去焦点事件，触发颜色更新
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            TextBox textBox = sender as TextBox;
-            string text = textBox.Text;
-
-            // 验证 RGBA 的值是否有效
-            if (!int.TryParse(TextR.Text, out int Rvalue) || (Rvalue > 255 || Rvalue < 0))
-            {
-                TextR.Text = R.ToString();
-                return;
-            }
-
-            if (!int.TryParse(TextG.Text, out int Gvalue) || (Gvalue > 255 || Gvalue < 0))
-            {
-                TextG.Text = G.ToString();
-                return;
-            }
-
-            if (!int.TryParse(TextB.Text, out int Bvalue) || (Bvalue > 255 || Bvalue < 0))
-            {
-                TextB.Text = _B.ToString();
-                return;
-            }
-
-            if (!int.TryParse(TextA.Text, out int Avalue) || (Avalue > 255 || Avalue < 0))
-            {
-                TextA.Text = A.ToString();
-                return;
-            }
-
-            R = Rvalue; G = Gvalue; _B = Bvalue; A = Avalue; _A = (float)(A / 255.0);
-
-            // 更新颜色
-            RgbaColor rgbaColor = new RgbaColor(R, G, _B, A);
-            _viewModel.SelectColor = rgbaColor.SolidColorBrush;
-
-            // 更新十六进制颜色
-            TextHex.Text = rgbaColor.HexString;
-
-            // 转换 RGBA 到 HSB
-            HsbaColor hsbaColor = rgbaColor.ToHsbaColor();
-            H = hsbaColor.H;
-            S = hsbaColor.S;
-            B = hsbaColor.B;
-
-            // 更新滑块位置
-            thumbH.UpdatePositionByPercent(0.0, H / 360.0);
-            thumbSB.UpdatePositionByPercent(S, 1.0 - B);
-            thumbA.UpdatePositionByPercent(1-_A,0.0); // 更新透明度滑块
-        }
-
-        /// <summary>
-        /// HSB文本框的失去焦点事件，触发颜色更新
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void HexTextLostFocus(object sender, RoutedEventArgs e)
-        {
-            // 解析十六进制颜色
-            RgbaColor rgbaColor = new RgbaColor(TextHex.Text);
-
-            // 更新颜色显示
-            _viewModel.SelectColor = rgbaColor.SolidColorBrush;
-
-            // 更新颜色文本框的值
-            TextR.Text = rgbaColor.R.ToString();
-            TextG.Text = rgbaColor.G.ToString();
-            TextB.Text = rgbaColor.B.ToString();
-            TextA.Text = rgbaColor.A.ToString();
-
-            // 转换 RGBA 到 HSB
-            HsbaColor hsbaColor = rgbaColor.ToHsbaColor();
-            H = hsbaColor.H;
-            S = hsbaColor.S;
-            B = hsbaColor.B;
-
-            // 更新滑块位置
-            thumbH.UpdatePositionByPercent(0.0, H / 360.0);
-            thumbSB.UpdatePositionByPercent(S, 1.0 - B);
-            thumbA.UpdatePositionByPercent(1-(rgbaColor.A / 255.0),0.0); // 更新透明度滑块
-        }
-
-        /// <summary>
-        /// 鼠标滚轮事件，处理图像缩放
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void PanZoomCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (isPanZoomMode)
-            {
-                // 获取鼠标相对于 panZoomCanvas 的位置
-                Point mousePosition = e.GetPosition(panZoomCanvas);
+            if (!_isPanZoomMode) return;
 
-                // 缩放增量，根据需要调整系数以控制缩放速度
-                double deltaScale = e.Delta * 0.001;
+            Point mousePos = e.GetPosition(panZoomCanvas);
+            double deltaScale = e.Delta * 0.001;
+            const double minScale = 0.1;
+            const double maxScale = 10.0;
 
-                // 定义最小和最大缩放比例
-                double minScale = 0.1;
-                double maxScale = 10.0;
+            double newScaleX = _panZoomScaleTransform.ScaleX + deltaScale;
+            double newScaleY = _panZoomScaleTransform.ScaleY + deltaScale;
+            if (newScaleX < minScale || newScaleX > maxScale) return;
 
-                // 计算新的缩放比例
-                double newScaleX = panZoomScaleTransform.ScaleX + deltaScale;
-                double newScaleY = panZoomScaleTransform.ScaleY + deltaScale;
+            _panZoomTranslateTransform.X -= mousePos.X * deltaScale;
+            _panZoomTranslateTransform.Y -= mousePos.Y * deltaScale;
 
-                // 限制缩放比例
-                if (newScaleX < minScale || newScaleX > maxScale)
-                    return;
-
-                // 计算平移调整，使得缩放以鼠标为中心
-                panZoomTranslateTransform.X -= mousePosition.X * deltaScale;
-                panZoomTranslateTransform.Y -= mousePosition.Y * deltaScale;
-
-                // 更新缩放
-                panZoomScaleTransform.ScaleX = newScaleX;
-                panZoomScaleTransform.ScaleY = newScaleY;
-
-                // 防止事件继续冒泡
-                e.Handled = true;
-            }
+            _panZoomScaleTransform.ScaleX = newScaleX;
+            _panZoomScaleTransform.ScaleY = newScaleY;
+            e.Handled = true;
         }
 
-        /// <summary>
-        /// 鼠标左键按下事件，用于平移图像
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void PanZoomCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (isPanZoomMode && e.LeftButton == MouseButtonState.Pressed)
+            if (_isPanZoomMode && e.LeftButton == MouseButtonState.Pressed)
             {
-                isPanning = true;
-                lastMousePosition = e.GetPosition(imageBorder);
+                _isPanning = true;
+                _lastMousePosition = e.GetPosition(imageBorder);
                 panZoomCanvas.CaptureMouse();
             }
         }
 
-        /// <summary>
-        /// 鼠标移动事件，用于平移图像
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void PanZoomCanvas_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isPanZoomMode && isPanning)
+            if (_isPanZoomMode && _isPanning)
             {
-                Point currentPosition = e.GetPosition(imageBorder);
-                Vector delta = currentPosition - lastMousePosition;
-                panZoomTranslateTransform.X += delta.X;
-                panZoomTranslateTransform.Y += delta.Y;
-                lastMousePosition = currentPosition;
+                Point currPos = e.GetPosition(imageBorder);
+                Vector delta = currPos - _lastMousePosition;
+                _panZoomTranslateTransform.X += delta.X;
+                _panZoomTranslateTransform.Y += delta.Y;
+                _lastMousePosition = currPos;
             }
         }
 
-        /// <summary>
-        /// 鼠标左键释放事件，用于停止平移图像
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void PanZoomCanvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (isPanZoomMode && e.LeftButton == MouseButtonState.Released)
+            if (_isPanZoomMode && e.LeftButton == MouseButtonState.Released)
             {
-                isPanning = false;
+                _isPanning = false;
                 panZoomCanvas.ReleaseMouseCapture();
             }
         }
 
-        private void Upload_To_I2I_Click(object sender, RoutedEventArgs e)
-        {
-            // 获取ImageViewerControl.ImageSource的BitmapFrame对象
-            BitmapFrame bitmapFrame = ImageViewerControl.ImageSource as BitmapFrame;
-            BitmapImage bitmapImage = Common.tools.ConvertBitmapFrameToBitmapImage(bitmapFrame);
-            originalImage = bitmapImage;
-            if (originalImage != null) RenderImage(originalImage);
-            _viewModel.IsInkCanvasVisible = true;
-        }
-
-        // Border 尺寸变化事件
         private void ImageBorder_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (originalImage != null) RenderImage(originalImage);
+            if (_originalImage != null) RenderImage(_originalImage);
         }
-        // 获取原始图像的方法
-        private BitmapImage GetOriginalImage()
+
+        private void RenderImage(BitmapImage bitmap)
         {
-            if (originalImage != null)
+            image.Source = bitmap;
+
+            if (_panZoomTransformGroup == null)
             {
-                return originalImage;
+                _panZoomTransformGroup = new TransformGroup();
+                _panZoomScaleTransform = new ScaleTransform();
+                _panZoomTranslateTransform = new TranslateTransform();
+                _panZoomTransformGroup.Children.Add(_panZoomScaleTransform);
+                _panZoomTransformGroup.Children.Add(_panZoomTranslateTransform);
+                panZoomCanvas.RenderTransform = _panZoomTransformGroup;
             }
-            else
-            {
-                MessageBox.Show("尚未加载任何图像！");
-                return null;
-            }
+
+            // Reset transforms
+            _panZoomScaleTransform.ScaleX = 1.0;
+            _panZoomScaleTransform.ScaleY = 1.0;
+            _panZoomTranslateTransform.X = 0;
+            _panZoomTranslateTransform.Y = 0;
+
+            double borderWidth = imageBorder.ActualWidth;
+            double borderHeight = imageBorder.ActualHeight;
+
+            double imageWidth = bitmap.PixelWidth;
+            double imageHeight = bitmap.PixelHeight;
+
+            double scaleX = borderWidth / imageWidth;
+            double scaleY = borderHeight / imageHeight;
+            double scale = Math.Min(scaleX, scaleY);
+
+            image.Width = imageWidth;
+            image.Height = imageHeight;
+            inkCanvas.Width = imageWidth;
+            inkCanvas.Height = imageHeight;
+
+            Canvas.SetLeft(image, 0);
+            Canvas.SetTop(image, 0);
+            Canvas.SetLeft(inkCanvas, 0);
+            Canvas.SetTop(inkCanvas, 0);
+
+            _panZoomScaleTransform.ScaleX = scale;
+            _panZoomScaleTransform.ScaleY = scale;
+
+            _panZoomTranslateTransform.X = (borderWidth - imageWidth * scale) / 2;
+            _panZoomTranslateTransform.Y = (borderHeight - imageHeight * scale) / 2;
         }
+
+        private void ResetPositionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_originalImage == null) return;
+
+            double borderWidth = imageBorder.ActualWidth;
+            double borderHeight = imageBorder.ActualHeight;
+            double imgWidth = _originalImage.PixelWidth;
+            double imgHeight = _originalImage.PixelHeight;
+
+            double scaleX = borderWidth / imgWidth;
+            double scaleY = borderHeight / imgHeight;
+            double scale = Math.Min(scaleX, scaleY);
+
+            _panZoomScaleTransform.ScaleX = scale;
+            _panZoomScaleTransform.ScaleY = scale;
+            _panZoomTranslateTransform.X = (borderWidth - imgWidth * scale) / 2;
+            _panZoomTranslateTransform.Y = (borderHeight - imgHeight * scale) / 2;
+        }
+
+        #endregion
+
+        #region Mask / Export
+
         private void ExportMaskButton_Click(object sender, RoutedEventArgs e)
         {
-            if (originalImage == null)
+            if (_originalImage == null)
             {
                 MessageBox.Show("尚未加载任何图像！");
                 return;
             }
 
-            // 保存当前的变换
-            double savedScaleX = panZoomScaleTransform.ScaleX;
-            double savedScaleY = panZoomScaleTransform.ScaleY;
-            double savedTranslateX = panZoomTranslateTransform.X;
-            double savedTranslateY = panZoomTranslateTransform.Y;
+            double savedScaleX = _panZoomScaleTransform.ScaleX;
+            double savedScaleY = _panZoomScaleTransform.ScaleY;
+            double savedTransX = _panZoomTranslateTransform.X;
+            double savedTransY = _panZoomTranslateTransform.Y;
 
-            // 重置变换
-            panZoomScaleTransform.ScaleX = 1.0;
-            panZoomScaleTransform.ScaleY = 1.0;
-            panZoomTranslateTransform.X = 0;
-            panZoomTranslateTransform.Y = 0;
-
-            // 强制布局更新
+            // Reset transforms
+            _panZoomScaleTransform.ScaleX = 1.0;
+            _panZoomScaleTransform.ScaleY = 1.0;
+            _panZoomTranslateTransform.X = 0;
+            _panZoomTranslateTransform.Y = 0;
             panZoomCanvas.UpdateLayout();
 
-            // 创建与原始图像大小一致的 RenderTargetBitmap
-            int imageWidth = originalImage.PixelWidth;
-            int imageHeight = originalImage.PixelHeight;
+            int w = _originalImage.PixelWidth;
+            int h = _originalImage.PixelHeight;
 
-            RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
-                imageWidth, imageHeight, 96, 96, PixelFormats.Pbgra32);
+            var renderBitmap = new RenderTargetBitmap(w, h, 96, 96, PixelFormats.Pbgra32);
+            var drawingVisual = new DrawingVisual();
 
-            // 创建一个DrawingVisual，用于绘制背景和笔画
-            DrawingVisual drawingVisual = new DrawingVisual();
             using (DrawingContext dc = drawingVisual.RenderOpen())
             {
-                // 绘制黑色背景
-                dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, imageWidth, imageHeight));
-
-                // 设置笔画的绘制属性为白色
+                dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h)); // black background
                 foreach (Stroke stroke in inkCanvas.Strokes)
                 {
-                    // 创建白色的绘制属性
-                    DrawingAttributes whiteAttributes = new DrawingAttributes
+                    // White stroke
+                    var whiteAttrs = new DrawingAttributes
                     {
                         Color = Colors.White,
                         Width = stroke.DrawingAttributes.Width,
@@ -2681,160 +2294,130 @@ namespace xianyun.MainPages
                         StylusTip = stroke.DrawingAttributes.StylusTip,
                         StylusTipTransform = stroke.DrawingAttributes.StylusTipTransform
                     };
-
-                    // 创建新的笔画，应用白色属性
-                    Stroke whiteStroke = new Stroke(stroke.StylusPoints, whiteAttributes);
-
-                    // 绘制笔画
+                    var whiteStroke = new Stroke(stroke.StylusPoints, whiteAttrs);
                     whiteStroke.Draw(dc);
                 }
             }
-
-            // 渲染到位图
             renderBitmap.Render(drawingVisual);
-
-            // 将位图设置为Image控件的Source
             MaskImageSource.Source = renderBitmap;
             MaskViewBorder.Visibility = Visibility.Visible;
-            maskImage = renderBitmap;
-            // 恢复变换
-            panZoomScaleTransform.ScaleX = savedScaleX;
-            panZoomScaleTransform.ScaleY = savedScaleY;
-            panZoomTranslateTransform.X = savedTranslateX;
-            panZoomTranslateTransform.Y = savedTranslateY;
+            _maskImage = renderBitmap;
 
-            // 强制布局更新
+            // Restore transforms
+            _panZoomScaleTransform.ScaleX = savedScaleX;
+            _panZoomScaleTransform.ScaleY = savedScaleY;
+            _panZoomTranslateTransform.X = savedTransX;
+            _panZoomTranslateTransform.Y = savedTransY;
             panZoomCanvas.UpdateLayout();
         }
-
-        private void SaveDrawButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (originalImage == null)
-            {
-                MessageBox.Show("尚未加载任何图像！");
-                return;
-            }
-
-            // 保存当前的变换
-            double savedScaleX = panZoomScaleTransform.ScaleX;
-            double savedScaleY = panZoomScaleTransform.ScaleY;
-            double savedTranslateX = panZoomTranslateTransform.X;
-            double savedTranslateY = panZoomTranslateTransform.Y;
-
-            // 重置变换
-            panZoomScaleTransform.ScaleX = 1.0;
-            panZoomScaleTransform.ScaleY = 1.0;
-            panZoomTranslateTransform.X = 0;
-            panZoomTranslateTransform.Y = 0;
-
-            // 强制布局更新
-            panZoomCanvas.UpdateLayout();
-
-            // 创建与原始图像大小一致的 RenderTargetBitmap
-            int imageWidth = originalImage.PixelWidth;
-            int imageHeight = originalImage.PixelHeight;
-
-            RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
-                imageWidth, imageHeight, 96, 96, PixelFormats.Pbgra32);
-
-            // 创建一个DrawingVisual，用于绘制原始图像和笔画
-            DrawingVisual drawingVisual = new DrawingVisual();
-            using (DrawingContext dc = drawingVisual.RenderOpen())
-            {
-                // 绘制原始图像
-                dc.DrawImage(originalImage, new Rect(0, 0, imageWidth, imageHeight));
-
-                // 绘制笔画
-                foreach (Stroke stroke in inkCanvas.Strokes)
-                {
-                    // 使用原始的绘制属性
-                    stroke.Draw(dc);
-                }
-            }
-
-            // 渲染到位图
-            renderBitmap.Render(drawingVisual);
-
-            // 恢复变换
-            panZoomScaleTransform.ScaleX = savedScaleX;
-            panZoomScaleTransform.ScaleY = savedScaleY;
-            panZoomTranslateTransform.X = savedTranslateX;
-            panZoomTranslateTransform.Y = savedTranslateY;
-
-            // 强制布局更新
-            panZoomCanvas.UpdateLayout();
-
-            // 将 RenderTargetBitmap 转换为 BitmapImage
-            BitmapImage bitmapImage = new BitmapImage();
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                PngBitmapEncoder encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-                encoder.Save(memoryStream);
-                memoryStream.Position = 0;
-
-                bitmapImage.BeginInit();
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.StreamSource = memoryStream;
-                bitmapImage.EndInit();
-            }
-
-            originalImage = bitmapImage;
-        }
-
-        
 
         private void DelMaskBth_Click(object sender, RoutedEventArgs e)
         {
             MaskImageSource.Source = null;
             MaskViewBorder.Visibility = Visibility.Collapsed;
-            maskImage = null;
+            _maskImage = null;
         }
 
+        private void SaveDrawButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_originalImage == null)
+            {
+                MessageBox.Show("尚未加载任何图像！");
+                return;
+            }
+
+            double savedScaleX = _panZoomScaleTransform.ScaleX;
+            double savedScaleY = _panZoomScaleTransform.ScaleY;
+            double savedTransX = _panZoomTranslateTransform.X;
+            double savedTransY = _panZoomTranslateTransform.Y;
+
+            // Reset
+            _panZoomScaleTransform.ScaleX = 1.0;
+            _panZoomScaleTransform.ScaleY = 1.0;
+            _panZoomTranslateTransform.X = 0;
+            _panZoomTranslateTransform.Y = 0;
+            panZoomCanvas.UpdateLayout();
+
+            int w = _originalImage.PixelWidth;
+            int h = _originalImage.PixelHeight;
+
+            var renderBitmap = new RenderTargetBitmap(w, h, 96, 96, PixelFormats.Pbgra32);
+            var drawingVisual = new DrawingVisual();
+            using (DrawingContext dc = drawingVisual.RenderOpen())
+            {
+                dc.DrawImage(_originalImage, new Rect(0, 0, w, h));
+                foreach (Stroke stroke in inkCanvas.Strokes)
+                {
+                    stroke.Draw(dc);
+                }
+            }
+            renderBitmap.Render(drawingVisual);
+
+            // Restore
+            _panZoomScaleTransform.ScaleX = savedScaleX;
+            _panZoomScaleTransform.ScaleY = savedScaleY;
+            _panZoomTranslateTransform.X = savedTransX;
+            _panZoomTranslateTransform.Y = savedTransY;
+            panZoomCanvas.UpdateLayout();
+
+            // Convert to BitmapImage
+            BitmapImage bitmapImage = new BitmapImage();
+            using (var ms = new MemoryStream())
+            {
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+                encoder.Save(ms);
+                ms.Position = 0;
+
+                bitmapImage.BeginInit();
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.StreamSource = ms;
+                bitmapImage.EndInit();
+            }
+            _originalImage = bitmapImage;
+        }
+
+        #endregion
     }
+
     /// <summary>
-    /// 封装Canvas 到Thumb来简化 Thumb的使用，关注熟悉X,Y 表示 thumb在坐标中距离左，上的距离
-    /// 默认canvas 里用一个小圆点来表示当前位置
+    /// A specialized Thumb control that tracks X/Y as a percentage inside a Canvas.
     /// </summary>
     public class ThumbPro : Thumb
     {
-        //距离Canvas的Top,模板中需要Canvas.Top 绑定此Top
         public double Top
         {
-            get { return (double)GetValue(TopProperty); }
-            set { SetValue(TopProperty, value); }
+            get => (double)GetValue(TopProperty);
+            set => SetValue(TopProperty, value);
         }
+        public static readonly DependencyProperty TopProperty =
+            DependencyProperty.Register(nameof(Top), typeof(double), typeof(ThumbPro), new PropertyMetadata(0.0));
 
-        // Using a DependencyProperty as the backing store for Top.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty TopProperty = DependencyProperty.Register("Top", typeof(double), typeof(ThumbPro), new PropertyMetadata(0.0));
-
-        //距离Canvas的Top,模板中需要Canvas.Left 绑定此Left
         public double Left
         {
-            get { return (double)GetValue(LeftProperty); }
-            set { SetValue(LeftProperty, value); }
+            get => (double)GetValue(LeftProperty);
+            set => SetValue(LeftProperty, value);
         }
+        public static readonly DependencyProperty LeftProperty =
+            DependencyProperty.Register(nameof(Left), typeof(double), typeof(ThumbPro), new PropertyMetadata(0.0));
 
-        // Using a DependencyProperty as the backing store for Left.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty LeftProperty = DependencyProperty.Register("Left", typeof(double), typeof(ThumbPro), new PropertyMetadata(0.0));
-        private double FirstTop;
-        private double FirstLeft;
-
-        //小圆点的半径
         public double Xoffset { get; set; }
         public double Yoffset { get; set; }
-        public bool VerticalOnly { get; set; } = false;
-        public bool HorizontalOnly { get; set; } = false;
-        public double Xpercent { get { return (Left + Xoffset) / ActualWidth; } }
-        public double Ypercent { get { return (Top + Yoffset) / ActualHeight; } }
+        public bool VerticalOnly { get; set; }
+        public bool HorizontalOnly { get; set; }
+
+        public double Xpercent => (Left + Xoffset) / ActualWidth;
+        public double Ypercent => (Top + Yoffset) / ActualHeight;
 
         public event Action<double, double> ValueChanged;
 
+        private double _firstTop;
+        private double _firstLeft;
+
         public ThumbPro()
         {
-            Loaded += (object sender, RoutedEventArgs e) =>
+            Loaded += (s, e) =>
             {
-                // 如果是水平滑块，起始Top置为固定(-Yoffset), 保持居中
                 if (HorizontalOnly)
                 {
                     Top = -Yoffset;
@@ -2850,60 +2433,54 @@ namespace xianyun.MainPages
                 }
             };
 
-            DragStarted += (object sender, DragStartedEventArgs e) =>
+            DragStarted += (s, e) =>
             {
                 if (HorizontalOnly)
                 {
                     Left = e.HorizontalOffset - Xoffset;
-                    FirstLeft = Left;
-                    // Top 固定不变
+                    _firstLeft = Left;
                 }
                 else if (!VerticalOnly)
                 {
                     Left = e.HorizontalOffset - Xoffset;
-                    FirstLeft = Left;
+                    _firstLeft = Left;
                     Top = e.VerticalOffset - Yoffset;
-                    FirstTop = Top;
+                    _firstTop = Top;
                 }
                 else
                 {
                     Top = e.VerticalOffset - Yoffset;
-                    FirstTop = Top;
+                    _firstTop = Top;
                 }
-
                 ValueChanged?.Invoke(Xpercent, Ypercent);
             };
 
-            DragDelta += (object sender, DragDeltaEventArgs e) =>
+            DragDelta += (s, e) =>
             {
                 if (HorizontalOnly)
                 {
-                    double x = FirstLeft + e.HorizontalChange;
+                    double x = _firstLeft + e.HorizontalChange;
                     Left = Clamp(x, -Xoffset, ActualWidth - Xoffset);
-                    // 不允许垂直移动
                     Top = -Yoffset;
                 }
                 else if (!VerticalOnly)
                 {
-                    double x = FirstLeft + e.HorizontalChange;
+                    double x = _firstLeft + e.HorizontalChange;
                     Left = Clamp(x, -Xoffset, ActualWidth - Xoffset);
 
-                    double y = FirstTop + e.VerticalChange;
+                    double y = _firstTop + e.VerticalChange;
                     Top = Clamp(y, -Yoffset, ActualHeight - Yoffset);
                 }
                 else
                 {
-                    double y = FirstTop + e.VerticalChange;
+                    double y = _firstTop + e.VerticalChange;
                     Top = Clamp(y, -Yoffset, ActualHeight - Yoffset);
                 }
-
                 ValueChanged?.Invoke(Xpercent, Ypercent);
             };
         }
-        private double Clamp(double value, double min, double max)
-        {
-            return Math.Max(min, Math.Min(max, value));
-        }
+
+        private double Clamp(double value, double min, double max) => Math.Max(min, Math.Min(max, value));
 
         public void SetTopLeftByPercent(double xpercent, double ypercent)
         {
@@ -2914,14 +2491,9 @@ namespace xianyun.MainPages
 
         public void UpdatePositionByPercent(double xpercent, double ypercent)
         {
-            // 更新滑块位置
             SetTopLeftByPercent(xpercent, ypercent);
-
-            // 更新拖动的初始位置
-            FirstLeft = Left;
-            FirstTop = Top;
-
-            // 手动触发 ValueChanged 事件
+            _firstLeft = Left;
+            _firstTop = Top;
             ValueChanged?.Invoke(Xpercent, Ypercent);
         }
 
@@ -2933,24 +2505,22 @@ namespace xianyun.MainPages
 
         public void AnimateToPercent(double xpercent, double ypercent, double durationSeconds)
         {
-            var topAnimation = new DoubleAnimation
+            var topAnim = new DoubleAnimation
             {
                 To = ypercent * ActualHeight - Yoffset,
                 Duration = TimeSpan.FromSeconds(durationSeconds),
             };
-
-            var leftAnimation = new DoubleAnimation
+            var leftAnim = new DoubleAnimation
             {
                 To = xpercent * ActualWidth - Xoffset,
                 Duration = TimeSpan.FromSeconds(durationSeconds),
             };
 
-            BeginAnimation(TopProperty, topAnimation);
+            BeginAnimation(TopProperty, topAnim);
             if (!VerticalOnly)
             {
-                BeginAnimation(LeftProperty, leftAnimation);
+                BeginAnimation(LeftProperty, leftAnim);
             }
-
             Dispatcher.InvokeAsync(() =>
             {
                 ValueChanged?.Invoke(Xpercent, Ypercent);
