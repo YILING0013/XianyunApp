@@ -128,6 +128,12 @@ namespace xianyun.MainPages
             ImportCharacterPromptsData(CharacterPromptsWrapPanel, BackupFilePath);
             LoadNotesFromFile();
         }
+
+        /// <summary>
+        /// 将 WrapPanel 中的 CharacterPrompts 控件的数据导出为 JSON 文件
+        /// </summary>
+        /// <param name="characterPromptsWrapPanel"></param>
+        /// <param name="filePath"></param>
         public void ExportCharacterPromptsData(WrapPanel characterPromptsWrapPanel, string filePath)
         {
             var backupData = new List<CharacterPromptBackup>();
@@ -155,6 +161,11 @@ namespace xianyun.MainPages
             File.WriteAllText(filePath, json);
         }
 
+        /// <summary>
+        /// 从 JSON 文件中导入数据到 CharacterPrompts 控件
+        /// </summary>
+        /// <param name="characterPromptsWrapPanel"></param>
+        /// <param name="filePath"></param>
         public void ImportCharacterPromptsData(WrapPanel characterPromptsWrapPanel, string filePath)
         {
             characterPromptsWrapPanel.Children.Clear();
@@ -350,6 +361,8 @@ namespace xianyun.MainPages
             return (maxHeight != 512) ? maxHeight : closestBelow;
         }
 
+        //###########################################################################################################################################################################//
+        #region 词条选择库相关逻辑
         private void SearchInTreeView(string searchText)
         {
             // 清空 ListBox 中的现有项
@@ -503,18 +516,16 @@ namespace xianyun.MainPages
             // 添加完 TagControl 后，更新 PositivePrompt 和 InputTextBox
             UpdateViewModelTagsText();
         }
-
-
-        //----------------------------------------------------------------------------------------------//
-        //-----------------------------------  词条笔记本相关逻辑  -------------------------------------//
-        //----------------------------------------------------------------------------------------------//
-
+        #endregion
+        //###########################################################################################################################################################################//
+        #region 笔记本相关逻辑
         public class NoteModel
         {
             public string Name { get; set; }
             public string PositivePrompt { get; set; }
             public string NegativePrompt { get; set; }
             public string ImagePath { get; set; }
+            public List<CharacterPromptBackup> CharacterPromptsData { get; set; }
         }
         private void SaveNote_Click(object sender, RoutedEventArgs e)
         {
@@ -534,6 +545,27 @@ namespace xianyun.MainPages
                 // 保存正面和负面词条
                 string positivePrompt = _viewModel.PositivePrompt;
                 string negativePrompt = _viewModel.NegitivePrompt;
+
+                // 保存 CharacterPrompts 数据
+                var characterPromptsData = new List<CharacterPromptBackup>();
+                foreach (var child in CharacterPromptsWrapPanel.Children)
+                {
+                    if (child is CharacterPrompts characterPrompt)
+                    {
+                        dynamic state = characterPrompt.GetControlState();
+
+                        var border = characterPrompt.FindName("CharacterBorder") as Border;
+                        string borderColor = border?.BorderBrush.ToString();
+
+                        characterPromptsData.Add(new CharacterPromptBackup
+                        {
+                            Prompt = state.prompt,
+                            UndesiredContent = state.uc,
+                            SelectedPosition = state.selectedPosition,
+                            BorderColor = borderColor
+                        });
+                    }
+                }
 
                 // 检查是否有图像，如果有则保存图像
                 string imagePath = null;
@@ -569,7 +601,8 @@ namespace xianyun.MainPages
                     Name = noteName,
                     PositivePrompt = positivePrompt,
                     NegativePrompt = negativePrompt,
-                    ImagePath = imagePath // 如果没有图像，ImagePath 将为 null
+                    ImagePath = imagePath, // 如果没有图像，ImagePath 将为 null
+                    CharacterPromptsData = characterPromptsData // 保存 CharacterPrompts 数据
                 };
 
                 // 将笔记添加到内存集合
@@ -667,6 +700,39 @@ namespace xianyun.MainPages
                 {
                     NoteImgPreview.Source = null; // 如果没有图像，清空预览
                 }
+                // 更新 CharacterPrompts 控件
+                CharacterPromptsWrapPanel.Children.Clear();
+                if (selectedNote.CharacterPromptsData != null)
+                {
+                    foreach (var data in selectedNote.CharacterPromptsData)
+                    {
+                        var newCharacterPrompt = new CharacterPrompts
+                        {
+                            Prompt = { Text = data.Prompt },
+                            UndesiredContent = { Text = data.UndesiredContent },
+                            SelectedPositionText = { Text = data.SelectedPosition }
+                        };
+
+                        if (!string.IsNullOrEmpty(data.BorderColor))
+                        {
+                            var border = newCharacterPrompt.FindName("CharacterBorder") as Border;
+                            if (border != null)
+                            {
+                                var colorConverter = new BrushConverter();
+                                try
+                                {
+                                    border.BorderBrush = (Brush)colorConverter.ConvertFromString(data.BorderColor);
+                                }
+                                catch
+                                {
+                                    // 忽略转换失败
+                                }
+                            }
+                        }
+
+                        CharacterPromptsWrapPanel.Children.Add(newCharacterPrompt);
+                    }
+                }
             }
         }
         private void DeleteNote_Click(object sender, RoutedEventArgs e)
@@ -738,6 +804,40 @@ namespace xianyun.MainPages
                 _viewModel.PositivePrompt = selectedNote.PositivePrompt;
                 _viewModel.NegitivePrompt = selectedNote.NegativePrompt;
                 InputTextBox.Text = _viewModel.PositivePrompt;
+
+                // 更新 CharacterPrompts 控件
+                CharacterPromptsWrapPanel.Children.Clear();
+                if (selectedNote.CharacterPromptsData != null)
+                {
+                    foreach (var data in selectedNote.CharacterPromptsData)
+                    {
+                        var newCharacterPrompt = new CharacterPrompts
+                        {
+                            Prompt = { Text = data.Prompt },
+                            UndesiredContent = { Text = data.UndesiredContent },
+                            SelectedPositionText = { Text = data.SelectedPosition }
+                        };
+
+                        if (!string.IsNullOrEmpty(data.BorderColor))
+                        {
+                            var border = newCharacterPrompt.FindName("CharacterBorder") as Border;
+                            if (border != null)
+                            {
+                                var colorConverter = new BrushConverter();
+                                try
+                                {
+                                    border.BorderBrush = (Brush)colorConverter.ConvertFromString(data.BorderColor);
+                                }
+                                catch
+                                {
+                                    // 忽略转换失败
+                                }
+                            }
+                        }
+
+                        CharacterPromptsWrapPanel.Children.Add(newCharacterPrompt);
+                    }
+                }
                 UpdateTagsContainerForNotes();
             }
             else
@@ -745,11 +845,9 @@ namespace xianyun.MainPages
                 MessageBox.Show("请先选择一个笔记。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
-
-
-        //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
-        //--------------------------------------------------------------------------------  API绘图请求相关逻辑  ----------------------------------------------------------------------------------------//
-        //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+        #endregion
+        //###########################################################################################################################################################################//
+        #region API绘图请求相关逻辑
         public (string[] base64Images, double[] informationExtracted, double[] referenceStrength) ExtractImageData()
         {
             // 创建三个列表来存储图像的 base64 编码、InformationExtracted 和 ReferenceStrength 参数
@@ -839,7 +937,7 @@ namespace xianyun.MainPages
             {
                 _isCancelling = true;
                 button.Content = "正在取消...";
-                button.IsEnabled = false; 
+                button.IsEnabled = false;
             }
             else
             {
@@ -914,7 +1012,7 @@ namespace xianyun.MainPages
                                 Sampler = _viewModel.ActualSamplingMethod,
                                 Steps = _viewModel.Steps,
                                 Seed = (uint)seedValue,
-                                QualityToggle=false,
+                                QualityToggle = false,
                                 Sm = _viewModel.IsSMEA,
                                 SmDyn = _viewModel.IsDYN,
                                 NegativePrompt = _viewModel.NegitivePrompt,
@@ -983,7 +1081,7 @@ namespace xianyun.MainPages
                                 {
                                     novelAiRequest.Action = null;
                                     novelAiRequest.Input = null;
-                                    novelAiRequest.Model =null;
+                                    novelAiRequest.Model = null;
                                     novelAiRequest.Parameters = null;
                                     novelAiRequest.Width = width;
                                     novelAiRequest.Height = height;
@@ -1016,8 +1114,9 @@ namespace xianyun.MainPages
                             ImageStackPanel.Children.Add(imgPreview);
                             ImageViewerControl.ImageSource = bitmapFrame;
                         });
-                        LogPage.LogMessage(LogLevel.INFO, "图像生成成功" );
-                        if (_viewModel.AutoSaveEnabled) {
+                        LogPage.LogMessage(LogLevel.INFO, "图像生成成功");
+                        if (_viewModel.AutoSaveEnabled)
+                        {
                             string fileName = ImageSaver.GenerateFileName(_viewModel.CustomPrefix);
                             try
                             {
@@ -1034,9 +1133,10 @@ namespace xianyun.MainPages
                         Opus.Text = "剩余点数:" + Common.SessionManager.Opus;
                         _viewModel.ProgressValue = 100;
                         await Task.Delay(3000); // 请求间隔3秒
-                    }  
+                    }
                 }
-                else {
+                else
+                {
                     var apiClient = new XianyunApiClient("https://nocaptchauri.idlecloud.cc", SessionManager.Session);
                     Console.WriteLine(SessionManager.Session);
 
@@ -1257,7 +1357,9 @@ namespace xianyun.MainPages
                 LogPage.LogMessage(LogLevel.ERROR, "生成错误: " + ex.Message);
             }
         }
-        
+        #endregion
+        //###########################################################################################################################################################################//
+
         private void TagMenuBtn_Click(object sender, RoutedEventArgs e)
         {
             if (isTagMenuOpen)
@@ -1405,6 +1507,9 @@ namespace xianyun.MainPages
             string extension = System.IO.Path.GetExtension(filePath).ToLower();
             return extension == ".jpg" || extension == ".jpeg" || extension == ".png";
         }
+
+        //###########################################################################################################################################################################//
+        #region 正面词条输入区域相关逻辑
         private void InputTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             ProcessInputText();
@@ -1866,6 +1971,8 @@ namespace xianyun.MainPages
                 UpdateViewModelTagsText();
             }
         }
+        #endregion
+        //###########################################################################################################################################################################//
 
         private async void ExportImagesButton_Click(object sender, RoutedEventArgs e)
         {

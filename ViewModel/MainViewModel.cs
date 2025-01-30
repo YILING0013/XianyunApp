@@ -201,7 +201,7 @@ namespace xianyun.ViewModel
                             page = new MainPages.Txt2imgPage();
                             break;
                         case "Page2":
-                            page = new MainPages.Img2ImgPage();
+                            page = new MainPages.RandomGenerated();
                             break;
                         case "Page3":
                             page = new MainPages.superResolutionPage();

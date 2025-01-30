@@ -72,11 +72,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainPages\Img2ImgPage.xaml">
+    <Page Include="MainPages\LogPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainPages\LogPage.xaml">
+    <Page Include="MainPages\RandomGenerated.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -138,11 +138,11 @@
     <Compile Include="Common\tools.cs" />
     <Compile Include="Common\Variable.cs" />
     <Compile Include="Extensions\ExpanderGroupBehavior.cs" />
-    <Compile Include="MainPages\Img2ImgPage.xaml.cs">
-      <DependentUpon>Img2ImgPage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="MainPages\LogPage.xaml.cs">
       <DependentUpon>LogPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainPages\RandomGenerated.xaml.cs">
+      <DependentUpon>RandomGenerated.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainPages\SettingPage.xaml.cs">
       <DependentUpon>SettingPage.xaml</DependentUpon>

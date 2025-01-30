@@ -81,8 +81,8 @@
                                          Command="{Binding NavigateCommand}" CommandParameter="Page1"/>
                         </Border>
                         <Border Grid.Row="2" Margin="5" CornerRadius="15" Background="Transparent">
-                            <RadioButton IsEnabled="False" Template="{StaticResource LeftMenuRadioButtonTemplate}" 
-                                         Content="&#xecb9;" Foreground="#70677e" GroupName="LeftMenu"
+                            <RadioButton Template="{StaticResource LeftMenuRadioButtonTemplate}" 
+                                         Content="&#xe719;" Foreground="#70677e" GroupName="LeftMenu"
                                          Command="{Binding NavigateCommand}" CommandParameter="Page2"/>
                         </Border>
                         <Border Grid.Row="3" Margin="5" CornerRadius="15" Background="Transparent">
