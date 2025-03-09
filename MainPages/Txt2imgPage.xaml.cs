@@ -1067,9 +1067,9 @@ namespace xianyun.MainPages
                             {
                                 int w = image.PixelWidth;
                                 int h = image.PixelHeight;
-                                tools.ValidateResolution(ref w, ref h);
-                                BitmapImage resized = tools.ResizeImage(_originalImage, w, h);
-                                string base64Image = tools.ConvertImageToBase64(resized, new PngBitmapEncoder());
+                                Tools.ValidateResolution(ref w, ref h);
+                                BitmapImage resized = Tools.ResizeImage(_originalImage, w, h);
+                                string base64Image = Tools.ConvertImageToBase64(resized, new PngBitmapEncoder());
 
                                 novelAiRequest.Action = "img2img";
                                 novelAiRequest.Parameters.Width = w;
@@ -1079,8 +1079,12 @@ namespace xianyun.MainPages
                                 if (MaskImageSource.Source != null)
                                 {
                                     novelAiRequest.Action = "infill";
-                                    novelAiRequest.Model = "nai-diffusion-3-inpainting";
-                                    novelAiRequest.Parameters.Mask = tools.ConvertRenderTargetBitmapToBase64(_maskImage);
+                                    if (_viewModel.Model == "nai-diffusion-4-full")
+                                    {
+                                        novelAiRequest.Model = "nai-diffusion-4-full-inpainting";
+                                    }
+                                    else { novelAiRequest.Model = "nai-diffusion-3-inpainting"; }
+                                    novelAiRequest.Parameters.Mask = Tools.ConvertRenderTargetBitmapToBase64(_maskImage);
                                 }
                                 if (_viewModel.ReqType != null)
                                 {
@@ -1112,7 +1116,7 @@ namespace xianyun.MainPages
                         string imageB64 = await novelAiClient.GenerateImageAsync(novelAiRequest);
                         await GetSubscription.GetSubscriptionInfoAsync(); // Refresh subscription info
 
-                        var bitmapFrame = tools.ConvertBase64ToBitmapFrame(imageB64);
+                        var bitmapFrame = Tools.ConvertBase64ToBitmapFrame(imageB64);
                         Application.Current.Dispatcher.Invoke(() =>
                         {
                             var imgPreview = new ImgPreview(imageB64);
@@ -1215,9 +1219,9 @@ namespace xianyun.MainPages
                         {
                             int w = orgImg.PixelWidth;
                             int h = orgImg.PixelHeight;
-                            tools.ValidateResolution(ref w, ref h);
-                            BitmapImage resized = tools.ResizeImage(_originalImage, w, h);
-                            string base64Img = tools.ConvertImageToBase64(resized, new PngBitmapEncoder());
+                            Tools.ValidateResolution(ref w, ref h);
+                            BitmapImage resized = Tools.ResizeImage(_originalImage, w, h);
+                            string base64Img = Tools.ConvertImageToBase64(resized, new PngBitmapEncoder());
 
                             if (_viewModel.ReqType != null)
                             {
@@ -1247,7 +1251,7 @@ namespace xianyun.MainPages
                                 imageRequest.Strength = _viewModel.Strength;
                                 if (MaskImageSource.Source != null)
                                 {
-                                    imageRequest.Mask = tools.ConvertRenderTargetBitmapToBase64(_maskImage);
+                                    imageRequest.Mask = Tools.ConvertRenderTargetBitmapToBase64(_maskImage);
                                 }
                             }
                         }
@@ -1325,7 +1329,7 @@ namespace xianyun.MainPages
         /// </summary>
         private void HandlePostGenerationSave(string imageBase64)
         {
-            var bitmapFrame = tools.ConvertBase64ToBitmapFrame(imageBase64);
+            var bitmapFrame = Tools.ConvertBase64ToBitmapFrame(imageBase64);
             Application.Current.Dispatcher.Invoke(() =>
             {
                 var imgPreview = new ImgPreview(imageBase64);
@@ -1996,7 +2000,7 @@ namespace xianyun.MainPages
         {
             if (ImageViewerControl.ImageSource is BitmapFrame frame)
             {
-                BitmapImage newImage = tools.ConvertBitmapFrameToBitmapImage(frame);
+                BitmapImage newImage = Tools.ConvertBitmapFrameToBitmapImage(frame);
                 _originalImage = newImage;
                 if (_originalImage != null) RenderImage(_originalImage);
                 _viewModel.IsInkCanvasVisible = true;
@@ -2018,8 +2022,8 @@ namespace xianyun.MainPages
                 var img = new BitmapImage(new Uri(openFileDialog.FileName));
                 int w = img.PixelWidth;
                 int h = img.PixelHeight;
-                tools.ValidateResolution(ref w, ref h);
-                BitmapImage resized = tools.ResizeImage(img, w, h);
+                Tools.ValidateResolution(ref w, ref h);
+                BitmapImage resized = Tools.ResizeImage(img, w, h);
                 _originalImage = resized;
                 RenderImage(_originalImage);
                 _viewModel.IsInkCanvasVisible = true;
@@ -2261,12 +2265,13 @@ namespace xianyun.MainPages
                 return;
             }
 
+            // 保存当前的变换状态
             double savedScaleX = _panZoomScaleTransform.ScaleX;
             double savedScaleY = _panZoomScaleTransform.ScaleY;
             double savedTransX = _panZoomTranslateTransform.X;
             double savedTransY = _panZoomTranslateTransform.Y;
 
-            // Reset transforms
+            // 重置变换，确保正确导出尺寸
             _panZoomScaleTransform.ScaleX = 1.0;
             _panZoomScaleTransform.ScaleY = 1.0;
             _panZoomTranslateTransform.X = 0;
@@ -2276,15 +2281,18 @@ namespace xianyun.MainPages
             int w = _originalImage.PixelWidth;
             int h = _originalImage.PixelHeight;
 
-            var renderBitmap = new RenderTargetBitmap(w, h, 96, 96, PixelFormats.Pbgra32);
-            var drawingVisual = new DrawingVisual();
+            // 首先创建一个临时的蒙版位图，用于检测笔画
+            var tempBitmap = new RenderTargetBitmap(w, h, 96, 96, PixelFormats.Pbgra32);
+            var tempVisual = new DrawingVisual();
 
-            using (DrawingContext dc = drawingVisual.RenderOpen())
+            using (DrawingContext dc = tempVisual.RenderOpen())
             {
-                dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h)); // black background
+                // 黑色背景
+                dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
+
+                // 将所有笔画绘制为白色
                 foreach (Stroke stroke in inkCanvas.Strokes)
                 {
-                    // White stroke
                     var whiteAttrs = new DrawingAttributes
                     {
                         Color = Colors.White,
@@ -2298,17 +2306,190 @@ namespace xianyun.MainPages
                     whiteStroke.Draw(dc);
                 }
             }
-            renderBitmap.Render(drawingVisual);
-            MaskImageSource.Source = renderBitmap;
-            MaskViewBorder.Visibility = Visibility.Visible;
-            _maskImage = renderBitmap;
+            tempBitmap.Render(tempVisual);
 
-            // Restore transforms
+            // 创建最终的蒙版位图
+            var finalBitmap = new RenderTargetBitmap(w, h, 96, 96, PixelFormats.Pbgra32);
+            var finalVisual = new DrawingVisual();
+
+            // 分析网格并创建块状蒙版
+            using (DrawingContext dc = finalVisual.RenderOpen())
+            {
+                // 绘制黑色背景
+                dc.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
+
+                // 调用网格分析函数，生成块状蒙版
+                GenerateBlockMask(tempBitmap, dc, w, h);
+            }
+
+            finalBitmap.Render(finalVisual);
+
+            // 显示蒙版并存储
+            MaskImageSource.Source = finalBitmap;
+            MaskViewBorder.Visibility = Visibility.Visible;
+            _maskImage = finalBitmap;
+
+            // 恢复之前的变换
             _panZoomScaleTransform.ScaleX = savedScaleX;
             _panZoomScaleTransform.ScaleY = savedScaleY;
             _panZoomTranslateTransform.X = savedTransX;
             _panZoomTranslateTransform.Y = savedTransY;
             panZoomCanvas.UpdateLayout();
+
+            LogPage.LogMessage(LogLevel.INFO, "已生成块状蒙版");
+        }
+
+        private void GenerateBlockMask(RenderTargetBitmap sourceBitmap, DrawingContext targetDC, int width, int height)
+        {
+            // 获取源位图的像素数据
+            var pixelData = new byte[width * height * 4];
+            sourceBitmap.CopyPixels(pixelData, width * 4, 0);
+
+            // 创建网格填充状态数组 (8x8像素为一个网格单元)
+            int gridWidth = (int)Math.Ceiling(width / 8.0);
+            int gridHeight = (int)Math.Ceiling(height / 8.0);
+            var gridFillState = new int[gridWidth, gridHeight];
+
+            // 计算每个网格单元的填充状态 (0=空白, 1=部分填充, 2=完全填充)
+            for (int gy = 0; gy < gridHeight; gy++)
+            {
+                for (int gx = 0; gx < gridWidth; gx++)
+                {
+                    int filledPixels = 0;
+                    int totalPixels = 0;
+
+                    // 检查当前网格内的所有像素
+                    for (int y = gy * 8; y < Math.Min((gy + 1) * 8, height); y++)
+                    {
+                        for (int x = gx * 8; x < Math.Min((gx + 1) * 8, width); x++)
+                        {
+                            int pixelIndex = (y * width + x) * 4;
+                            // 像素不是黑色就算作填充
+                            if (pixelData[pixelIndex] > 0 || pixelData[pixelIndex + 1] > 0 || pixelData[pixelIndex + 2] > 0)
+                            {
+                                filledPixels++;
+                            }
+                            totalPixels++;
+                        }
+                    }
+
+                    // 根据填充比例确定网格状态
+                    if (filledPixels == 0)
+                    {
+                        gridFillState[gx, gy] = 0; // 空白
+                    }
+                    else if (filledPixels == totalPixels)
+                    {
+                        gridFillState[gx, gy] = 2; // 完全填充
+                    }
+                    else
+                    {
+                        gridFillState[gx, gy] = 1; // 部分填充
+                    }
+                }
+            }
+
+            // 处理部分填充的网格，生成32x32块状蒙版
+            for (int gy = 0; gy < gridHeight; gy++)
+            {
+                for (int gx = 0; gx < gridWidth; gx++)
+                {
+                    if (gridFillState[gx, gy] == 1) // 只处理部分填充的网格
+                    {
+                        // 检查九宫格周围的网格
+                        bool[] surroundingFilled = new bool[9];
+
+                        // 九宫格索引映射: 
+                        // 0 1 2
+                        // 3 4 5
+                        // 6 7 8
+
+                        // 检查九宫格内每个位置的填充状态
+                        for (int i = -1; i <= 1; i++)
+                        {
+                            for (int j = -1; j <= 1; j++)
+                            {
+                                int checkX = gx + j;
+                                int checkY = gy + i;
+                                int index = (i + 1) * 3 + (j + 1);
+
+                                // 边界检查
+                                if (checkX >= 0 && checkX < gridWidth && checkY >= 0 && checkY < gridHeight)
+                                {
+                                    surroundingFilled[index] = (gridFillState[checkX, checkY] == 2); // 只关注完全填充的网格
+                                }
+                            }
+                        }
+
+                        // 九宫格的顶点索引为 0, 2, 6, 8
+                        // 边中点索引为 1, 3, 5, 7
+
+                        // 确定32x32区块的起始坐标
+                        int blockStartX, blockStartY;
+
+                        // 检查顶点
+                        if (surroundingFilled[0]) // 左上角
+                        {
+                            blockStartX = (gx - 1) * 8;
+                            blockStartY = (gy - 1) * 8;
+                        }
+                        else if (surroundingFilled[2]) // 右上角
+                        {
+                            blockStartX = gx * 8;
+                            blockStartY = (gy - 1) * 8;
+                        }
+                        else if (surroundingFilled[6]) // 左下角
+                        {
+                            blockStartX = (gx - 1) * 8;
+                            blockStartY = gy * 8;
+                        }
+                        else if (surroundingFilled[8]) // 右下角
+                        {
+                            blockStartX = gx * 8;
+                            blockStartY = gy * 8;
+                        }
+                        // 检查边中点
+                        else if (surroundingFilled[1]) // 上边中点
+                        {
+                            blockStartX = gx * 8 - 16;
+                            blockStartY = (gy - 1) * 8;
+                        }
+                        else if (surroundingFilled[3]) // 左边中点
+                        {
+                            blockStartX = (gx - 1) * 8;
+                            blockStartY = gy * 8 - 16;
+                        }
+                        else if (surroundingFilled[5]) // 右边中点
+                        {
+                            blockStartX = gx * 8;
+                            blockStartY = gy * 8 - 16;
+                        }
+                        else if (surroundingFilled[7]) // 下边中点
+                        {
+                            blockStartX = gx * 8 - 16;
+                            blockStartY = gy * 8;
+                        }
+                        // 默认情况：当前网格的左上角
+                        else
+                        {
+                            blockStartX = gx * 8 - 16;
+                            blockStartY = gy * 8 - 16;
+                        }
+
+                        // 边界检查和调整
+                        blockStartX = Math.Max(0, Math.Min(width - 32, blockStartX));
+                        blockStartY = Math.Max(0, Math.Min(height - 32, blockStartY));
+
+                        // 绘制32x32的白色方块
+                        targetDC.DrawRectangle(Brushes.White, null, new Rect(blockStartX, blockStartY, 32, 32));
+                    }
+                    else if (gridFillState[gx, gy] == 2)
+                    {
+                        // 对于完全填充的网格，直接绘制8x8的白色方块
+                        targetDC.DrawRectangle(Brushes.White, null, new Rect(gx * 8, gy * 8, 8, 8));
+                    }
+                }
+            }
         }
 
         private void DelMaskBth_Click(object sender, RoutedEventArgs e)

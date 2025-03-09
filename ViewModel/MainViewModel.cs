@@ -119,7 +119,7 @@ namespace xianyun.ViewModel
         private readonly Dictionary<string, string> _reverseSamplingMethodMapping;
         private readonly Dictionary<string, string> _reverseEmotionMapping;
         public List<string> Emotions { get; set; } = new List<string>{"中立","开心","悲伤","愤怒","惊讶","厌恶","害怕","困惑","疲倦","兴奋","尴尬","害羞","得意","坚定","无聊","思考","紧张","大笑","恼火","激动","担忧","恋爱","痛苦","调皮"};
-        public List<string> Models { get; set; } = new List<string> { "nai-diffusion-4-curated-preview", "nai-diffusion-3", "nai-diffusion-furry-3" };
+        public List<string> Models { get; set; } = new List<string> { "nai-diffusion-4-full", "nai-diffusion-4-curated-preview", "nai-diffusion-3", "nai-diffusion-furry-3" };
         public List<string> SamplingMethods { get; set; } = new List<string> { "Euler", "Euler Ancestral", "DPM++ 2S Ancestral", "DPM++ SDE", "DPM++ 2M", "DDIM" };
         public List<string> Resolutions { get; set; } = new List<string> { "1024*1024", "1216*832", "832*1216" };
         public List<string> NoiseSchedules { get; set; } = new List<string> { "native", "karras", "exponential", "polyexponential" };
@@ -915,7 +915,7 @@ namespace xianyun.ViewModel
         // 图像点击事件的处理方法
         public void OnImageClicked(object sender, string base64Image)
         {
-            var bitmapFrame = Common.tools.ConvertBase64ToBitmapFrame(base64Image);
+            var bitmapFrame = Common.Tools.ConvertBase64ToBitmapFrame(base64Image);
             ImageViewerControl.ImageSource = bitmapFrame;
         }
 

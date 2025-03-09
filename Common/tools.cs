@@ -11,15 +11,21 @@ using System.Windows.Media;
 
 namespace xianyun.Common
 {
-    public class tools
+    public class Tools
     {
-        // 生成允许的分辨率列表
+        // 计算最大公约数
+        private static int GCD(int a, int b)
+        {
+            return b == 0 ? a : GCD(b, a % b);
+        }
+
+        // 生成允许的分辨率列表 - 使用优化算法，只保留每种比例下面积最大的尺寸
         public static List<(int, int)> GenerateAllowedResolutions()
         {
-            int maxProduct = 1048576;
+            int maxProduct = 1048576; // 1024 * 1024
             int maxValue = 2048;
             int step = 64;
-            var allowedResolutions = new List<(int, int)>();
+            var groups = new Dictionary<string, (int width, int height, int area)>();
 
             for (int width = step; width <= maxValue; width += step)
             {
@@ -28,32 +34,79 @@ namespace xianyun.Common
                     int product = width * height;
                     if (product <= maxProduct)
                     {
-                        allowedResolutions.Add((width, height));
-                        if (width != height)
+                        int normW = width / step;
+                        int normH = height / step;
+                        int d = GCD(normW, normH);
+                        string key = $"{normW / d}:{normH / d}";
+                        int area = width * height;
+
+                        if (!groups.ContainsKey(key) || area > groups[key].area)
                         {
-                            allowedResolutions.Add((height, width));
+                            groups[key] = (width, height, area);
                         }
                     }
                 }
             }
 
-            return allowedResolutions;
+            return groups.Values.Select(v => (v.width, v.height)).ToList();
         }
 
-        // 计算分辨率之间的欧几里得距离
-        private static double GetResolutionDistance((int, int) res1, (int, int) res2)
-        {
-            return Math.Sqrt(Math.Pow(res1.Item1 - res2.Item1, 2) + Math.Pow(res1.Item2 - res2.Item2, 2));
-        }
-
-        // 找到最接近的分辨率
+        // 找到最接近的分辨率 - 改用按比例选择最合适的
         private static (int, int) FindClosestResolution((int, int) currentResolution, List<(int, int)> allowedResolutions)
         {
-            return allowedResolutions
-                .OrderBy(res => GetResolutionDistance(currentResolution, res))
-                .First();
+            int origWidth = currentResolution.Item1;
+            int origHeight = currentResolution.Item2;
+            double inputRatio = (double)origWidth / origHeight;
+            double bestDiff = double.MaxValue;
+
+            // 找到比例差异最小的值
+            foreach (var (w, h) in allowedResolutions)
+            {
+                double diff = Math.Abs((double)w / h - inputRatio);
+                if (diff < bestDiff)
+                {
+                    bestDiff = diff;
+                }
+            }
+
+            // 找出所有比例差异最小的候选
+            var closestCandidates = allowedResolutions
+                .Where(res => Math.Abs((double)res.Item1 / res.Item2 - inputRatio) == bestDiff)
+                .ToList();
+
+            // 上采样：选择比原图大的、面积最大的候选
+            var upscaleCandidates = closestCandidates
+                .Where(res => res.Item1 >= origWidth && res.Item2 >= origHeight)
+                .ToList();
+
+            if (upscaleCandidates.Any())
+            {
+                return upscaleCandidates
+                    .OrderByDescending(res => res.Item1 * res.Item2)
+                    .First();
+            }
+
+            // 下采样：选择比原图小的、面积最大的候选
+            var downCandidates = closestCandidates
+                .Where(res => res.Item1 <= origWidth && res.Item2 <= origHeight)
+                .ToList();
+
+            if (downCandidates.Any())
+            {
+                return downCandidates
+                    .OrderByDescending(res => res.Item1 * res.Item2)
+                    .First();
+            }
+
+            // 如果都未命中，取比例最接近的第一个
+            return closestCandidates.First();
         }
 
+        /// <summary>
+        /// 验证分辨率是否合法，如果不合法，调整为最接近的合法分辨率
+        /// </summary>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
         public static void ValidateResolution(ref int width, ref int height)
         {
             // 定义允许的分辨率列表
@@ -76,6 +129,13 @@ namespace xianyun.Common
             }
         }
 
+        /// <summary>
+        /// 将 BitmapImage 转换为 Bitmap
+        /// </summary>
+        /// <param name="originalImage"></param>
+        /// <param name="targetWidth"></param>
+        /// <param name="targetHeight"></param>
+        /// <returns></returns>
         public static BitmapImage ResizeImage(BitmapImage originalImage, int targetWidth, int targetHeight)
         {
             // 创建目标尺寸的 DrawingVisual
