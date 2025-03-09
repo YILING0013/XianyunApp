@@ -28,4 +28,4 @@ XianyunApp 是一个基于 NovelAI 技术的图像生成软件，用于生成高
 欢迎提交问题和合并请求！请确保在提交前阅读我们的贡献指南。
 
 ## 许可证
-此项目使用 MIT 许可证，详见 [LICENSE](./LICENSE) 文件。
+此项目使用 GNU 许可证，详见 [LICENSE](./LICENSE) 文件。
