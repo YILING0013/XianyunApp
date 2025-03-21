@@ -65,7 +65,7 @@ namespace xianyun.ViewModel
         private string _negitivePrompt = "lowres, {bad}, error, fewer, extra, missing, worst quality, jpeg artifacts, bad quality, watermark, unfinished, displeasing, chromatic aberration, signature, extra digits, artistic error, username, scan, [abstract]";
         private string _emotionPrompt = null;
         private string _colorizePrompt = null;
-        public readonly string _secretKey = "XianyunWebSite";
+        public readonly string _secretKey = "naiImageGeneration";
         SolidColorBrush _SelectColor = Brushes.White;
         private int _brushHeight = 20;
         private int _brushWidth = 20;
